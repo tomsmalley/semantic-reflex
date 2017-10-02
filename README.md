@@ -1,61 +1,51 @@
-[![Build Status](https://travis-ci.org/reflex-frp/reflex-dom-semui.svg?branch=master)](https://travis-ci.org/reflex-frp/reflex-dom-semui)
+# Introduction
 
-This package provides a Reflex wrapper around the Semantic UI components.  It is very
-incomplete and was derived from [code written for
-hsnippet](https://github.com/mightybyte/hsnippet/blob/64cc17d2bf2bcce219f3ab8e96b7fd6071d5b56b/frontend/src/SemanticUI.hs).
-This is also intended to serve as an example of how to structure FFI packages
-that rely on external JS packages.
+This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the reflex-dom-semui library.
 
-To build this library locally use reflex-platform's work-on script as follows:
+## Building
 
-    ~/reflex-platform/work-on ghcjs ./reflex-dom-semui.nix
+To work on the library use nix-shell and cabal, or nix-build. For GHC:
 
-This puts you into a nix shell that has GHCJS and the environment it needs.
-Then you can build with:
+    $ nix-shell --attr env
+    [nix-shell]$ cabal new-configure --ghc
+    [nix-shell]$ cabal new-build
 
-    cabal configure --ghcjs
-    cabal build
+    $ nix-build
 
-Alternatively you can use default.nix to get into a nix-shell or build the
-project:
+And for GHCJS:
 
-    $ nix-shell --attr ghc.env
-    $ nix-shell --attr ghcjs.env
+    $ nix-shell --attr env --arg ghcjs true
+    [nix-shell]$ cabal new-configure --ghcjs
+    [nix-shell]$ cabal new-build
 
-    $ nix-build --attr ghc
-    $ nix-build --attr ghcjs
+    $ nix-build --arg ghcjs true
 
 reflex-platform is expected to be in `../reflex-platform`, if it is elsewhere
-you can pass `--arg reflex-platform /path/to/reflex-platform`.
+you can pass `--arg reflex-platform /path/to/reflex-platform`. All commands are
+expected to be executed from the projects root directory (where this readme is located).
 
 ---
 
-A compiled version of the code in the `example` folder is available in `docs/index.html` or online at https://reflex-frp.github.io/reflex-dom-semui/.
+A compiled version of the code in the `example` folder is available in `docs/index.html` or online at https://tomsmalley.github.io/semantic-reflex/.
 
-The example app can be run by ghc or ghcjs. For ghc:
+The example app can be run by GHC or GHCJS. For GHC it uses jsaddle-warp to run
+a warp server, this is useful for development:
 
-    $ nix-shell --attr ghc.env
-    $ cabal configure
-    $ cabal run
+    $ nix-shell --attr env
+    [nix-shell]$ cabal new-configure --ghc
+    [nix-shell]$ ghcid "--command=stack ghci --system-ghc example" "--test=Main.debug" --warnings
 
-This will print the url of the warp server where the app is running. For ghcjs:
+We use stack ghci to load multiple targets, so we don't have to reload ghci when
+working on the library and examples at the same time.
+This will print the url of the warp server where the app is running.
 
-    $ nix-build --attr ghcjs
-
-Navigate to `./result/bin/example.jsexe/index.html` to see the app.
+For compiling for GHCJS just run `make`, and the result will be copied into the
+`docs` folder.
 
 ---
 
 If you have changed the example and are submitting a pull request you should
-update the `docs` folder with the updated javascript. Build the example app with
-ghcjs and run `./makedocs.sh` to do this.
+update the `docs` folder with the updated javascript. Run `make` before
+committing!
 
 ---
-
-# Rapid development
-
-Once in a ghc nix-shell:
-```
-ghcid "--command=stack ghci --system-ghc example" "--test=Main.debug" --warnings
-```
-
