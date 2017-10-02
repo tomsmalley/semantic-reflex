@@ -1,0 +1,65 @@
+name:                example
+version:             0.1
+synopsis:            A reflex-dom API for semantic-ui components
+description:         This package provides a Reflex wrapper around the
+                     Semantic UI components. The goal is to make it fast
+                     and easy to build nice looking applications and make
+                     Semantic UI functionality a lot more discoverable.
+author:              Tom Smalley
+maintainer:          tfsmalley@gmail.com
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+extra-source-files:
+  styling.css
+
+library
+  hs-source-dirs: src
+
+  exposed-modules:
+    Example
+  other-modules: Example.StateEnum, Example.CountryEnum, Example.QQ
+
+  build-depends:
+      base            >= 4.8 && < 4.10
+    , bytestring
+    , file-embed      >= 0.0.10 && < 0.1
+    --, ghcjs-dom
+    , jsaddle         >= 0.8.0.0 && < 0.10
+    , lens            >= 4.15.2
+    , mtl
+    , reflex-dom-core >= 0.4 && < 0.5
+    , semantic-reflex
+    , text
+
+    -- For example code generation
+    , ghc-prim
+    , haskell-src-exts
+    , haskell-src-meta
+    , hscolour
+    , template-haskell
+
+  if impl(ghcjs)
+    build-depends: ghcjs-base
+
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-orphans
+--  cpp-options: -D_GHCJS_ -DGHCJS_GC_INTERVAL=60000
+
+  default-language:    Haskell2010
+
+executable example
+  main-is: Main.hs
+  hs-source-dirs: .
+  default-language: Haskell2010
+  build-depends:
+      base            >= 4.8 && < 4.10
+    , example
+  if !impl(ghcjs)
+    build-depends:
+        semantic-reflex
+      , bytestring
+      , file-embed
+  ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2 -fno-warn-unused-do-bind
+  if impl(ghcjs)
+    ghc-options: -dedupe

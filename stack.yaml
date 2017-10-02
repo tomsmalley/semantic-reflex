@@ -1,0 +1,5 @@
+resolver: ghc-8.0.2
+
+packages:
+- location: semantic-reflex
+- location: example
