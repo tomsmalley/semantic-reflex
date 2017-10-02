@@ -30,11 +30,11 @@ instance ToClassText ImageRounded where
   toClassText Circular = "circular"
 
 data ImageConfig t = ImageConfig
-  { _size :: Dynamic t (Maybe Size)
-  , _rounded :: Dynamic t (Maybe ImageRounded)
-  , _avatar :: Dynamic t Bool
-  , _floated :: Dynamic t (Maybe Floated)
-  , _hidden :: Dynamic t Bool
+  { _size :: Active t (Maybe Size)
+  , _rounded :: Active t (Maybe ImageRounded)
+  , _avatar :: Active t Bool
+  , _floated :: Active t (Maybe Floated)
+  , _hidden :: Active t Bool
   , _component :: Bool
   }
 
@@ -51,7 +51,7 @@ instance Reflex t => Default (ImageConfig t) where
 instance ToPart (Image t) where
   toPart (Image src config) = Image src $ config { _component = True }
 
-imageConfigClasses :: Reflex t => ImageConfig t -> Dynamic t ClassText
+imageConfigClasses :: Reflex t => ImageConfig t -> Active t ClassText
 imageConfigClasses ImageConfig {..} = mconcat
   [ toClassText <$> _size
   , toClassText <$> _rounded
@@ -61,14 +61,14 @@ imageConfigClasses ImageConfig {..} = mconcat
   ]
 
 data Image t = Image
-  { _src :: Dynamic t Text
+  { _src :: Active t Text
   , _config :: ImageConfig t
   }
 
 instance t ~ t' => UI t' m (Image t) where
   type Return t' m (Image t) = ()
   ui' (Image src config@ImageConfig {..})
-    = elDynAttr' "img" (mkAttrs <$> src <*> imageConfigClasses config) blank
+    = elActiveAttr' "img" (mkAttrs <$> src <*> imageConfigClasses config) blank
     where
       mkAttrs s c = "src" =: s <> "class" =:
         getClass (if _component then  c else mconcat ["ui", "image", c])

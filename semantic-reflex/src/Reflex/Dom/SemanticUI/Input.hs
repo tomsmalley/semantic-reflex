@@ -1,28 +1,18 @@
-{-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DuplicateRecordFields    #-}
-{-# LANGUAGE CPP                      #-}
-{-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE JavaScriptFFI            #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE RecursiveDo              #-}
-{-# LANGUAGE ScopedTypeVariables      #-}
 {-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE UndecidableInstances     #-}
 
 module Reflex.Dom.SemanticUI.Input where
 
-import           Data.Default
-import           Data.Maybe
-import           Data.Monoid
-import           Data.Text (Text)
-import qualified Data.Text as T
-import           Reflex.Dom.Core hiding (Input, fromJSString)
-import           Reflex.Dom.SemanticUI.Common
-import           Reflex.Dom.SemanticUI.Icon
+import Data.Default
+import Data.Monoid
+import Data.Text (Text)
+import Reflex.Dom.Core hiding (Input, fromJSString)
+import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Icon
 
 data Input t = Input
   { _config :: InputConfig t
@@ -44,7 +34,7 @@ instance Default (InputConfig t) where
 inputConfigClasses :: Reflex t => InputConfig t -> Active t ClassText
 inputConfigClasses InputConfig {..} = mconcat
   [ memptyUnless "disabled" <$> _disabled
-  , case _icon of NeverRender -> mempty; RenderWhen {} -> "icon"
+  , if isNeverRender _icon then mempty else "icon"
   ]
 
 data InputResult t = InputResult

@@ -15,6 +15,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving     #-}
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE GADTs     #-}
+{-# LANGUAGE LambdaCase     #-}
 
 module Reflex.Dom.SemanticUI.Common where
 
@@ -22,13 +26,14 @@ module Reflex.Dom.SemanticUI.Common where
 import           Control.Lens ((^.), set, ASetter)
 import           Control.Monad (void)
 import Data.Default
+import Data.Kind (Type)
 import Data.String
 import Data.Semigroup
 import Data.Map (Map)
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Language.Javascript.JSaddle
-import           Reflex.Dom.Core
+import           Reflex.Dom.Core hiding (Link)
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
@@ -165,6 +170,10 @@ activeText :: (PostBuild t m, DomBuilder t m) => Active t Text -> m ()
 activeText (Static t) = text t
 activeText (Dynamic t) = dynText t
 
+activeMaybe :: (PostBuild t m, DomBuilder t m) => (a -> m ()) -> Active t (Maybe a) -> m ()
+activeMaybe f (Static ma) = maybe blank f ma
+activeMaybe f (Dynamic dma) = void $ dyn $ maybe blank f <$> dma
+
 runActive :: (MonadWidget t m, UI t m a) => Active t a -> m ()
 runActive (Dynamic a) = void $ dyn $ ui_ <$> a
 runActive (Static a) = ui_ a
@@ -209,10 +218,21 @@ class ToPart a where
 
 ---------
 
+class ToInline a where
+  toInline :: a -> a
+
+--class (ToInline a, UI t m a) => InlineContent t m a where
+--  putInline' :: MonadWidget t m => a -> m (El t, Return t m a)
+--  putInline' = ui' . toInline
+
 data RenderWhen t a
   = NeverRender
   | AlwaysRender a
   | RenderWhen (Dynamic t Bool) a
+
+isNeverRender :: RenderWhen t a -> Bool
+isNeverRender NeverRender = True
+isNeverRender _ = False
 
 instance Reflex t => Default (RenderWhen t a) where
   def = NeverRender
@@ -235,6 +255,19 @@ runRenderWhen render (RenderWhen when widget) = do
     f :: Bool -> Maybe (m (El t, Return t m a))
     f False = Nothing
     f True = Just $ render widget
+
+
+type family Append (as :: [Type]) (bs :: [Type]) :: [Type] where
+  Append '[] bs = bs
+  Append (a ': as) bs = a ': (Append as bs)
+
+class HListAppend as bs where
+  hlistAppend :: HList as -> HList bs -> HList (Append as bs)
+
+instance HListAppend '[] bs where
+  hlistAppend HNil bs = bs
+instance (Append (a ': as) bs ~ (a ': Append as bs), HListAppend as bs) => HListAppend (a ': as) bs where
+  hlistAppend (a `HCons` as) bs = a `HCons` hlistAppend as bs
 
 ---------
 
@@ -286,6 +319,16 @@ instance ToClassText HorizontalAttached where
 combineAttached :: Maybe VerticalAttached -> Maybe HorizontalAttached -> ClassText
 combineAttached Nothing Nothing = mempty
 combineAttached mv mh = mconcat [ toClassText mv, toClassText mh, "attached" ]
+
+
+data Aligned = LeftAligned | CenterAligned | RightAligned | Justified
+  deriving (Eq, Show)
+
+instance ToClassText Aligned where
+  toClassText LeftAligned = "left aligned"
+  toClassText CenterAligned = "center aligned"
+  toClassText RightAligned = "right aligned"
+  toClassText Justified = "justified"
 
 data Color
   = Red

@@ -29,7 +29,7 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import Data.These
 import           Reflex
-import           Reflex.Dom.Core hiding (Dropdown(..), DropdownConfig(..), Link, value, Select)
+import           Reflex.Dom.Core hiding (Dropdown(..), DropdownConfig(..), MenuLink, value, Select)
 import Data.Align
 
 import Reflex.Dom.SemanticUI.Icon
@@ -82,22 +82,22 @@ menuConfigClasses MenuConfig {..} = mconcat
 --  , justWhen _link "link"
   [ toClassText _size
   , memptyUnless "vertical" _vertical
-  , memptyUnless "vertical" _fluid
-  , memptyUnless "vertical" _textContent
+  , memptyUnless "fluid" _fluid
+  , memptyUnless "text" _textContent
   , toClassText _floated
 --  , uiText <$> _color
   , ClassText _customMenu
   ]
 
-data Link
-  = Link Text -- ^ A real link
+data MenuLink
+  = MenuLink Text -- ^ A real link
   | StyleLink -- ^ A div formatted like a link
   | NoLink    -- ^ Not a link
   deriving (Eq, Show)
 
 data MenuItemConfig t m = MenuItemConfig
   { _color :: Maybe Color
-  , _link :: Link
+  , _link :: MenuLink
   , _render :: Maybe (Dynamic t (m ())) -- Extra arbitrary content
   , _icon :: Maybe (Icon t)
   , _label :: Maybe (Label t)
@@ -134,18 +134,6 @@ data MenuItems t m a (xs :: [Type]) where
   RightMenu :: HListAppend ys xs => MenuItems t m a ys -> MenuItems t m a xs -> MenuItems t m a (ys `Append` xs)
   -- | Dropdown menu
   DropdownMenu :: Text -> [DropdownItem t m a] -> MenuItems t m a xs -> MenuItems t m a xs
-
-type family Append (as :: [Type]) (bs :: [Type]) :: [Type] where
-  Append '[] bs = bs
-  Append (a ': as) bs = a ': (Append as bs)
-
-class HListAppend as bs where
-  hlistAppend :: HList as -> HList bs -> HList (Append as bs)
-
-instance HListAppend '[] bs where
-  hlistAppend HNil bs = bs
-instance (Append (a ': as) bs ~ (a ': Append as bs), HListAppend as bs) => HListAppend (a ': as) bs where
-  hlistAppend (a `HCons` as) bs = a `HCons` hlistAppend as bs
 
 {-
 
@@ -215,7 +203,7 @@ renderItems allItems currentValue = go False allItems
 
     itemElAttrs :: MenuItemConfig t m -> (Text, Map Text Text)
     itemElAttrs conf@MenuItemConfig{..} = case _link of
-      Link href -> ("a", "href" =: href <> "class" =: getClass classes)
+      MenuLink href -> ("a", "href" =: href <> "class" =: getClass classes)
       _ -> ("div", "class" =: getClass classes)
       where classes = mconcat ["item", menuItemConfigClasses conf]
 

@@ -19,7 +19,18 @@ library
 
   exposed-modules:
     Example
-  other-modules: Example.StateEnum, Example.CountryEnum, Example.QQ
+  other-modules:
+      Example.StateEnum
+    , Example.CountryEnum
+    , Example.QQ
+    , Example.Section.Checkbox
+    , Example.Section.Dropdown
+    , Example.Section.Flag
+    , Example.Section.Header
+    , Example.Section.Icon
+    , Example.Section.Label
+    , Example.Section.Menu
+    , Example.Section.RadioGroup
 
   build-depends:
       base            >= 4.8 && < 4.10
@@ -43,7 +54,7 @@ library
   if impl(ghcjs)
     build-depends: ghcjs-base
 
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-orphans
+  ghc-options: -Wall -Wno-unused-do-bind -Wno-type-defaults
 --  cpp-options: -D_GHCJS_ -DGHCJS_GC_INTERVAL=60000
 
   default-language:    Haskell2010
@@ -60,6 +71,6 @@ executable example
         semantic-reflex
       , bytestring
       , file-embed
-  ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2 -fno-warn-unused-do-bind
+  ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
   if impl(ghcjs)
     ghc-options: -dedupe

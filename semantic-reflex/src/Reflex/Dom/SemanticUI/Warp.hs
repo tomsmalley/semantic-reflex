@@ -64,6 +64,7 @@ makeHead css = do
   jquery <- document ^. js1 "createElement" "script"
   jquery ^. jss "src" "js/jquery.min.js"
   void $ document ^. js "head" ^. js1 "appendChild" jquery
+  syncPoint
 
   semantic <- document ^. js1 "createElement" "script"
   semantic ^. jss "src" "js/semantic.min.js"

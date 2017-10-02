@@ -25,37 +25,76 @@ import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Image
 import Reflex.Dom.SemanticUI.Common
 
-data HeaderConfig t m = HeaderConfig
-  { _image :: Maybe (Image t)
-  , _icon :: Maybe (Icon t)
-  , _subHeader :: Maybe (m ())
-  , _header :: HeaderType
-  , _dividing :: Bool
-  , _floated :: Maybe Floated
-  , _item :: Bool
-  , _component :: Bool -- This is the "ui" (component) class
-  , _attributes :: Map Text Text
+data HeaderConfig t = HeaderConfig
+  { _subHeader    :: Active t (Maybe Text)
+
+  , _iconHeader   :: Active t Bool
+  , _dividing     :: Active t Bool
+  , _sub          :: Active t Bool
+  , _disabled     :: Active t Bool
+  , _block        :: Active t Bool
+  , _inverted     :: Active t Bool
+  , _attached     :: Active t Bool
+
+  , _image        :: RenderWhen t (Image t)
+  , _icon         :: RenderWhen t (Icon t)
+
+  , _floated      :: Active t (Maybe Floated)
+  , _aligned      :: Active t (Maybe Aligned)
+  , _color        :: Active t (Maybe Color)
+  , _attachedSide :: Active t (Maybe VerticalAttached)
+
+  , _attributes   :: Active t (Map Text Text)
+
+  , _component    :: Bool -- This is the "ui" (component) class
+  , _item         :: Bool
+  , _header       :: HeaderType
   }
 
-instance Default (HeaderConfig t m) where
+instance Default (HeaderConfig t) where
   def = HeaderConfig
-    { _image = Nothing
-    , _icon = Nothing
-    , _subHeader = Nothing
-    , _header = PageHeader
-    , _dividing = False
-    , _floated = Nothing
-    , _item = False
+    { _subHeader = Static Nothing
+
+    , _iconHeader = Static False
+    , _dividing = Static False
+    , _sub = Static False
+    , _disabled = Static False
+    , _block = Static False
+    , _inverted = Static False
+    , _attached = Static False
+
+    , _image = NeverRender
+    , _icon = NeverRender
+
+    , _floated = Static Nothing
+    , _aligned = Static Nothing
+    , _color = Static Nothing
+    , _attachedSide = Static Nothing
+
+    , _attributes = Static mempty
+
     , _component = True
-    , _attributes = mempty
+    , _item = False
+    , _header = PageHeader
     }
 
-headerConfigClasses :: HeaderConfig t m -> ClassText
+headerConfigClasses :: Reflex t => HeaderConfig t -> Active t ClassText
 headerConfigClasses HeaderConfig {..} = mconcat
-  [ memptyUnless "dividing" _dividing
-  , memptyUnless "item" _item
+  [ memptyUnless "icon" <$> _iconHeader
+  , memptyUnless "dividing" <$> _dividing
+  , memptyUnless "sub" <$> _sub
+  , memptyUnless "disabled" <$> _disabled
+  , memptyUnless "block" <$> _block
+  , memptyUnless "inverted" <$> _inverted
+  , memptyUnless "attached" <$> _attached -- FIXME requires two settings
+
+  , toClassText <$> _floated
+  , toClassText <$> _aligned
+  , toClassText <$> _color
+  , toClassText <$> _attachedSide -- FIXME requires two settings
+
   , memptyUnless "ui" _component
-  , toClassText _floated
+  , memptyUnless "item" _item
   ]
 
 data HeaderType = PageHeader | ContentHeader
@@ -76,16 +115,16 @@ headerSize H3 = "medium"
 headerSize H4 = "small"
 headerSize H5 = "tiny"
 
-data Paragraph = Paragraph
-  { _text :: Text
+data Paragraph m a = Paragraph
+  { _content :: m a
   }
 
-instance ToPart Paragraph where
+instance ToPart (Paragraph m a) where
   toPart = id
 
-instance UI t m Paragraph where
-  type Return t m Paragraph = ()
-  ui' (Paragraph txt) = el' "p" $ text txt
+instance m ~ m' => UI t m' (Paragraph m a) where
+  type Return t m' (Paragraph m a) = a
+  ui' (Paragraph content) = el' "p" content
 
 -- | Create a header.
 --
@@ -93,7 +132,7 @@ instance UI t m Paragraph where
 data Header t m a = Header
   { _size :: HeaderSize
   , _content :: m a
-  , _config :: HeaderConfig t m
+  , _config :: HeaderConfig t
   }
 
 instance ToItem (Header t m a) where
@@ -112,22 +151,23 @@ instance m ~ m' => UI t m' (Anchor m a) where
     (a, b) <- elAttr' "a" ("href" =: href <> "class" =: "ui anchor") inner
     return (a, (domEvent Click a, b))
 
-instance (t ~ t', m ~ m') => UI t' m' (Header t m a) where
+instance (m ~ m', t ~ t') => UI t' m' (Header t m a) where
   type Return t' m' (Header t m a) = a
   ui' (Header size widget config@HeaderConfig {..}) = case _header of
-    PageHeader -> elAttr' (headerSizeEl size) attrs iContent
-      where attrs = "class" =: getClass classes <> _attributes
-    ContentHeader -> elAttr' "div" attrs iContent
-      where attrs = "class" =: getClass (headerSize size <> classes) <> _attributes
+    PageHeader -> elActiveAttr' (headerSizeEl size) attrs content
+      where
+        attrs = mkAttrs <$> classes <*> _attributes
+        mkAttrs c a = "class" =: getClass c <> a
+    ContentHeader -> elActiveAttr' "div" attrs content
+      where
+        attrs = mkAttrs <$> classes <*> _attributes
+        mkAttrs c a = "class" =: getClass (c <> headerSize size) <> a
     where
       classes = mconcat ["header", headerConfigClasses config]
-      iContent
-        | Just img <- _image = ui img >> content
-        | Just icon <- _icon = ui icon >> content
-        | otherwise = content
-      content
-        | Just sub <- _subHeader = divClass "content" $ do
-            a <- widget
-            divClass "sub header" sub
-            return a
-        | otherwise = divClass "content" widget
+      content = do
+        runRenderWhen ui' _image
+        runRenderWhen ui' _icon
+        divClass "content" $ do
+          a <- widget
+          activeMaybe (divClass "sub header" . text) _subHeader
+          return a

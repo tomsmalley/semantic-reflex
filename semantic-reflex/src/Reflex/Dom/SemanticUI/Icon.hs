@@ -50,6 +50,7 @@ data IconConfig t = IconConfig
   , _link :: Active t Bool
   , _floated :: Active t (Maybe Floated)
   , _title :: Active t (Maybe Text)
+  , _circular :: Active t Bool
 --  , _flipped :: Bool
 --  , _rotated :: Bool
 --  , _circular :: Bool
@@ -67,6 +68,7 @@ instance Reflex t => Default (IconConfig t) where
     , _link = pure False
     , _floated = pure Nothing
     , _title = pure Nothing
+    , _circular = pure False
     , _inverted = pure False
     , _color = pure Nothing
     }
@@ -77,6 +79,7 @@ iconConfigClasses IconConfig {..} = mconcat
   , memptyUnless "loading" <$> _loading
   , memptyUnless "fitted" <$> _fitted
   , memptyUnless "link" <$> _link
+  , memptyUnless "circular" <$> _circular
   , memptyUnless "inverted" <$> _inverted
   , toClassText . nothingIf Medium <$> _size
   , toClassText <$> _floated
