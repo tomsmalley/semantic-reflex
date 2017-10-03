@@ -35,23 +35,23 @@ instance ToClassText Ribbon where
   toClassText RightRibbon = "right ribbon"
 
 data Label t = Label
-  { _text :: Dynamic t Text
+  { _text :: Active t Text
   , _config :: LabelConfig t
   }
 
 data LabelConfig t = LabelConfig
-  { _vAttached :: Dynamic t (Maybe VerticalAttached)
-  , _hAttached :: Dynamic t (Maybe HorizontalAttached)
-  , _color :: Dynamic t (Maybe Color)
-  , _pointing :: Dynamic t (Maybe Pointing)
-  , _ribbon :: Dynamic t (Maybe Ribbon)
+  { _vAttached :: Active t (Maybe VerticalAttached)
+  , _hAttached :: Active t (Maybe HorizontalAttached)
+  , _color :: Active t (Maybe Color)
+  , _pointing :: Active t (Maybe Pointing)
+  , _ribbon :: Active t (Maybe Ribbon)
   , _leftIcon :: RenderWhen t (Icon t)
   , _rightIcon :: RenderWhen t (Icon t)
   , _image :: RenderWhen t (Image t)
-  , _imageFocus :: Dynamic t Bool
-  , _hidden :: Dynamic t Bool
-  , _basic :: Dynamic t Bool
-  , _detail :: Dynamic t (Maybe Text)
+  , _imageFocus :: Active t Bool
+  , _hidden :: Active t Bool
+  , _basic :: Active t Bool
+  , _detail :: Active t (Maybe Text)
   , _link :: Bool
   }
 
@@ -76,7 +76,7 @@ maybeToList :: Maybe a -> [a]
 maybeToList Nothing = []
 maybeToList (Just a) = [a]
 
-labelConfigClasses :: Reflex t => LabelConfig t -> Dynamic t ClassText
+labelConfigClasses :: Reflex t => LabelConfig t -> Active t ClassText
 labelConfigClasses LabelConfig {..} = mconcat
   [ combineAttached <$> _vAttached <*> _hAttached
   , toClassText <$> _color
@@ -107,12 +107,12 @@ instance (t ~ t') => UI t' m (Label t) where
 
   ui' (Label txt config@LabelConfig {..}) = do
     (e, (imageResult, leftIconResult, rightIconResult)) <-
-      elDynAttr' elType (fmap attrs $ labelConfigClasses config) $ do
+      elActiveAttr' elType (fmap attrs $ labelConfigClasses config) $ do
         imageResult <- runRenderWhen part' _image
         leftIconResult <- runRenderWhen ui' _leftIcon
-        dynText txt
+        activeText txt
         rightIconResult <- runRenderWhen ui' _rightIcon
-        _ <- dyn $ maybe blank (divClass "detail" . text) <$> _detail
+        activeMaybe (divClass "detail" . text) _detail
         return (imageResult, leftIconResult, rightIconResult)
     return $ (e, LabelResult
       { _leftIcon = leftIconResult

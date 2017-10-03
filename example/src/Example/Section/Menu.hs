@@ -159,25 +159,23 @@ menu = LinkedSection "Menu" "A menu displays grouped navigation actions" $ do
     return $ (,) <$> (selected :: Dynamic t (Maybe Text)) <*> search ^. value
   |]
 
---  exampleCardDyn id "Vertical Menu" "A vertical menu displays elements vertically" [mkExample|
---  \resetEvent -> do
-  resetEvent <- ui $ Button "ser" def
-  do
+  exampleCardDyn id "Vertical Menu" "A vertical menu displays elements vertically" [mkExample|
+  \resetEvent -> do
     let counter txt = let widget = count <=< ui $ Button (Static txt) def :: m (Dynamic t Int)
                       in join <$> widgetHold widget (widget <$ resetEvent)
     inboxCount <- counter "Add inbox item"
     spamCount <- counter "Add spam item"
     updatesCount <- counter "Add updates item"
-    let mkLabel dNum conf = Label (T.pack . show <$> dNum) $ def
+    let mkLabel dNum conf = Label (Dynamic $ T.pack . show <$> dNum) $ def
           & leftIcon .~ RenderWhen ((>=5) <$> dNum) (Icon "mail" def)
-          & hidden .~ fmap (<= 0) dNum
+          & hidden .~ Dynamic (fmap (<= 0) dNum)
           & conf
-          & color %~ zipDynWith (\a b -> if a >= 10 then Just Red else b) dNum
+          & color %~ zipActiveWith (\a b -> if a >= 10 then Just Red else b) (Dynamic dNum)
     (selected, search `HCons` HNil) <- ui $ Menu
       ( MenuItem ("inbox" :: Text) "Inbox"
           (def & color ?~ Teal
                & label ?~ mkLabel inboxCount
-                  (\x -> x & color .~ pure (Just Teal) & pointing .~ pure (Just LeftPointing)))
+                  (\x -> x & color |?~ Teal & pointing |?~ LeftPointing))
       $ MenuItem "spam" "Spam" (def & label ?~ mkLabel spamCount id)
       $ MenuItem "updates" "Updates"
           (def & label ?~ mkLabel updatesCount (\x -> x & basic .~ pure True & color .~ pure (Just Black) & leftIcon .~ AlwaysRender (Icon "announcement" def)))
@@ -189,23 +187,7 @@ menu = LinkedSection "Menu" "A menu displays grouped navigation actions" $ do
               & initialValue ?~ "Inbox"
               & vertical .~ True
     return $ (,) <$> selected <*> search ^. value
---  |]
-
-  rec
-    (eLabel, LabelResult {..}) <- ui' $ Label "test" $ def
-      & leftIcon .~ RenderWhen ((>3) <$> labelClicked) (Icon "user" $ def & size |?~ Huge)
-      & link .~ True
-    labelClicked <- count $ domEvent Click eLabel
-    iconClicked <- count . switch . current $ fmap (maybe never $ domEvent Click . fst) _leftIcon
-
-  el "p" $ do
-    text "The label has been clicked: "
-    display labelClicked
-    text " times."
-  el "p" $ do
-    text "The icon has been clicked: "
-    display iconClicked
-    text " times."
+  |]
 
   return ()
 

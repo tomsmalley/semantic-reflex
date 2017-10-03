@@ -80,6 +80,15 @@ library
 --      lib/semantic.min.js
 --    , lib/jquery-3.2.1.min.js
 
+test-suite test
+  type: exitcode-stdio-1.0
+  main-is: test.hs
+  hs-source-dirs: test
+  ghc-options: -O2 -Wall
+  build-depends:
+      base
+    , semantic-reflex
+
 benchmark bench
   main-is: Main.hs
   hs-source-dirs: bench

@@ -130,24 +130,24 @@ active f _ (Static a) = f a
 active _ f (Dynamic a) = f a
 
 instance Reflex t => Functor (Active t) where
-  fmap f (Static a) = Static (f a)
-  fmap f (Dynamic a) = Dynamic (fmap f a)
+  fmap f (Static a)  = Static  $ f a
+  fmap f (Dynamic a) = Dynamic $ fmap f a
 
 instance Reflex t => Applicative (Active t) where
   pure a = Static a
-  Static f <*> Static a = Static (f a)
-  Dynamic f <*> Dynamic a = Dynamic (f <*> a)
-  Static f <*> Dynamic a = Dynamic (f <$> a)
-  Dynamic f <*> Static a = Dynamic (($ a) <$> f)
+  Static f  <*> Static a  = Static  $ f a
+  Static f  <*> Dynamic a = Dynamic $ f <$> a
+  Dynamic f <*> Static a  = Dynamic $ fmap ($ a) f
+  Dynamic f <*> Dynamic a = Dynamic $ f <*> a
 
 instance IsString a => IsString (Active t a) where
   fromString = Static . fromString
 
 instance (Reflex t, Semigroup a) => Semigroup (Active t a) where
-  Static a <> Static b = Static (a <> b)
-  Static a <> Dynamic b = Dynamic ((a <>) <$> b)
-  Dynamic a <> Static b = Dynamic ((<> b) <$> a)
-  Dynamic a <> Dynamic b = Dynamic (zipDynWith (<>) a b)
+  Static a  <> Static b  = Static  $ a <> b
+  Static a  <> Dynamic b = Dynamic $ fmap (a <>) b
+  Dynamic a <> Static b  = Dynamic $ fmap (<> b) a
+  Dynamic a <> Dynamic b = Dynamic $ zipDynWith (<>) a b
 
 instance (Reflex t, Monoid a, Semigroup a) => Monoid (Active t a) where
   mempty = Static mempty
@@ -178,6 +178,8 @@ runActive :: (MonadWidget t m, UI t m a) => Active t a -> m ()
 runActive (Dynamic a) = void $ dyn $ ui_ <$> a
 runActive (Static a) = ui_ a
 
+zipActiveWith :: Reflex t => (a -> b -> c) -> Active t a -> Active t b -> Active t c
+zipActiveWith f a b = f <$> a <*> b
 
 
 instance Reflex t => IsString (Dynamic t Text) where

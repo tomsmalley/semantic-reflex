@@ -24,7 +24,7 @@ module Reflex.Dom.SemanticUI
 import           Data.ByteString
 import           Reflex.Dom.SemanticUI.Button
 import           Reflex.Dom.SemanticUI.Checkbox
-import           Reflex.Dom.SemanticUI.Common (tshow, Color (..), Size (..), ui, ui', ui_, Floated(..), Part (..), part, jQuery, consoleLog, consoleTime, consoleTimeEnd, catchJS, Active (..), RenderWhen(..), (|~), (|?~), HorizontalAttached (..), VerticalAttached (..), ExclusiveAttached(..), Aligned(..))
+import           Reflex.Dom.SemanticUI.Common (tshow, Color (..), Size (..), ui, ui', ui_, Floated(..), Part (..), part, jQuery, consoleLog, consoleTime, consoleTimeEnd, catchJS, Active (..), RenderWhen(..), (|~), (|?~), HorizontalAttached (..), VerticalAttached (..), ExclusiveAttached(..), Aligned(..), zipActiveWith)
 import           Reflex.Dom.SemanticUI.Dropdown
 import           Reflex.Dom.SemanticUI.Header
 import           Reflex.Dom.SemanticUI.Icon

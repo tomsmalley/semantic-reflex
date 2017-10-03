@@ -1,7 +1,8 @@
 { mkDerivation, base, bytestring, containers, data-default
 , file-embed, ghcjs-dom, jsaddle, lens, mtl, reflex
-, reflex-dom-core, stdenv, text, these, jsaddle-warp, wai-app-static, warp,
-websockets, ghcjs
+, QuickCheck, hspec
+, reflex-dom-core, stdenv, text, these, jsaddle-warp, wai-app-static, warp
+, websockets, ghcjs
 }:
 mkDerivation {
   pname = "semantic-reflex";
@@ -9,7 +10,7 @@ mkDerivation {
   src = ./.;
   buildDepends = [
     base bytestring containers data-default file-embed ghcjs-dom
-    jsaddle lens mtl reflex reflex-dom-core text these
+    hspec jsaddle lens mtl QuickCheck reflex reflex-dom-core text these
   ] ++ (if ghcjs then [
   ] else [
     jsaddle-warp
