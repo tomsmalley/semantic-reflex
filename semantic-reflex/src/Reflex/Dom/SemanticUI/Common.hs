@@ -297,7 +297,8 @@ instance ToClassText Floated where
   toClassText LeftFloated = "left floated"
   toClassText RightFloated = "right floated"
 
-data Size = Mini | Tiny | Small | Medium | Large | Big | Huge | Massive deriving (Eq, Show)
+data Size = Mini | Tiny | Small | Medium | Large | Big | Huge | Massive
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
 instance ToClassText Size where
   toClassText Mini = "mini"
@@ -318,20 +319,26 @@ data ExclusiveAttached
   deriving (Eq, Show)
 
 instance ToClassText ExclusiveAttached where
-  toClassText (Horizontally h) = "attached" <> toClassText h
-  toClassText (Vertically v) = "attached" <> toClassText v
+  toClassText (Horizontally h) = toClassText h
+  toClassText (Vertically v) = toClassText v
 
 instance ToClassText VerticalAttached where
-  toClassText TopAttached = "top"
-  toClassText BottomAttached = "bottom"
+  toClassText TopAttached = "top attached"
+  toClassText BottomAttached = "bottom attached"
 
 instance ToClassText HorizontalAttached where
-  toClassText LeftAttached = "left"
-  toClassText RightAttached = "right"
+  toClassText LeftAttached = "left attached"
+  toClassText RightAttached = "right attached"
 
 combineAttached :: Maybe VerticalAttached -> Maybe HorizontalAttached -> ClassText
 combineAttached Nothing Nothing = mempty
-combineAttached mv mh = mconcat [ toClassText mv, toClassText mh, "attached" ]
+combineAttached mv mh = mconcat
+  [ ClassText $ vClass <$> mv, ClassText $ hClass <$> mh, "attached" ]
+  where
+    vClass TopAttached = "top"
+    vClass BottomAttached = "bottom"
+    hClass LeftAttached = "left"
+    hClass RightAttached = "right"
 
 
 data Aligned = LeftAligned | CenterAligned | RightAligned | Justified
@@ -344,20 +351,9 @@ instance ToClassText Aligned where
   toClassText Justified = "justified"
 
 data Color
-  = Red
-  | Orange
-  | Yellow
-  | Olive
-  | Green
-  | Teal
-  | Blue
-  | Violet
-  | Purple
-  | Pink
-  | Brown
-  | Grey
-  | Black
-  deriving (Eq,Ord,Read,Show,Enum,Bounded)
+  = Red | Orange | Yellow | Olive | Green | Teal | Blue | Violet | Purple
+  | Pink | Brown | Grey | Black
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
 instance ToClassText Color where
   toClassText Red = "red"

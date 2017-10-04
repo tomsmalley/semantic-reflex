@@ -18,6 +18,7 @@ import Reflex.Dom.SemanticUI.Input
 import Reflex.Dom.SemanticUI.Image
 import Reflex.Dom.SemanticUI.Label
 import Reflex.Dom.SemanticUI.Menu
+import Reflex.Dom.SemanticUI.Message
 
 $(makeFieldsNoPrefix ''Button)
 $(makeFieldsNoPrefix ''ButtonConfig)
@@ -49,4 +50,8 @@ $(makeFieldsNoPrefix ''HeaderConfig)
 
 $(makeFieldsNoPrefix ''MenuConfig)
 $(makeFieldsNoPrefix ''MenuItemConfig)
+
+$(makeFieldsNoPrefix ''Message)
+-- $(makeFieldsNoPrefix ''MessageResult)
+$(makeFieldsNoPrefix ''MessageConfig)
 

@@ -42,6 +42,7 @@ library
     Reflex.Dom.SemanticUI.Label
     Reflex.Dom.SemanticUI.Lenses
     Reflex.Dom.SemanticUI.Menu
+    Reflex.Dom.SemanticUI.Message
     Reflex.Dom.SemanticUI.Modal
     Reflex.Dom.SemanticUI.RadioGroup
   if !impl(ghcjs)

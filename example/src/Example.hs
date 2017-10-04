@@ -35,6 +35,7 @@ import Example.Section.Header
 import Example.Section.Icon (icons)
 import Example.Section.Label (labels)
 import Example.Section.Menu (menu)
+import Example.Section.Message (messages)
 import Example.Section.RadioGroup (radioGroups)
 
 data Favourite
@@ -155,5 +156,5 @@ example = mainWidget $ do
         text "GitHub"
       return ()
 
-  putSections [ checkboxes, dropdowns, flags, headers, icons, labels, menu, radioGroups ]
+  putSections [ checkboxes, dropdowns, flags, headers, icons, labels, menu, messages, radioGroups ]
 

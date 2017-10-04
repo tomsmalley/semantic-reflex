@@ -30,6 +30,7 @@ library
     , Example.Section.Icon
     , Example.Section.Label
     , Example.Section.Menu
+    , Example.Section.Message
     , Example.Section.RadioGroup
 
   build-depends:
