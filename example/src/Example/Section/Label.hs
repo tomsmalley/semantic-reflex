@@ -20,10 +20,10 @@ import Example.QQ
 import Example.Common
 
 labels :: forall t m. MonadWidget t m => Section m
-labels = LinkedSection "Label" "" $ do
+labels = LinkedSection "Label" blank $ do
 
-  $(printDefinition stripParens ''Label)
-  $(printDefinition stripParens ''LabelConfig)
+  hscode $ $(printDefinition id stripParens ''Label)
+  hscode $ $(printDefinition id stripParens ''LabelConfig)
 
   ui $ Header H3 (text "Types") def
 

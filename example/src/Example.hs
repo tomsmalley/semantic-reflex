@@ -107,14 +107,20 @@ putSections sections = do
         el "p" $ text "The library exposes components in the form of data types. The convention is to have a record with all parts required to specify a component, with the last being a config type that contains the optional or unnecessary parts. All of the component types have overloaded field lenses so they can be modified concisely."
         el "p" $ do
           text "Components can be rendered using the function "
-          hsCodeInline "ui :: (MonadWidget t m, UI t m a) => a -> m (Return t m a)"
+          hsCodeInline $(printDefinition oneline id 'ui)
           text "."
+
+        el "p" $ text "To avoid having lots of unnecessary dynamics in config types, we use the type:"
+        hscode $(printDefinition oneline id ''Active)
+        el "p" $ text "For the common use case of config values to 'pure value' (in the case of Active, this translates to Static), we also provide lenses:"
+        hscode $(printDefinition oneline id '(|?~))
+        hscode $(printDefinition oneline id '(|~))
 
       forM_ sections $ \(LinkedSection heading subHeading child) -> do
         ui $ Header H2 (text heading) $ def
           & dividing |~ True
           & attributes |~ ("id" =: toId heading <> "style" =: "margin-top: 3em")
-          & subHeader |~ if subHeading == "" then Nothing else Just subHeading
+          & subHeader ?~ subHeading
         child
 
     performEvent_ $ (void . liftJSM $ do
@@ -141,7 +147,7 @@ example = mainWidget $ do
             & size |?~ Massive & rounded |?~ Rounded
       ui $ Header H1 (text "Semantic UI for Reflex Dom") $ def
         & image .~ AlwaysRender semanticLogo
-        & subHeader |?~ "Documentation and examples"
+        & subHeader ?~ text "Documentation and examples"
       elAttr "a" ("class" =: "ui disabled button" <> "href" =: "") $ text "Hackage"
       elAttr "a" ("class" =: "ui teal button"
                <> "href" =: "https://github.com/tomsmalley/reflex-dom-semui") $ do

@@ -14,7 +14,7 @@ import Reflex.Dom.SemanticUI
 
 import Example.QQ
 
-data Section m = LinkedSection Text Text (m ())
+data Section m = LinkedSection Text (m ()) (m ())
 
 removableWidget :: MonadWidget t m => Event t () -> m (Event t ()) -> m ()
 removableWidget restore widget = do
@@ -24,6 +24,17 @@ removableWidget restore widget = do
         ]
   return ()
 
+dynShowCode :: (MonadWidget t m, DynShow t a) => a -> m ()
+dynShowCode a = do
+  a' <- dynShow a
+  void $ dyn $ hscode <$> a'
+
+dynCode :: (MonadWidget t m, Show a) => Dynamic t a -> m ()
+dynCode d = void $ dyn $ hscode . show <$> d
+
+simpleLink :: DomBuilder t m => Text -> m ()
+simpleLink url = elAttr "a" ("href" =: url) $ text url
+
 orElse :: a -> a -> Bool -> a
 orElse a _ True = a
 orElse _ b False = b
@@ -32,7 +43,7 @@ exampleCard :: forall t m a. MonadWidget t m => Text -> Text -> (String, m a) ->
 exampleCard headerText subText (code, widget) = divClass "ui segments" $ do
   -- Title segment
   divClass "ui segment" $ ui $ Header H4 (text headerText) $ def
-      & subHeader |~ if subText == "" then Nothing else Just subText
+      & subHeader .~ if subText == "" then Nothing else Just (text subText)
   -- Main segment
   widgetResult <- divClass "ui segment" widget
   -- Control buttons
@@ -54,7 +65,7 @@ exampleCardReset :: forall t m a. MonadWidget t m => Text -> Text -> (String, Ev
 exampleCardReset headerText subText (code, widget) = divClass "ui segments" $ do
   -- Title segment
   divClass "ui segment" $ ui $ Header H4 (text headerText) $ def
-      & subHeader |~ if subText == "" then Nothing else Just subText
+      & subHeader .~ if subText == "" then Nothing else Just (text subText)
   rec
     -- Main segment
     widgetResult <- divClass "ui segment" $ widget resetEvent
@@ -73,20 +84,20 @@ exampleCardReset headerText subText (code, widget) = divClass "ui segments" $ do
     codeEl False = blank
     codeEl True = divClass "ui segment" $ hscode code
 
-exampleCardDyn :: forall t m a b. (Show a, MonadWidget t m)
-               => (b -> Dynamic t a) -> Text -> Text
-               -> (String, Event t () -> m b) -> m (Dynamic t a)
-exampleCardDyn getDyn headerText subText (code, widget) = divClass "ui segments" $ do
+exampleCardDyn :: forall t m a. MonadWidget t m
+               => (a -> m ()) -> Text -> Text
+               -> (String, Event t () -> m a) -> m ()
+exampleCardDyn renderResult headerText subText (code, widget) = divClass "ui segments" $ do
   -- Title segment
   divClass "ui segment" $ ui $ Header H4 (text headerText) $ def
-      & subHeader |~ if subText == "" then Nothing else Just subText
+      & subHeader .~ if subText == "" then Nothing else Just (text subText)
   rec
     -- Main segment
-    widgetResult <- fmap getDyn $ divClass "ui segment" $ widget resetEvent
+    widgetResult <- divClass "ui segment" $ widget resetEvent
     -- Value segment
     divClass "ui segment" $ do
       ui $ Header H4 (text "Value") $ def & header .~ ContentHeader
-      dyn $ hscode . show <$> widgetResult
+      renderResult widgetResult
     -- Control buttons
     let attrs open = "class" =: ("ui two basic tiny compact buttons"
             <> if open then " attached" else " bottom attached")
@@ -97,7 +108,6 @@ exampleCardDyn getDyn headerText subText (code, widget) = divClass "ui segments"
             (def & icon .~ AlwaysRender (Icon "code" def))
       return (r, c)
   void $ dyn $ codeEl <$> codeIsOpen
-  return widgetResult
   where
     codeEl False = blank
     codeEl True = divClass "ui segment" $ hscode code

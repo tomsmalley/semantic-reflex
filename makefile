@@ -3,6 +3,7 @@ docs: ghcjs
 	cp -r result/dist/js docs
 	cp -r result/dist/semantic.min.css docs
 	cp -r result/dist/themes docs
+	cp example/styling.css docs
 
 docs-nocc: ghcjs-nocc
 	chmod -R +w docs

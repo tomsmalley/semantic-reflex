@@ -55,11 +55,12 @@
   font-family: "Monaco","Menlo","Ubuntu Mono","Consolas","source-code-pro",monospace;
   font-size: 12px;
   overflow: auto;
-  margin: 0;
+  margin: 1.5em;
   padding: 0;
 }
 
 code.inline, code.inline pre {
+  margin: 0;
   display: inline;
   white-space: pre-wrap;
 }

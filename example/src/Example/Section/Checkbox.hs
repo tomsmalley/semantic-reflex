@@ -7,30 +7,46 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
 
+{-# OPTIONS_GHC -Wno-unused-do-bind #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+
 module Example.Section.Checkbox where
 
 import GHC.Tuple -- TH requires this for (,)
 import Control.Lens
-import Control.Monad ((<=<), void, when, join)
 import Data.Semigroup ((<>))
-import Data.Text (Text)
-import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
 
 import Example.QQ
 import Example.Common
 
 checkboxes :: forall t m. MonadWidget t m => Section m
-checkboxes = LinkedSection "Checkbox" "" $ do
+checkboxes = LinkedSection "Checkbox" (simpleLink "https://semantic-ui.com/modules/checkbox.html") $ do
 
-  $(printDefinition stripParens ''Checkbox)
-  $(printDefinition stripParens ''CheckboxConfig)
+  divClass "ui info message" $ do
+    ui $ Icon "announcement" def
+    text "The implementation of the Checkbox module does not depend on the Semantic UI or jQuery Javascript libraries."
+
+  el "p" $ text "Checkboxes consist of a label and a configuration."
+
+  hscode $(printDefinition id stripParens ''Checkbox)
+
+  el "p" $ text "The configuration allows you to set the value, indeterminate state, Semantic UI checkbox type, fitted property, and disabled state. The value and indeterminate states are separated into 'initial' and 'set' in order to disconnect them from the resultant dynamic values."
+
+  hscode $(printDefinition id stripParens ''CheckboxConfig)
+  hscode $(printDefinition oneline id ''CheckboxType)
+
+  el "p" $ text "Running the checkbox gives access to the dynamic value, the change event (only changes caused by the user), the current indeterminate state and whether the checkbox has focus."
+
+  hscode $(printDefinition id stripParens ''CheckboxResult)
+
+  ui $ Header H3 (text "Examples") def
 
   divClass "ui two column stackable grid" $ do
     divClass "row" $ do
 
       divClass "column" $ do
-        exampleCardDyn id "Checkbox" "Standard checkbox styles" $ [mkExample|
+        exampleCardDyn dynCode "Checkbox" "Standard checkbox styles" $ [mkExample|
         \resetEvent -> do
           normal <- divClass "ui compact segment"
             $ ui $ Checkbox "Normal checkbox"
@@ -48,7 +64,7 @@ checkboxes = LinkedSection "Checkbox" "" $ do
         |]
 
       divClass "column" $ do
-        exampleCardDyn id "Disabled checkbox" "Checkboxes can be enabled or disabled" [mkExample|
+        exampleCardDyn dynCode "Disabled checkbox" "Checkboxes can be enabled or disabled" [mkExample|
         \resetEvent -> do
           enable <- ui $ Button "Enable" $ def
             & attached |?~ Horizontally LeftAttached
@@ -65,31 +81,31 @@ checkboxes = LinkedSection "Checkbox" "" $ do
                   & setValue .~ (True <$ resetEvent)
                   & initialValue .~ True
                   & disabled .~ Dynamic (fmap not enabled)
-          display enabled
           return $ traverse (view value) [normal, toggle]
         |]
 
     divClass "row" $ do
 
       divClass "column" $ do
-        exampleCardDyn id "Checkbox states" "Checkboxes can be indeterminate" [mkExample|
+        exampleCardDyn dynShowCode "Checkbox states" "Checkboxes can be indeterminate" [mkExample|
         \resetEvent -> do
           indeterminateButton <- ui $ Button "Indeterminate" $ def
             & attached |?~ Horizontally LeftAttached
           determinateButton <- ui $ Button "Determinate" $ def
             & attached |?~ Horizontally RightAttached
-          isIndeterminate <- holdDyn True $ leftmost [True <$ indeterminateButton, False <$ determinateButton, True <$ resetEvent]
-          cb <- divClass "ui compact segment"
+          divClass "ui compact segment"
             $ ui $ Checkbox "Indeterminate"
             $ def & setValue .~ (True <$ resetEvent)
-                  & setIndeterminate .~ leftmost [True <$ indeterminateButton, False <$ determinateButton, True <$ resetEvent]
+                  & setIndeterminate .~ leftmost
+                      [ True <$ indeterminateButton
+                      , False <$ determinateButton
+                      , True <$ resetEvent ]
                   & initialIndeterminate .~ True
                   & initialValue .~ True
-          return $ (,) <$> view value cb <*> view indeterminate cb
         |]
 
       divClass "column" $ do
-        exampleCardDyn id "Fitted checkbox" "A fitted checkbox does not leave padding for a label" [mkExample|
+        exampleCardDyn dynCode "Fitted checkbox" "A fitted checkbox does not leave padding for a label" [mkExample|
         \resetEvent -> do
           let inlineSegment = elAttr "div" $ "class" =: "ui compact segment"
                                           <> "style" =: "display: table;"

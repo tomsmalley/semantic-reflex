@@ -23,8 +23,9 @@
 module Reflex.Dom.SemanticUI.Common where
 
 ------------------------------------------------------------------------------
+import Control.Monad.Fix (MonadFix)
 import           Control.Lens ((^.), set, ASetter)
-import           Control.Monad (void)
+import           Control.Monad (void, (<=<))
 import Data.Default
 import Data.Kind (Type)
 import Data.String
@@ -279,6 +280,16 @@ l |~ b = set l (pure b)
 (|?~) :: (Applicative (f t'), Reflex t') => ASetter s t a (f t' (Maybe b)) -> b -> s -> t
 l |?~ b = set l (pure $ Just b)
 
+-- | Like 'count', but keeps the most recent event
+data CountWithLast a = NotFired | Fired Int a deriving (Eq, Show)
+countWithLast
+  :: (Reflex t, MonadHold t m, MonadFix m)
+  => Event t a -> m (Dynamic t (CountWithLast a))
+countWithLast = holdDyn NotFired <=< zipListWithEvent Fired [1..]
+
+-- | Showing dynamic items such as records with dynamic or event fields
+class DynShow t a where
+  dynShow :: (Reflex t, MonadHold t m, MonadFix m) => a -> m (Dynamic t String)
 
 data Floated = LeftFloated | RightFloated deriving (Eq, Show)
 

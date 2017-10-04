@@ -19,18 +19,18 @@ import Example.QQ
 import Example.Common
 
 radioGroups :: forall t m. MonadWidget t m => Section m
-radioGroups = LinkedSection "Radio Group" "" $ do
+radioGroups = LinkedSection "Radio Group" blank $ do
 
-  $(printDefinition stripParens ''RadioGroup)
-  $(printDefinition stripParens ''RadioGroupConfig)
-  $(printDefinition stripParens ''RadioItem)
-  $(printDefinition stripParens ''RadioItemConfig)
+  hscode $ $(printDefinition id stripParens ''RadioGroup)
+  hscode $ $(printDefinition id stripParens ''RadioGroupConfig)
+  hscode $ $(printDefinition id stripParens ''RadioItem)
+  hscode $ $(printDefinition id stripParens ''RadioItemConfig)
 
   divClass "ui two column stackable grid" $ do
     divClass "row" $ do
 
       divClass "column" $ do
-        exampleCardDyn id "Radio group" "" [mkExample|
+        exampleCardDyn dynCode "Radio group" "" [mkExample|
         \resetEvent -> do
           let mkRadioItem x = RadioItem x (showFreq x) def
               freqencies = map mkRadioItem [minBound..maxBound]
@@ -39,7 +39,7 @@ radioGroups = LinkedSection "Radio Group" "" $ do
         |]
 
       divClass "column" $ do
-        exampleCardDyn id "Slider group" "" [mkExample|
+        exampleCardDyn dynCode "Slider group" "" [mkExample|
         \resetEvent -> do
           let mkRadioItem x = RadioItem x (showThroughput x) def
               throughputs = mkRadioItem <$> [Metered 20, Metered 10, Metered 5, Unmetered]

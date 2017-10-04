@@ -20,7 +20,7 @@ import Example.Common
 import Example.CountryEnum
 
 flags :: MonadWidget t m => Section m
-flags = LinkedSection "Flag" "A flag is used to represent a political state" $ do
+flags = LinkedSection "Flag" (text "A flag is used to represent a political state") $ do
 
   el "p" $ do
     text "For available flag types, see "
@@ -28,7 +28,7 @@ flags = LinkedSection "Flag" "A flag is used to represent a political state" $ d
       $ text "the Semantic UI docs"
     text "."
 
-  $(printDefinition id ''Flag)
+  hscode $ $(printDefinition id id ''Flag)
 
   exampleCard "Flag" "" [mkExample|
   mapM_ (ui . Flag . Static . T.toLower . T.pack . show) [minBound .. maxBound :: CountryEnum]

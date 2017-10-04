@@ -19,11 +19,11 @@ import Example.QQ
 import Example.Common
 
 icons :: MonadWidget t m => Section m
-icons = LinkedSection "Icon" "" $ do
+icons = LinkedSection "Icon" blank $ do
 
-  $(printDefinition stripParens ''Icon)
-  $(printDefinition stripParens ''IconConfig)
-  $(printDefinition stripParens ''IconsConfig)
+  hscode $ $(printDefinition id stripParens ''Icon)
+  hscode $ $(printDefinition id stripParens ''IconConfig)
+  hscode $ $(printDefinition id stripParens ''IconsConfig)
 
   ui $ Header H3 (text "Groups") def
 

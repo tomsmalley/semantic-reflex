@@ -25,8 +25,8 @@ import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Image
 import Reflex.Dom.SemanticUI.Common
 
-data HeaderConfig t = HeaderConfig
-  { _subHeader    :: Active t (Maybe Text)
+data HeaderConfig t m = HeaderConfig
+  { _subHeader    :: Maybe (m ())
 
   , _iconHeader   :: Active t Bool
   , _dividing     :: Active t Bool
@@ -51,9 +51,9 @@ data HeaderConfig t = HeaderConfig
   , _header       :: HeaderType
   }
 
-instance Default (HeaderConfig t) where
+instance Default (HeaderConfig t m) where
   def = HeaderConfig
-    { _subHeader = Static Nothing
+    { _subHeader = Nothing
 
     , _iconHeader = Static False
     , _dividing = Static False
@@ -78,7 +78,7 @@ instance Default (HeaderConfig t) where
     , _header = PageHeader
     }
 
-headerConfigClasses :: Reflex t => HeaderConfig t -> Active t ClassText
+headerConfigClasses :: Reflex t => HeaderConfig t m -> Active t ClassText
 headerConfigClasses HeaderConfig {..} = mconcat
   [ memptyUnless "icon" <$> _iconHeader
   , memptyUnless "dividing" <$> _dividing
@@ -132,7 +132,7 @@ instance m ~ m' => UI t m' (Paragraph m a) where
 data Header t m a = Header
   { _size :: HeaderSize
   , _content :: m a
-  , _config :: HeaderConfig t
+  , _config :: HeaderConfig t m
   }
 
 instance ToItem (Header t m a) where
@@ -169,5 +169,5 @@ instance (m ~ m', t ~ t') => UI t' m' (Header t m a) where
         runRenderWhen ui' _icon
         divClass "content" $ do
           a <- widget
-          activeMaybe (divClass "sub header" . text) _subHeader
+          maybe blank (divClass "sub header") _subHeader
           return a

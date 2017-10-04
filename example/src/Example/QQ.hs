@@ -40,8 +40,8 @@ mymode = Exts.defaultParseMode
       ]
     }
 -- | Pretty print the definition of a haskell type
-printDefinition :: (String -> String) -> Name -> ExpQ
-printDefinition preproc name = do
+printDefinition :: (String -> String) -> (String -> String) -> Name -> ExpQ
+printDefinition postproc preproc name = do
   info <- reify name
   let
     mode = Exts.defaultParseMode
@@ -51,10 +51,10 @@ printDefinition preproc name = do
       }
     style' = Exts.style { Exts.lineLength = 600, Exts.ribbonsPerLine = 1 }
     parse = Exts.parseDeclWithMode mode . stripForAll . stripTypes . stripNumbers . stripModules . preproc . pprint
-    prettyPrint = newlines . Exts.prettyPrintStyleMode style' Exts.defaultMode
+    prettyPrint = postproc . newlines . Exts.prettyPrintStyleMode style' Exts.defaultMode
     pp = prettyPrint . Exts.fromParseResult . parse $ info
   case parse info of
-    Exts.ParseOk _ -> [|hscode pp|]
+    Exts.ParseOk _ -> [|pp|]
     Exts.ParseFailed loc str -> do
       runIO $ print loc
       runIO $ putStrLn $ stripModules $ pprint info
@@ -66,14 +66,16 @@ hscode = void . elAttr "code" ("class" =: "haskell")
 
 hsCodeInline :: MonadWidget t m => String -> m ()
 hsCodeInline = void . elAttr "code" ("class" =: "haskell inline")
-       . elDynHtml' "pre" . constDyn . hscolour
-
-hscodeInline :: MonadWidget t m => String -> m ()
-hscodeInline = void . elAttr "code" ("class" =: "inline haskell")
              . elDynHtml' "pre" . constDyn . hscolour
 
 hscolour :: String -> Text
 hscolour = T.strip . T.pack . concatMap renderToken . tokenise . unindent
+
+oneline :: String -> String
+oneline "" = ""
+oneline ('\n':rest) = oneline rest
+oneline (' ':rest) = ' ' : oneline (dropWhile (==' ') rest)
+oneline (x:rest) = x : oneline rest
 
 newlines :: String -> String
 newlines "" = ""

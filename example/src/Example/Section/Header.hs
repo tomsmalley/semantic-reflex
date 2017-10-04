@@ -19,10 +19,10 @@ import Example.QQ
 import Example.Common
 
 headers :: MonadWidget t m => Section m
-headers = LinkedSection "Header" "" $ do
+headers = LinkedSection "Header" blank $ do
 
-  $(printDefinition stripParens ''Header)
-  $(printDefinition stripParens ''HeaderConfig)
+  hscode $ $(printDefinition id stripParens ''Header)
+  hscode $ $(printDefinition id stripParens ''HeaderConfig)
 
   divClass "ui equal width stackable grid" $ do
 
@@ -50,7 +50,7 @@ headers = LinkedSection "Header" "" $ do
         exampleCard "Icon Headers" "A header can be formatted to emphasize an icon"
           [mkExample|
         ui $ Header H2 (text "Account Settings") $ def
-          & subHeader |?~ "Manage your account settings and set e-mail preferences."
+          & subHeader ?~ text "Manage your account settings and set e-mail preferences."
           & icon .~ AlwaysRender (Icon "settings" def)
           & iconHeader |~ True
           & aligned |?~ CenterAligned
@@ -117,7 +117,7 @@ headers = LinkedSection "Header" "" $ do
 
         ui $ Header H2 (text "Account Settings") $ def
           & icon .~ AlwaysRender (Icon "settings" def)
-          & subHeader |?~ "Manage your preferences"
+          & subHeader ?~ text "Manage your preferences"
         |]
 
     divClass "row" $ do
@@ -125,15 +125,15 @@ headers = LinkedSection "Header" "" $ do
         exampleCard "Subheader" "Headers may contain subheaders"
           [mkExample|
         ui $ Header H1 (text "First Header") $ def
-          & subHeader |?~ "Sub Header"
+          & subHeader ?~ text "Sub Header"
         ui $ Header H2 (text "Second Header") $ def
-          & subHeader |?~ "Sub Header"
+          & subHeader ?~ text "Sub Header"
         ui $ Header H3 (text "Third Header") $ def
-          & subHeader |?~ "Sub Header"
+          & subHeader ?~ text "Sub Header"
         ui $ Header H4 (text "Fourth Header") $ def
-          & subHeader |?~ "Sub Header"
+          & subHeader ?~ text "Sub Header"
         ui $ Header H5 (text "Fifth Header") $ def
-          & subHeader |?~ "Sub Header"
+          & subHeader ?~ text "Sub Header"
         |]
 
       divClass "column" $ do

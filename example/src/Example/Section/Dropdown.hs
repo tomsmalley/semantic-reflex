@@ -23,18 +23,18 @@ import Example.StateEnum
 import Example.CountryEnum
 
 dropdowns :: MonadWidget t m => Section m
-dropdowns = LinkedSection "Dropdown" "" $ do
+dropdowns = LinkedSection "Dropdown" blank $ do
 
   elAttr "a" ("href" =: "https://semantic-ui.com/modules/dropdown.html") $ text "Semantic UI Docs"
-  $(printDefinition stripParens ''DropdownConfig)
-  $(printDefinition stripParens ''DropdownItem)
-  $(printDefinition stripParens ''DropdownItemConfig)
+  hscode $ $(printDefinition id stripParens ''DropdownConfig)
+  hscode $ $(printDefinition id stripParens ''DropdownItem)
+  hscode $ $(printDefinition id stripParens ''DropdownItemConfig)
 
   ui $ Header H3 (text "Dropdown") def
-  $(printDefinition stripParens ''Dropdown)
+  hscode $ $(printDefinition id stripParens ''Dropdown)
   el "p" $ text "The standard dropdown returns a Maybe to signify the possibility of no selection. However, if you specify an initial value, the user will be unable to deselect it. In this case you can clear the value with 'setValue' by passing 'Nothing'."
 
-  exampleCardDyn id "Single value" "" [mkExample|
+  exampleCardDyn dynCode "Single value" "" [mkExample|
   \resetEvent -> do
     ui $ Dropdown
       [ Content $ Header H3 (text "One Or Two") def
@@ -60,7 +60,7 @@ dropdowns = LinkedSection "Dropdown" "" $ do
     divClass "row" $ do
 
       divClass "column" $ do
-        exampleCardDyn id "Single value" "" [mkExample|
+        exampleCardDyn dynCode "Single value" "" [mkExample|
         \resetEvent -> do
           clearEvent <- ui $ Button "Clear Value" $ def
             & attached |?~ Horizontally LeftAttached
@@ -75,7 +75,7 @@ dropdowns = LinkedSection "Dropdown" "" $ do
         |]
 
       divClass "column" $ do
-        exampleCardDyn id "Single value, search" "" [mkExample|
+        exampleCardDyn dynCode "Single value, search" "" [mkExample|
         \resetEvent -> do
           let mkItem contact = DropdownItem contact (showContact contact) $ def
                 & image ?~ Image (src contact) (def & size |?~ Mini & avatar |~ True)
@@ -100,7 +100,7 @@ dropdowns = LinkedSection "Dropdown" "" $ do
     divClass "row" $ do
 
       divClass "column" $ do
-        exampleCardDyn id "Single value inline menu" "A dropdown can be formatted to appear inline in other content" [mkExample|
+        exampleCardDyn dynCode "Single value inline menu" "A dropdown can be formatted to appear inline in other content" [mkExample|
         \resetEvent -> el "span" $ do
           let mkItem contact = DropdownItem contact (showContact contact) $ def
                 & image ?~ Image (src contact) (def & avatar |~ True)
@@ -115,7 +115,7 @@ dropdowns = LinkedSection "Dropdown" "" $ do
         |]
 
       divClass "column" $ do
-        exampleCardDyn id "Single value inline menu" "A dropdown can be formatted to appear inline in other content" [mkExample|
+        exampleCardDyn dynCode "Single value inline menu" "A dropdown can be formatted to appear inline in other content" [mkExample|
         \resetEvent -> do
           setEvent <- ui $ Button "Set Value Incorrectly" def
           ui $ Header H4 ( do
@@ -138,7 +138,7 @@ dropdowns = LinkedSection "Dropdown" "" $ do
     divClass "row" $ do
 
       divClass "column" $ do
-        exampleCardDyn id "Multi value" "" [mkExample|
+        exampleCardDyn dynCode "Multi value" "" [mkExample|
         \resetEvent -> do
           let mkItem card = DropdownItem card (showCard card) $ def
                 & icon ?~ Icon (pure . T.toLower $ tshow card) def
@@ -151,7 +151,7 @@ dropdowns = LinkedSection "Dropdown" "" $ do
         |]
 
       divClass "column" $ do
-        exampleCardDyn id "Multi value, full-text search" "" [mkExample|
+        exampleCardDyn dynCode "Multi value, full-text search" "" [mkExample|
         \resetEvent -> do
           let mkItem contact = DropdownItem contact (showContact contact) $ def
                 & image ?~ Image (src contact) (def & size |?~ Mini & avatar |~ True)
@@ -171,7 +171,7 @@ dropdowns = LinkedSection "Dropdown" "" $ do
     divClass "row" $ do
 
       divClass "column" $ do
-        exampleCardDyn id "Multi value, limited " "" [mkExample|
+        exampleCardDyn dynCode "Multi value, limited " "" [mkExample|
         \resetEvent -> do
           let mkItem state = DropdownItem state (stateText state) $ def
               states = map mkItem [minBound..maxBound]
@@ -183,7 +183,7 @@ dropdowns = LinkedSection "Dropdown" "" $ do
         |]
 
       divClass "column" $ do
-        exampleCardDyn id "Multi value, search, hidden labels " "" [mkExample|
+        exampleCardDyn dynCode "Multi value, search, hidden labels " "" [mkExample|
         \resetEvent -> do
           let mkItem country = DropdownItem country (countryText country) $ def
                 & flag ?~ Flag (pure $ T.toLower $ T.pack $ show country)

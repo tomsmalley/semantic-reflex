@@ -26,18 +26,18 @@ data Favourite
   deriving (Eq, Show)
 
 menu :: forall t m. MonadWidget t m => Section m
-menu = LinkedSection "Menu" "A menu displays grouped navigation actions" $ do
+menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") $ do
 
   el "p" $ text "In Semantic UI menus are just exposed as styling elements and any active state must be managed by you. Here the current state is managed for you, providing a standalone widget which returns the currently selected value and the results of any sub widgets in a 'HList'."
 
-  $(printDefinition stripParens ''Menu)
-  $(printDefinition stripParens ''MenuDef)
-  $(printDefinition id ''MenuItems)
+  hscode $(printDefinition id stripParens ''Menu)
+  hscode $(printDefinition id stripParens ''MenuDef)
+  hscode $(printDefinition id id ''MenuItems)
 
-  $(printDefinition stripParens ''MenuConfig)
-  $(printDefinition stripParens ''MenuItemConfig)
+  hscode $(printDefinition id stripParens ''MenuConfig)
+  hscode $(printDefinition id stripParens ''MenuItemConfig)
 
-  exampleCardDyn id "Header" "A menu item may include a header or may itself be a header" [mkExample|
+  exampleCardDyn dynCode "Header" "A menu item may include a header or may itself be a header" [mkExample|
   \resetEvent -> do
     (selected, HNil) <- ui $ Menu
       ( SubMenu (constDyn $ part $ Header H3 (text "Products") $ def & header .~ ContentHeader)
@@ -62,7 +62,7 @@ menu = LinkedSection "Menu" "A menu displays grouped navigation actions" $ do
     return (selected :: Dynamic t (Maybe Text))
    |]
 
-  exampleCardDyn id "Sub Menu" "A menu item may contain another menu nested inside that acts as a grouped sub-menu" [mkExample|
+  exampleCardDyn dynCode "Sub Menu" "A menu item may contain another menu nested inside that acts as a grouped sub-menu" [mkExample|
   \resetEvent -> do
     (selected, search `HCons` HNil) <- ui $ Menu
       ( MenuWidget ( do
@@ -95,7 +95,7 @@ menu = LinkedSection "Menu" "A menu displays grouped navigation actions" $ do
     return $ (,) <$> (selected :: Dynamic t (Maybe Text)) <*> search
    |]
 
-  exampleCardDyn id "Arbitrary Widgets" "An item may contain an arbitrary widget with optional capture of the result" [mkExample|
+  exampleCardDyn dynCode "Arbitrary Widgets" "An item may contain an arbitrary widget with optional capture of the result" [mkExample|
   \resetEvent -> do
     let makeHeader doIcon txt = elAttr "div" ("style" =: "margin-bottom: 0.7em") $ do
           when doIcon $ void $ ui $ Icon "external" $ def & floated |?~ RightFloated
@@ -128,7 +128,7 @@ menu = LinkedSection "Menu" "A menu displays grouped navigation actions" $ do
     return $ (,) <$> selected <*> fav
    |]
 
-  exampleCardDyn id "Secondary Menu" "A menu can adjust its appearance to de-emphasize its contents" [mkExample|
+  exampleCardDyn dynCode "Secondary Menu" "A menu can adjust its appearance to de-emphasize its contents" [mkExample|
   \resetEvent -> do
     (selected, search `HCons` _) <- ui $ MenuDef
       ( MenuItem "Home" "Home" def
@@ -144,7 +144,7 @@ menu = LinkedSection "Menu" "A menu displays grouped navigation actions" $ do
     return $ (,) <$> (selected :: Dynamic t Text) <*> search ^. value
   |]
 
-  exampleCardDyn id "Secondary Menu" "A menu can adjust its appearance to de-emphasize its contents" [mkExample|
+  exampleCardDyn dynCode "Secondary Menu" "A menu can adjust its appearance to de-emphasize its contents" [mkExample|
   \resetEvent -> do
     (selected, search `HCons` _) <- ui $ Menu
       ( MenuItem "Home" "Home" def
@@ -159,7 +159,7 @@ menu = LinkedSection "Menu" "A menu displays grouped navigation actions" $ do
     return $ (,) <$> (selected :: Dynamic t (Maybe Text)) <*> search ^. value
   |]
 
-  exampleCardDyn id "Vertical Menu" "A vertical menu displays elements vertically" [mkExample|
+  exampleCardDyn dynCode "Vertical Menu" "A vertical menu displays elements vertically" [mkExample|
   \resetEvent -> do
     let counter txt = let widget = count <=< ui $ Button (Static txt) def :: m (Dynamic t Int)
                       in join <$> widgetHold widget (widget <$ resetEvent)
