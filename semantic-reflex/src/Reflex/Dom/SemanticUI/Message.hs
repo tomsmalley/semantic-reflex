@@ -38,6 +38,7 @@ import Reflex.Dom.Core hiding (message, Message, MessageConfig)
 
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Icon
+import Reflex.Dom.SemanticUI.Transition
 
 data MessageType
   = ErrorMessage
@@ -83,6 +84,8 @@ data MessageConfig t m a b = MessageConfig
   -- ^ Message color
   , _size :: Active t (Maybe Size)
   -- ^ Message size
+  , _config :: ActiveElConfig t
+  -- ^ Config
   }
 
 instance Reflex t => Default (MessageConfig t m a b) where
@@ -99,18 +102,20 @@ instance Reflex t => Default (MessageConfig t m a b) where
     , _messageType = Static Nothing
     , _color = Static Nothing
     , _size = Static Nothing
+    , _config = def
     }
 
 -- | Make the message div classes from the configuration
-messageConfigClasses :: Reflex t => MessageConfig t m a b -> Active t ClassText
-messageConfigClasses MessageConfig {..} = mconcat
-  [ Static $ memptyUnless "icon" $ isJust _icon
-  , memptyUnless "floating" <$> _floating
-  , toClassText <$> _attached
-  , memptyUnless "compact" <$> _compact
-  , toClassText <$> _messageType
-  , toClassText <$> _color
-  , toClassText <$> _size
+messageConfigClasses :: Reflex t => MessageConfig t m a b -> Active t Classes
+messageConfigClasses MessageConfig {..} = activeClasses
+  [ Static $ Just "ui message"
+  , boolClass "icon" $ Static $ isJust _icon
+  , boolClass "floating" _floating
+  , fmap toClassText <$> _attached
+  , boolClass "compact" _compact
+  , fmap toClassText <$> _messageType
+  , fmap toClassText <$> _color
+  , fmap toClassText <$> _size
   ]
 
 -- | Result of running a message
@@ -162,7 +167,8 @@ message config@MessageConfig {..} = do
       , _setHidden ]
 
     (divEl, (icon, (header, message, dismissed))) <-
-      elActiveAttr' "div" (divAttrs $ Dynamic hidden) $ do
+      --elActiveAttr' "div" (divAttrs $ Dynamic hidden) $ do
+      elWithAnim' "div" (attrs hidden) $ do
         case _icon of
           Nothing -> (,) Nothing <$> content
           Just icon -> do
@@ -177,5 +183,6 @@ message config@MessageConfig {..} = do
     })
 
   where
-    divAttrs hidden = mkDivAttrs <$> messageConfigClasses config <*> hidden
-    mkDivAttrs c h = "class" =: getClass ("ui message" <> c <> memptyUnless "hidden" h)
+    attrs hidden = _config <> def
+      { _classes = addClassMaybe <$> (boolClass "hidden" $ Dynamic hidden) <*> messageConfigClasses config
+      }

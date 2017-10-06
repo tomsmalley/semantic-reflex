@@ -24,17 +24,22 @@ module Reflex.Dom.SemanticUI.Common where
 
 ------------------------------------------------------------------------------
 import Control.Monad.Fix (MonadFix)
-import           Control.Lens ((^.), set, ASetter)
-import           Control.Monad (void, (<=<))
+import Control.Lens ((^.), set, ASetter)
+import Control.Monad (void, (<=<))
 import Data.Default
 import Data.Kind (Type)
 import Data.String
 import Data.Semigroup
 import Data.Map (Map)
-import           Data.Text (Text)
+import qualified Data.Map as M
+import Data.Maybe (catMaybes)
+import Data.Set (Set)
+import qualified Data.Set as S
+import Data.Text (Text)
 import qualified Data.Text as T
-import           Language.Javascript.JSaddle
-import           Reflex.Dom.Core hiding (Link)
+import Language.Javascript.JSaddle
+import Reflex.Dom.Core hiding (Link)
+import Data.Foldable (fold)
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
@@ -108,7 +113,7 @@ memptyUnless _ False = mempty
 memptyUnless m True = m
 
 class ToClassText a where
-  toClassText :: a -> ClassText
+  toClassText :: a -> Text
 
 instance ToClassText a => ToClassText (Maybe a) where
   toClassText Nothing = mempty
@@ -181,6 +186,71 @@ runActive (Static a) = ui_ a
 
 zipActiveWith :: Reflex t => (a -> b -> c) -> Active t a -> Active t b -> Active t c
 zipActiveWith f a b = f <$> a <*> b
+
+-- Attrs
+
+boolClass :: Reflex t => Text -> Active t Bool -> Active t (Maybe Text)
+boolClass t a = fmap f a
+  where f True = Just t
+        f False = Nothing
+
+activeClasses :: Reflex t => [ Active t (Maybe Text) ] -> Active t Classes
+activeClasses = fmap (Classes . S.fromList . catMaybes) . sequenceA
+
+newtype Classes = Classes (Set Text)
+
+instance IsString Classes where
+  fromString str = Classes $ S.singleton $ fromString str
+
+classAttr :: Classes -> Map Text Text
+classAttr (Classes s)
+  | S.null s = mempty
+  | otherwise = "class" =: foldr (\x acc -> x <> " " <> acc) "" s
+
+addClass :: Text -> Classes -> Classes
+addClass t (Classes s) = Classes $ S.insert t s
+
+addClassMaybe :: Maybe Text -> Classes -> Classes
+addClassMaybe Nothing c = c
+addClassMaybe (Just t) c = addClass t c
+
+addActiveClass :: Reflex t => Active t (Maybe Text) -> Active t Classes -> Active t Classes
+addActiveClass c cs = addClassMaybe <$> c <*> cs
+
+instance Semigroup Classes where
+  Classes a <> Classes b = Classes $ a <> b
+
+instance Monoid Classes where
+  mempty = Classes mempty
+  Classes a `mappend` Classes b = Classes $ a `mappend` b
+
+
+data Style = Style (Map Text Text) deriving (Eq, Show)
+
+styleAttr :: Style -> Map Text Text
+styleAttr (Style m)
+  | M.null m = mempty
+  | otherwise = "style" =: M.foldlWithKey' f "" m
+  where f acc k x = acc <> "; " <> k <> ": " <> x
+
+
+instance Semigroup Style where
+  Style a <> Style b = Style $ a <> b
+
+instance Monoid Style where
+  mempty = Style mempty
+  Style a `mappend` Style b = Style $ a `mappend` b
+
+styleText :: Style -> Text
+styleText (Style m)
+  = M.foldlWithKey' (\a k b -> a <> "; " <> k <> ": " <> b) "" m
+
+addStyle :: Text -> Text -> Style -> Style
+addStyle name value (Style m) = Style $ M.insert name value m
+
+
+--type Attrs = Attrs $ Map Text Text
+
 
 
 instance Reflex t => IsString (Dynamic t Text) where
@@ -330,10 +400,10 @@ instance ToClassText HorizontalAttached where
   toClassText LeftAttached = "left attached"
   toClassText RightAttached = "right attached"
 
-combineAttached :: Maybe VerticalAttached -> Maybe HorizontalAttached -> ClassText
-combineAttached Nothing Nothing = mempty
-combineAttached mv mh = mconcat
-  [ ClassText $ vClass <$> mv, ClassText $ hClass <$> mh, "attached" ]
+combineAttached :: Maybe VerticalAttached -> Maybe HorizontalAttached -> Maybe Text
+combineAttached Nothing Nothing = Nothing
+combineAttached mv mh = Just $ T.unwords $ catMaybes
+  [ vClass <$> mv, hClass <$> mh, Just "attached" ]
   where
     vClass TopAttached = "top"
     vClass BottomAttached = "bottom"

@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE CPP                      #-}
+{-# LANGUAGE DuplicateRecordFields    #-}
 {-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
@@ -16,11 +17,13 @@ module Reflex.Dom.SemanticUI.Container where
 
 import Data.Default
 import Data.Maybe
+import Data.Semigroup
 import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.Core hiding (fromJSString)
-import Reflex.Dom.SemanticUI.Common
 
+import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Transition
 
 data Container t m a = Container
   { _config :: ContainerConfig t
@@ -29,22 +32,27 @@ data Container t m a = Container
 
 data ContainerConfig t = ContainerConfig
   { _size  :: Active t (Maybe Size)
+  , _config :: ActiveElConfig t
   }
 
 instance Default (ContainerConfig t) where
   def = ContainerConfig
     { _size = Static Nothing
+    , _config = def
     }
 
-containerConfigClasses :: Reflex t => ContainerConfig t -> Active t ClassText
-containerConfigClasses ContainerConfig {..} = mconcat
-    [ toClassText <$> _size
+containerConfigClasses :: Reflex t => ContainerConfig t -> Active t Classes
+containerConfigClasses ContainerConfig {..} = activeClasses
+    [ Static $ Just $ "ui container"
+    , fmap toClassText <$> _size
     ]
 
 instance (t ~ t', m ~ m') => UI t' m' (Container t m a) where
   type Return t' m' (Container t m a) = a
-  ui' Container {..} = elActiveAttr' "i" attrs _contents
+  ui' (Container config@ContainerConfig {..} contents)
+    = elWithAnim' "i" attrs contents
     where
-      attrs = mkAttrs <$> containerConfigClasses _config
-      mkAttrs c = "class" =: getClass (mconcat ["ui container", c])
+      attrs = _config <> def
+        { _classes = containerConfigClasses config
+        }
 

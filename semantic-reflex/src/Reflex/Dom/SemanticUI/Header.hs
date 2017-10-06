@@ -24,6 +24,7 @@ import           Reflex.Dom.Core hiding
 import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Image
 import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Transition
 
 data HeaderConfig t m = HeaderConfig
   { _subHeader    :: Maybe (m ())
@@ -44,11 +45,10 @@ data HeaderConfig t m = HeaderConfig
   , _color        :: Active t (Maybe Color)
   , _attachedSide :: Active t (Maybe VerticalAttached)
 
-  , _attributes   :: Active t (Map Text Text)
-
-  , _component    :: Bool -- This is the "ui" (component) class
+  , _component    :: Bool -- This controls the "ui" class
   , _item         :: Bool
   , _header       :: HeaderType
+  , _config :: ActiveElConfig t
   }
 
 instance Default (HeaderConfig t m) where
@@ -71,30 +71,30 @@ instance Default (HeaderConfig t m) where
     , _color = Static Nothing
     , _attachedSide = Static Nothing
 
-    , _attributes = Static mempty
-
     , _component = True
     , _item = False
     , _header = PageHeader
+    , _config = def
     }
 
-headerConfigClasses :: Reflex t => HeaderConfig t m -> Active t ClassText
-headerConfigClasses HeaderConfig {..} = mconcat
-  [ memptyUnless "icon" <$> _iconHeader
-  , memptyUnless "dividing" <$> _dividing
-  , memptyUnless "sub" <$> _sub
-  , memptyUnless "disabled" <$> _disabled
-  , memptyUnless "block" <$> _block
-  , memptyUnless "inverted" <$> _inverted
-  , memptyUnless "attached" <$> _attached -- FIXME requires two settings
+headerConfigClasses :: Reflex t => HeaderConfig t m -> Active t Classes
+headerConfigClasses HeaderConfig {..} = activeClasses
+  [ Static $ Just "header"
+  , boolClass "icon" _iconHeader
+  , boolClass "dividing" _dividing
+  , boolClass "sub" _sub
+  , boolClass "disabled" _disabled
+  , boolClass "block" _block
+  , boolClass "inverted" _inverted
+  , boolClass "attached" _attached -- FIXME requires two settings
 
-  , toClassText <$> _floated
-  , toClassText <$> _aligned
-  , toClassText <$> _color
-  , toClassText <$> _attachedSide -- FIXME requires two settings
+  , fmap toClassText <$> _floated
+  , fmap toClassText <$> _aligned
+  , fmap toClassText <$> _color
+  , fmap toClassText <$> _attachedSide -- FIXME requires two settings
 
-  , memptyUnless "ui" _component
-  , memptyUnless "item" _item
+  , boolClass "ui" $ Static _component
+  , boolClass "item" $ Static _item
   ]
 
 data HeaderType = PageHeader | ContentHeader
@@ -108,23 +108,23 @@ headerSizeEl H3 = "h3"
 headerSizeEl H4 = "h4"
 headerSizeEl H5 = "h5"
 
-headerSize :: HeaderSize -> ClassText
-headerSize H1 = "huge"
-headerSize H2 = "large"
-headerSize H3 = "medium"
-headerSize H4 = "small"
-headerSize H5 = "tiny"
+headerSizeText :: HeaderSize -> Text
+headerSizeText H1 = "huge"
+headerSizeText H2 = "large"
+headerSizeText H3 = "medium"
+headerSizeText H4 = "small"
+headerSizeText H5 = "tiny"
 
-data Paragraph m a = Paragraph
-  { _content :: m a
-  }
-
-instance ToPart (Paragraph m a) where
-  toPart = id
-
-instance m ~ m' => UI t m' (Paragraph m a) where
-  type Return t m' (Paragraph m a) = a
-  ui' (Paragraph content) = el' "p" content
+--data Paragraph m a = Paragraph
+--  { _content :: m a
+--  }
+--
+--instance ToPart (Paragraph m a) where
+--  toPart = id
+--
+--instance m ~ m' => UI t m' (Paragraph m a) where
+--  type Return t m' (Paragraph m a) = a
+--  ui' (Paragraph content) = el' "p" content
 
 -- | Create a header.
 --
@@ -143,27 +143,26 @@ instance ToPart (Header t m a) where
   toPart (Header size content config) = Header size content $
     config { _component = False }
 
-type Href = Text
-data Anchor m a = Anchor Href (m a)
-instance m ~ m' => UI t m' (Anchor m a) where
-  type Return t m' (Anchor m a) = (Event t (), a)
-  ui' (Anchor href inner) = do
-    (a, b) <- elAttr' "a" ("href" =: href <> "class" =: "ui anchor") inner
-    return (a, (domEvent Click a, b))
+--type Href = Text
+--data Anchor m a = Anchor Href (m a)
+--instance m ~ m' => UI t m' (Anchor m a) where
+--  type Return t m' (Anchor m a) = (Event t (), a)
+--  ui' (Anchor href inner) = do
+--    (a, b) <- elAttr' "a" ("href" =: href <> "class" =: "ui anchor") inner
+--    return (a, (domEvent Click a, b))
 
 instance (m ~ m', t ~ t') => UI t' m' (Header t m a) where
   type Return t' m' (Header t m a) = a
   ui' (Header size widget config@HeaderConfig {..}) = case _header of
-    PageHeader -> elActiveAttr' (headerSizeEl size) attrs content
+    PageHeader -> elWithAnim' (headerSizeEl size) attrs content
+    ContentHeader -> elWithAnim' "div" attrs' content
       where
-        attrs = mkAttrs <$> classes <*> _attributes
-        mkAttrs c a = "class" =: getClass c <> a
-    ContentHeader -> elActiveAttr' "div" attrs content
-      where
-        attrs = mkAttrs <$> classes <*> _attributes
-        mkAttrs c a = "class" =: getClass (c <> headerSize size) <> a
+        attrs' = attrs { _classes = addClass (headerSizeText size) <$> classes }
     where
-      classes = mconcat ["header", headerConfigClasses config]
+      attrs = _config <> def
+        { _classes = classes
+        }
+      classes = headerConfigClasses config
       content = do
         runRenderWhen ui' _image
         runRenderWhen ui' _icon

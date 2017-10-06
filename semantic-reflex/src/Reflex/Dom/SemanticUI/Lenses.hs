@@ -2,12 +2,14 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
-
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Reflex.Dom.SemanticUI.Lenses where
 
 import Control.Lens.TH
+import Control.Lens
 import Reflex.Dom.SemanticUI.Button
 import Reflex.Dom.SemanticUI.Checkbox
 import Reflex.Dom.SemanticUI.Dropdown
@@ -19,6 +21,7 @@ import Reflex.Dom.SemanticUI.Image
 import Reflex.Dom.SemanticUI.Label
 import Reflex.Dom.SemanticUI.Menu
 import Reflex.Dom.SemanticUI.Message
+import Reflex.Dom.SemanticUI.Transition
 
 $(makeFieldsNoPrefix ''Button)
 $(makeFieldsNoPrefix ''ButtonConfig)
@@ -55,3 +58,20 @@ $(makeFieldsNoPrefix ''Message)
 -- $(makeFieldsNoPrefix ''MessageResult)
 $(makeFieldsNoPrefix ''MessageConfig)
 
+$(makeFieldsNoPrefix ''TransitionConfig)
+-- $(makeFieldsNoPrefix ''Transition)
+$(makeFieldsNoPrefix ''AnimationConfig)
+-- $(makeFieldsNoPrefix ''ActiveElConfig)
+-- $(makeFieldsNoPrefix ''Animation)
+
+instance HasConfig a (ActiveElConfig t) => HasAnimation t a where
+  animation = config . elConfigAnimation
+
+instance HasConfig a (ActiveElConfig t) => HasAttributes t a where
+  attributes = config . elConfigAttributes
+
+instance HasConfig a (ActiveElConfig t) => HasStyle t a where
+  style = config . elConfigStyle
+
+instance HasConfig a (ActiveElConfig t) => HasTransition t a where
+  transition = config . elConfigTransition

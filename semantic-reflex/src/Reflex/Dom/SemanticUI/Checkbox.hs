@@ -40,6 +40,7 @@ import Reflex
 import Reflex.Dom.Core hiding (checkbox, Checkbox, CheckboxConfig)
 
 import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Transition
 
 -- | Checkbox types. If you need a radio type, see <RadioGroup>.
 data CheckboxType =  Slider | Toggle deriving (Eq, Show)
@@ -53,7 +54,7 @@ instance ToClassText CheckboxType where
 -- return values in CheckboxResult.
 data CheckboxConfig t = CheckboxConfig
   { _initialValue :: Bool
-  -- ^ Initial value of checkbox (default: False)
+  -- ^ Initial value of checkbox
   , _setValue :: Event t Bool
   -- ^ Event which sets the value
 
@@ -63,11 +64,13 @@ data CheckboxConfig t = CheckboxConfig
   -- ^ Event which sets if the checkbox is indeterminate
 
   , _altType :: Active t (Maybe CheckboxType)
-  -- ^ Checkbox type (e.g. slider)
+  -- ^ Checkbox type, e.g. slider
   , _fitted :: Active t Bool
   -- ^ Checkbox is fitted
   , _disabled :: Active t Bool
   -- ^ Checkbox is disabled
+  , _config :: ActiveElConfig t
+  -- ^ Config
   }
 
 instance Reflex t => Default (CheckboxConfig t) where
@@ -81,14 +84,16 @@ instance Reflex t => Default (CheckboxConfig t) where
     , _altType = Static Nothing
     , _fitted = Static False
     , _disabled = Static False
+    , _config = def
     }
 
 -- | Make the checkbox div classes from the configuration
-checkboxConfigClasses :: Reflex t => CheckboxConfig t -> Active t ClassText
-checkboxConfigClasses CheckboxConfig {..} = mconcat
-  [ toClassText <$> _altType
-  , memptyUnless "fitted" <$> _fitted
-  , memptyUnless "disabled" <$> _disabled
+checkboxConfigClasses :: Reflex t => CheckboxConfig t -> Active t Classes
+checkboxConfigClasses CheckboxConfig {..} = activeClasses
+  [ Static $ Just "ui checkbox"
+  , fmap toClassText <$> _altType
+  , boolClass "fitted" _fitted
+  , boolClass "disabled" _disabled
   ]
 
 -- | Result of running a checkbox
@@ -137,7 +142,7 @@ checkbox label config@CheckboxConfig {..} = do
         & elementConfig_eventSpec %~ addEventSpecFlags
             (Proxy @(DomBuilderSpace m)) Click (const stopPropagation)
 
-  (divEl, inputEl) <- elActiveAttr' "div" divAttrs $ do
+  (divEl, inputEl) <- elWithAnim' "div" divAttrs $ do
     (inputEl, _) <- element "input" cfg blank
     el "label" $ activeText label
     return inputEl
@@ -218,6 +223,7 @@ checkbox label config@CheckboxConfig {..} = do
     })
 
   where
-    divAttrs = mkDivAttrs <$> checkboxConfigClasses config
-    mkDivAttrs c = "class" =: getClass ("ui checkbox" <> c)
+    divAttrs = _config <> def
+      { _classes = checkboxConfigClasses config
+      }
     constAttrs = "type" =: "checkbox" <> "class" =: "hidden"

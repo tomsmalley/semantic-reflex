@@ -22,8 +22,10 @@ import           Data.Text (Text)
 import           Reflex.Dom.Core hiding (fromJSString)
 
 import           Reflex.Dom.SemanticUI.Common
+
 import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Image
+import Reflex.Dom.SemanticUI.Transition
 
 data Ribbon
   = LeftRibbon
@@ -53,6 +55,7 @@ data LabelConfig t = LabelConfig
   , _basic :: Active t Bool
   , _detail :: Active t (Maybe Text)
   , _link :: Bool
+  , _config :: ActiveElConfig t
   }
 
 instance Reflex t => Default (LabelConfig t) where
@@ -70,21 +73,23 @@ instance Reflex t => Default (LabelConfig t) where
     , _basic = pure False
     , _detail = pure Nothing
     , _link = False
+    , _config = def
     }
 
 maybeToList :: Maybe a -> [a]
 maybeToList Nothing = []
 maybeToList (Just a) = [a]
 
-labelConfigClasses :: Reflex t => LabelConfig t -> Active t ClassText
-labelConfigClasses LabelConfig {..} = mconcat
-  [ combineAttached <$> _vAttached <*> _hAttached
-  , toClassText <$> _color
-  , toClassText <$> _pointing
-  , toClassText <$> _ribbon
-  , memptyUnless "hidden" <$> _hidden
-  , memptyUnless "basic" <$> _basic
-  , memptyUnless "image" <$> _imageFocus
+labelConfigClasses :: Reflex t => LabelConfig t -> Active t Classes
+labelConfigClasses LabelConfig {..} = activeClasses
+  [ Static $ Just "ui label"
+  , combineAttached <$> _vAttached <*> _hAttached
+  , fmap toClassText <$> _color
+  , fmap toClassText <$> _pointing
+  , fmap toClassText <$> _ribbon
+  , boolClass "hidden" _hidden
+  , boolClass "basic" _basic
+  , boolClass "image" _imageFocus
   ]
 
 data Pointing = LeftPointing | RightPointing | AbovePointing | BelowPointing
@@ -107,7 +112,7 @@ instance (t ~ t') => UI t' m (Label t) where
 
   ui' (Label txt config@LabelConfig {..}) = do
     (e, (imageResult, leftIconResult, rightIconResult)) <-
-      elActiveAttr' elType (fmap attrs $ labelConfigClasses config) $ do
+      elWithAnim' elType attrs $ do
         imageResult <- runRenderWhen part' _image
         leftIconResult <- runRenderWhen ui' _leftIcon
         activeText txt
@@ -120,5 +125,7 @@ instance (t ~ t') => UI t' m (Label t) where
       , _image = imageResult
       })
     where
-      attrs classes = "class" =: getClass ("ui" <> "label" <> classes)
+      attrs = _config <> def
+        { _classes = labelConfigClasses config
+        }
       elType = if _link then "a" else "div"

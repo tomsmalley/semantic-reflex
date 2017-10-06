@@ -99,7 +99,6 @@ dropdownSetExactly e is
 data DropdownConfig t a = DropdownConfig
   { _initialValue :: a
   , _setValue :: Event t a
-  , _attributes :: Map Text Text
   , _placeholder :: Text
   , _maxSelections :: Maybe Int
   , _useLabels :: Bool
@@ -118,7 +117,6 @@ instance Reflex t => Applicative (DropdownConfig t) where
   pure a = DropdownConfig
     { _initialValue = a
     , _setValue = never
-    , _attributes = mempty
     , _placeholder = mempty
     , _maxSelections = Nothing
     , _useLabels = True
@@ -289,7 +287,7 @@ dropdownInternal
   -> m (El t, Event t [a])
 dropdownInternal items isMulti conf@DropdownConfig {..} = do
 
-  (divEl, _) <- elAttr' "div" ("class" =: T.unwords classes <> _attributes) $ do
+  (divEl, _) <- elAttr' "div" ("class" =: T.unwords classes) $ do
 
     -- This holds the placeholder. Initial value must be set by js function in
     -- wrapper.

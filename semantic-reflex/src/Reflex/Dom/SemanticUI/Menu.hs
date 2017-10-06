@@ -36,6 +36,7 @@ import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Label
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Dropdown
+import Reflex.Dom.SemanticUI.Transition
 
 data MenuConfig t a = MenuConfig
   { _initialValue :: a
@@ -46,6 +47,7 @@ data MenuConfig t a = MenuConfig
   , _textContent :: Bool
   , _customMenu :: Maybe Text
   , _floated :: Maybe Floated
+  , _config :: ActiveElConfig t
   } deriving Functor
 
 instance Reflex t => Applicative (MenuConfig t) where
@@ -58,6 +60,7 @@ instance Reflex t => Applicative (MenuConfig t) where
     , _textContent = False
     , _customMenu = Nothing
     , _floated = Nothing
+    , _config = def
     }
   MenuConfig { _initialValue = fInit, _setValue = fEvt }
     <*> mca@MenuConfig { _initialValue = aInit, _setValue = aEvt } = mca
@@ -74,19 +77,20 @@ instance Reflex t => Default (MenuConfig t (Proxy a)) where
   def = pure Proxy
 
 
-menuConfigClasses :: MenuConfig t a -> ClassText
-menuConfigClasses MenuConfig {..} = mconcat
+menuConfigClasses :: Reflex t => MenuConfig t a -> Active t Classes
+menuConfigClasses MenuConfig {..} = activeClasses
 --  [ justWhen _disabled "disabled"
 --  , justWhen _loading "loading"
 --  , justWhen _fitted "fitted"
 --  , justWhen _link "link"
-  [ toClassText _size
-  , memptyUnless "vertical" _vertical
-  , memptyUnless "fluid" _fluid
-  , memptyUnless "text" _textContent
-  , toClassText _floated
+  [ Static $ Just $ "ui menu"
+  , Static $ toClassText <$> _size
+  , boolClass "vertical" $ Static _vertical
+  , boolClass "fluid" $ Static _fluid
+  , boolClass "text" $ Static _textContent
+  , Static $ toClassText <$> _floated
 --  , uiText <$> _color
-  , ClassText _customMenu
+  , Static $ _customMenu
   ]
 
 data MenuLink
@@ -101,6 +105,7 @@ data MenuItemConfig t m = MenuItemConfig
   , _render :: Maybe (Dynamic t (m ())) -- Extra arbitrary content
   , _icon :: Maybe (Icon t)
   , _label :: Maybe (Label t)
+  , _config :: ActiveElConfig t
   }
 
 instance Default (MenuItemConfig t m) where
@@ -110,12 +115,14 @@ instance Default (MenuItemConfig t m) where
     , _render = Nothing
     , _icon = Nothing
     , _label = Nothing
+    , _config = def
     }
 
-menuItemConfigClasses :: MenuItemConfig t m -> ClassText
-menuItemConfigClasses MenuItemConfig {..} = mconcat
-  [ toClassText _color
-  , memptyUnless "link" $ _link == StyleLink
+menuItemConfigClasses :: Reflex t => MenuItemConfig t m -> Active t Classes
+menuItemConfigClasses MenuItemConfig {..} = activeClasses
+  [ Static $ Just "item"
+  , Static $ toClassText <$> _color
+  , boolClass "link" $ Static $ _link == StyleLink
   ]
 
 data Proxy a = Proxy
@@ -170,12 +177,13 @@ data Menu t m a xs = Menu
 
 instance (Ord a, m ~ m', t ~ t') => UI t' m' (Menu t m a xs) where
   type Return t' m' (Menu t m a xs) = (Dynamic t (Maybe a), HList xs)
-  ui' (Menu items config@MenuConfig {..}) = elClass' "div" (getClass classes) $ do
+  ui' (Menu items config@MenuConfig {..}) = elWithAnim' "div" attrs $ do
     rec (evts, xs) <- renderItems items vDyn
         vDyn <- holdDyn _initialValue $ leftmost $ _setValue : (fmap Just <$> evts)
     return (vDyn, xs)
     where
-      classes = mconcat ["ui", "menu", menuConfigClasses config]
+      attrs = _config <> def
+        { _classes = menuConfigClasses config }
 
 data MenuDef t m a xs = MenuDef
   { _items :: MenuItems t m a xs
@@ -184,12 +192,13 @@ data MenuDef t m a xs = MenuDef
 
 instance (Ord a, m ~ m', t ~ t') => UI t' m' (MenuDef t m a xs) where
   type Return t' m' (MenuDef t m a xs) = (Dynamic t a, HList xs)
-  ui' (MenuDef items config@MenuConfig {..}) = elClass' "div" (getClass classes) $ do
+  ui' (MenuDef items config@MenuConfig {..}) = elWithAnim' "div" attrs $ do
     rec (evts, xs) <- renderItems items (Just <$> vDyn)
         vDyn <- holdDyn _initialValue $ leftmost $ _setValue : evts
     return (vDyn, xs)
     where
-      classes = mconcat ["ui", "menu", menuConfigClasses config]
+      attrs = _config <> def
+        { _classes = menuConfigClasses config }
 
 renderItems
   :: forall t m a xs. (Ord a, Reflex t, MonadWidget t m)
@@ -201,11 +210,12 @@ renderItems allItems currentValue = go False allItems
   where
     selected = demux currentValue
 
-    itemElAttrs :: MenuItemConfig t m -> (Text, Map Text Text)
+    itemElAttrs :: MenuItemConfig t m -> (Text, ActiveElConfig t)
     itemElAttrs conf@MenuItemConfig{..} = case _link of
-      MenuLink href -> ("a", "href" =: href <> "class" =: getClass classes)
-      _ -> ("div", "class" =: getClass classes)
-      where classes = mconcat ["item", menuItemConfigClasses conf]
+      MenuLink href -> ("a", attrs { _attrs = Static $ "href" =: href })
+      _ -> ("div", attrs)
+      where attrs = _config <> def
+              { _classes = menuItemConfigClasses conf }
 
     go :: Bool -> MenuItems t m a ys -> m ([Event t a], HList ys)
     go inDropdown = \case
@@ -213,7 +223,7 @@ renderItems allItems currentValue = go False allItems
       MenuBase -> return ([], HNil)
 
       MenuItem value label conf@MenuItemConfig {..} rest -> do
-        clickEvt <- fmap (domEvent Click . fst) $ elDynAttr' elType attrs $ do
+        clickEvt <- fmap (domEvent Click . fst) $ elWithAnim' elType attrs $ do
             maybe blank ui_ _icon
             text label
             maybe blank ui_ _label
@@ -224,16 +234,21 @@ renderItems allItems currentValue = go False allItems
             reLink = case _link of
               NoLink -> StyleLink
               a -> a
-            attrs = fmap (addActive attrs') $ demuxed selected $ Just value
-            addActive m isActive = M.adjust (<> if isActive then " active" else "") "class" m
+            isSelected = Dynamic $ demuxed selected $ Just value
+            attrs = attrs'
+              { _classes = addClassMaybe <$> boolClass "active" isSelected
+                                         <*> _classes attrs'
+              }
 
       MenuWidget mb conf rest -> do
-        b <- elAttr elType attrs mb
+        b <- elWithAnim elType attrs mb
         fmap (HCons b) <$> go inDropdown rest
           where (elType, attrs) = itemElAttrs conf
 
-      MenuWidget_ mb conf rest -> elAttr elType attrs mb >> go inDropdown rest
-        where (elType, attrs) = itemElAttrs conf
+      MenuWidget_ mb conf rest -> do
+        elWithAnim elType attrs mb
+        go inDropdown rest
+          where (elType, attrs) = itemElAttrs conf
 
       DropdownMenu label items rest -> do
         dynVal <- ui $ Dropdown items $ (def :: DropdownConfig t (Maybe a))

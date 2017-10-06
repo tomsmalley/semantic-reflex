@@ -19,29 +19,31 @@ import Network.WebSockets
 import Data.FileEmbed
 
 -- | Start the warp server
-server :: Int -> ByteString -> JSM () -> IO ()
-server port css app = do
+server :: Int -> ByteString -> JSM () -> Maybe FilePath -> IO ()
+server port css app mstatic = do
   putStrLn $ "starting warp server: http://localhost:" ++ show port
-  runApp css port app id $ return ()
+  runApp css port app mstatic id $ return ()
 
 -- | Restart the warp server and tell any connected clients to refresh
-daemon :: Int -> ByteString -> JSM () -> IO ()
-daemon port css app = do
-  debugWrapper (runApp css port app)
+daemon :: Int -> ByteString -> JSM () -> Maybe FilePath -> IO ()
+daemon port css app mstatic = do
+  debugWrapper (runApp css port app mstatic)
   putStrLn $ "restarting warp server: http://localhost:" ++ show port
 
 -- | We serve the standard jsaddle-warp app but with a static server for the
 -- javascript, css, and theme folder.
-runApp :: ByteString -> Int -> JSM () -> Middleware -> JSM ()-> IO ()
-runApp css port mainApp middleware preApp = do
+runApp :: ByteString -> Int -> JSM () -> Maybe FilePath -> Middleware -> JSM ()-> IO ()
+runApp css port mainApp mUserFilePath middleware preApp = do
   jsaddle <- jsaddleWithAppOr defaultConnectionOptions
     (preApp >> app) (middleware static)
   runSettings settings jsaddle
   where
     settings = setPort port $ setTimeout 3600 $ defaultSettings
-    static = staticApp $ defaultFileServerSettings dir
     app = makeHead css >> mainApp >> syncPoint
-    dir = $(strToExp =<< makeRelativeToProject "lib/dist")
+    static = staticApp $ (defaultFileServerSettings
+      $(strToExp =<< makeRelativeToProject "lib/dist"))
+        { ss404Handler = mUserStatic }
+    mUserStatic = fmap (staticApp . defaultFileServerSettings) mUserFilePath
 
 -- Needed for non js targets, since the js-sources in the cabal file are not
 -- linked
@@ -61,11 +63,12 @@ makeHead css = do
   semanticCSS ^. jss "href" "semantic.min.css"
   void $ document ^. js "head" ^. js1 "appendChild" semanticCSS
 
+{-
   jquery <- document ^. js1 "createElement" "script"
   jquery ^. jss "src" "js/jquery.min.js"
   void $ document ^. js "head" ^. js1 "appendChild" jquery
-  syncPoint
 
   semantic <- document ^. js1 "createElement" "script"
   semantic ^. jss "src" "js/semantic.min.js"
   void $ document ^. js "head" ^. js1 "appendChild" semantic
+-}

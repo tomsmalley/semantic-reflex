@@ -78,7 +78,7 @@ headers = LinkedSection "Header" blank $ do
           divClass "item" $ do
             ui $ Image "https://semantic-ui.com/images/avatar2/small/molly.png" $ def
               & size |?~ Mini
-              & rounded |?~ Circular
+              & shape |~ Circular
             divClass "content" $ do
               ui $ Header H3 (text "Molly") $ def & sub |~ True
               text "Coordinator"
@@ -86,7 +86,7 @@ headers = LinkedSection "Header" blank $ do
           divClass "item" $ do
             ui $ Image "https://semantic-ui.com/images/avatar2/small/elyse.png" $ def
               & size |?~ Mini
-              & rounded |?~ Circular
+              & shape |~ Circular
             divClass "content" $ do
               ui $ Header H3 (text "Elyse") $ def & sub |~ True
               text "Developer"
@@ -94,7 +94,7 @@ headers = LinkedSection "Header" blank $ do
           divClass "item" $ do
             ui $ Image "https://semantic-ui.com/images/avatar2/small/eve.png" $ def
               & size |?~ Mini
-              & rounded |?~ Circular
+              & shape |~ Circular
             divClass "content" $ do
               ui $ Header H3 (text "Eve") $ def & sub |~ True
               text "Project Manager"
@@ -106,7 +106,7 @@ headers = LinkedSection "Header" blank $ do
           [mkExample|
         let url = "https://semantic-ui.com/images/avatar2/large/patrick.png"
         ui $ Header H2 (text "Patrick") $ def
-          & image .~ AlwaysRender (Image url $ def & rounded |?~ Circular)
+          & image .~ AlwaysRender (Image url $ def & shape |~ Circular)
         |]
 
       divClass "column" $ do

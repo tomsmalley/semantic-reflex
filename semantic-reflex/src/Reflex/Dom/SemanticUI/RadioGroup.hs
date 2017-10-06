@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE RecordWildCards          #-}
 {-# LANGUAGE TemplateHaskell          #-}
 {-# LANGUAGE TypeFamilies             #-}
 
@@ -35,12 +36,13 @@ import           Reflex.Dom.Core hiding
 
 import Reflex.Dom.SemanticUI.Checkbox (CheckboxType (..))
 import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Transition
 
 --------------------------------------------------------------------------------
 -- Radio Item
 
 data RadioItemConfig = RadioItemConfig
-  { _attributes :: Map Text Text
+  { _inputAttributes :: Map Text Text
   -- ^ Attributes of the \<input\> element
   , _divAttributes :: Map Text Text
   -- ^ Attributes of the wrapping \<div\> element
@@ -48,7 +50,7 @@ data RadioItemConfig = RadioItemConfig
 
 instance Default RadioItemConfig where
   def = RadioItemConfig
-    { _attributes = mempty
+    { _inputAttributes = mempty
     , _divAttributes = mempty
     }
 
@@ -69,19 +71,25 @@ data RadioGroupConfig t a = RadioGroupConfig
   -- ^ Initial value of the radio group. 'Nothing' means no items are selected.
   , _setValue :: Event t (Maybe a)
   -- ^ Event which sets the value. 'Nothing' clears the selection.
-  , _types :: [CheckboxType]
-  -- ^ Checkbox type (e.g. slider)
+  , _altType :: Maybe CheckboxType
+  -- ^ Checkbox type, e.g. slider
   --, _wrapper :: m DOM.Element -> m DOM.Element
   --, _wrapper :: forall b. m b -> m b
   -- ^ Wrapper around each individual item
+  , _config :: ActiveElConfig t
   }
+
+radioGroupClasses :: Reflex t => RadioGroupConfig t a -> Active t Classes
+radioGroupClasses RadioGroupConfig {..} = activeClasses
+  [ ]
 
 instance Reflex t => Default (RadioGroupConfig t a) where
   def = RadioGroupConfig
     { _initialValue = Nothing
     , _setValue = never
-    , _types = mempty
+    , _altType = Nothing
     --, _wrapper = divClass "field"
+    , _config = def
     }
 
 --------------------------------------------------------------------------------
@@ -137,12 +145,8 @@ radioGroup name items config = elClass' "div" "grouped fields" $ do
 
   where
     initialValue = _initialValue config
-    cbType = _types config
-    hasRadio = if isToggleOrSlider cbType then [] else ["radio"]
-    classes = getClass $ mconcat $ "ui checkbox" : hasRadio ++ map toClassText cbType
     -- Detect clashing classes: toggle and slider take precedence over radio
-    isToggleOrSlider types = isJust $
-      L.find (\i -> i == Toggle || i == Slider) types
+    classes = "ui checkbox " <> maybe "radio" toClassText (_altType config)
 
 -- | Make an individual radio checkbox item.
 putRadioItem

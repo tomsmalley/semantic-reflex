@@ -15,13 +15,16 @@
 
 module Reflex.Dom.SemanticUI.Button where
 
-import           Data.Default
-import           Data.Maybe
-import           Data.Text (Text)
+import Data.Default
+import Data.Maybe
+import Data.Semigroup
+import Data.Text (Text)
 import qualified Data.Text as T
-import           Reflex.Dom.Core hiding (fromJSString)
-import           Reflex.Dom.SemanticUI.Common
-import           Reflex.Dom.SemanticUI.Icon
+import Reflex.Dom.Core hiding (fromJSString)
+
+import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Icon
+import Reflex.Dom.SemanticUI.Transition
 
 data Button t = Button
   { _label :: Active t Text
@@ -33,6 +36,7 @@ data ButtonConfig t = ButtonConfig
   , _disabled :: Active t Bool
   , _icon :: RenderWhen t (Icon t)
   , _attached :: Active t (Maybe ExclusiveAttached)
+  , _config :: ActiveElConfig t
   }
 
 instance Default (ButtonConfig t) where
@@ -41,23 +45,26 @@ instance Default (ButtonConfig t) where
     , _disabled = Static False
     , _icon = NeverRender
     , _attached = Static Nothing
+    , _config = def
     }
 
-buttonConfigClasses :: Reflex t => ButtonConfig t -> Active t ClassText
-buttonConfigClasses ButtonConfig {..} = mconcat
-  [ memptyUnless "disabled" <$> _disabled
-  , toClassText <$> _color
-  , toClassText <$> _attached
+buttonConfigClasses :: Reflex t => ButtonConfig t -> Active t Classes
+buttonConfigClasses ButtonConfig {..} = activeClasses
+  [ Static $ Just "ui button"
+  , boolClass "disabled" _disabled
+  , fmap toClassText <$> _color
+  , fmap toClassText <$> _attached
   ]
 
 instance t' ~ t => UI t' m (Button t) where
   type Return t' m (Button t) = Event t ()
 
   ui' (Button label config@ButtonConfig {..}) = do
-    (e, _) <- elActiveAttr' "button" attrs $ do
+    (e, _) <- elWithAnim' "button" attrs $ do
       runRenderWhen ui' _icon
       activeText label
     return (e, domEvent Click e)
     where
-      attrs = mkAttrs <$> buttonConfigClasses config
-      mkAttrs c = "class" =: getClass (mconcat ["ui button", c])
+      attrs = _config <> def
+        { _classes = buttonConfigClasses config
+        }

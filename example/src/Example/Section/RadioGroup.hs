@@ -46,7 +46,7 @@ radioGroups = LinkedSection "Radio Group" blank $ do
           divClass "ui form" $ ui $ RadioGroup "throughput" throughputs $
             def & initialValue ?~ Unmetered
                 & setValue .~ (Just Unmetered <$ resetEvent)
-                & types .~ [Slider]
+                & altType ?~ Slider
         |]
 
   return ()

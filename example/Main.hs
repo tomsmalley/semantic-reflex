@@ -27,11 +27,14 @@ port = 3708
 css :: ByteString
 css = $(embedFile =<< makeRelativeToProject "styling.css")
 
+static :: Maybe FilePath
+static = Just $(strToExp =<< makeRelativeToProject "resources")
+
 -- | Start the warp server
-main = server port css example
+main = server port css example static
 
 -- | Restart the warp server and tell any connected clients to refresh
 debug :: IO ()
-debug = daemon port css example
+debug = daemon port css example static
 
 #endif

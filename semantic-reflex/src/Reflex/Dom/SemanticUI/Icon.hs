@@ -25,6 +25,7 @@ import           Reflex.Dom.Core hiding (fromJSString)
 import Data.Maybe (catMaybes)
 
 import           Reflex.Dom.SemanticUI.Common
+import           Reflex.Dom.SemanticUI.Transition
 
 --data Flag t = Flag (Dynamic t Text)
 data Flag t = Flag (Active t Text)
@@ -40,7 +41,7 @@ instance t ~ t' => UI t' m (Flag t) where
 
 data Icon t
   = Icon (Active t Text) (IconConfig t)
-  | Icons [Icon t] IconsConfig
+  | Icons [Icon t] (IconsConfig t)
 
 data IconConfig t = IconConfig
   { _disabled :: Active t Bool
@@ -57,6 +58,7 @@ data IconConfig t = IconConfig
 --  , _bordered :: Bool
   , _inverted :: Active t Bool
   , _color :: Active t (Maybe Color)
+  , _config :: ActiveElConfig t
   }
 
 instance Reflex t => Default (IconConfig t) where
@@ -71,41 +73,54 @@ instance Reflex t => Default (IconConfig t) where
     , _circular = pure False
     , _inverted = pure False
     , _color = pure Nothing
+    , _config = def
     }
 
-iconConfigClasses :: Reflex t => IconConfig t -> Active t ClassText
-iconConfigClasses IconConfig {..} = mconcat
-  [ memptyUnless "disabled" <$> _disabled
-  , memptyUnless "loading" <$> _loading
-  , memptyUnless "fitted" <$> _fitted
-  , memptyUnless "link" <$> _link
-  , memptyUnless "circular" <$> _circular
-  , memptyUnless "inverted" <$> _inverted
-  , toClassText . nothingIf Medium <$> _size
-  , toClassText <$> _floated
-  , toClassText <$> _color
+iconConfigClasses :: Reflex t => IconConfig t -> Active t Classes
+iconConfigClasses IconConfig {..} = activeClasses
+  [ Static $ Just "icon"
+  , boolClass "disabled" _disabled
+  , boolClass "loading" _loading
+  , boolClass "fitted" _fitted
+  , boolClass "link" _link
+  , boolClass "circular" _circular
+  , boolClass "inverted" _inverted
+  , fmap toClassText . nothingIf Medium <$> _size
+  , fmap toClassText <$> _floated
+  , fmap toClassText <$> _color
   ]
 
-data IconsConfig = IconsConfig
-  { _size :: Maybe Size
+data IconsConfig t= IconsConfig
+  { _size :: Active t (Maybe Size)
+  , _config :: ActiveElConfig t
   }
-  deriving (Eq, Show)
 
-instance Default IconsConfig where
+instance Default (IconsConfig t) where
   def = IconsConfig
-    { _size = Nothing
+    { _size = Static Nothing
+    , _config = def
     }
+
+iconsConfigClasss :: Reflex t => IconsConfig t -> Active t Classes
+iconsConfigClasss IconsConfig {..} = activeClasses
+  [ Static $ Just "icons"
+  , fmap toClassText <$> _size
+  ]
 
 instance t' ~ t => UI t' m (Icon t) where
   type Return t' m (Icon t) = ()
 
-  ui' (Icon activeIcon config@IconConfig {..}) = elActiveAttr' "i" attrs blank
+  ui' (Icon activeIcon config@IconConfig {..}) = elWithAnim' "i" attrs blank
     where
-      attrs = mkAttrs <$> activeIcon <*> iconConfigClasses config <*> _title
-      mkAttrs i c t = maybe mempty ("title" =:) t
-                   <> "class" =: getClass (mconcat [ClassText (Just i), "icon", c])
+      attrs = _config <> def
+        { _classes = addClass <$> activeIcon <*> iconConfigClasses config
+        , _attrs = maybe mempty ("title" =:) <$> _title
+        }
 
-  ui' (Icons icons IconsConfig {..})
-    = elAttr' "i" ("class" =: getClass classes) $ traverse_ ui_ icons
-      where classes = mconcat ["icons", toClassText _size]
+  ui' (Icons icons config@IconsConfig {..})
+    = elWithAnim' "i" attrs $ traverse_ ui_ icons
+      where 
+        attrs = _config <> def
+          { _classes = iconsConfigClasss config
+          }
 

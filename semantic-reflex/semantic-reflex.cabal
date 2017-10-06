@@ -45,6 +45,7 @@ library
     Reflex.Dom.SemanticUI.Message
     Reflex.Dom.SemanticUI.Modal
     Reflex.Dom.SemanticUI.RadioGroup
+    Reflex.Dom.SemanticUI.Transition
   if !impl(ghcjs)
     exposed-modules: Reflex.Dom.SemanticUI.Warp
 
@@ -62,6 +63,8 @@ library
     , reflex-dom-core >= 0.4 && < 0.5
     , text
     , these
+    , time
+    , unbounded-delays
 
   if !impl(ghcjs)
     build-depends:

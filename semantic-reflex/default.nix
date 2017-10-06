@@ -1,7 +1,7 @@
 { mkDerivation, base, bytestring, containers, data-default
 , file-embed, ghcjs-dom, jsaddle, lens, mtl, reflex
 , QuickCheck, hspec
-, reflex-dom-core, stdenv, text, these, jsaddle-warp, wai-app-static, warp
+, reflex-dom-core, stdenv, text, these, time, unbounded-delays, jsaddle-warp, wai-app-static, warp
 , websockets, ghcjs
 }:
 mkDerivation {
@@ -11,6 +11,7 @@ mkDerivation {
   buildDepends = [
     base bytestring containers data-default file-embed ghcjs-dom
     hspec jsaddle lens mtl QuickCheck reflex reflex-dom-core text these
+    time unbounded-delays
   ] ++ (if ghcjs then [
   ] else [
     jsaddle-warp

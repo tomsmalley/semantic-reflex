@@ -32,6 +32,7 @@ library
     , Example.Section.Menu
     , Example.Section.Message
     , Example.Section.RadioGroup
+    , Example.Section.Transition
 
   build-depends:
       base            >= 4.8 && < 4.10

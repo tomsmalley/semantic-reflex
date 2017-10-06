@@ -37,6 +37,7 @@ import Example.Section.Label (labels)
 import Example.Section.Menu (menu)
 import Example.Section.Message (messages)
 import Example.Section.RadioGroup (radioGroups)
+import Example.Section.Transition (transitions)
 
 data Favourite
   = Haskell
@@ -120,16 +121,18 @@ putSections sections = do
       forM_ sections $ \(LinkedSection heading subHeading child) -> do
         ui $ Header H2 (text heading) $ def
           & dividing |~ True
-          & attributes |~ ("id" =: toId heading <> "style" =: "margin-top: 3em")
           & subHeader ?~ subHeading
+          & attributes |~ ("id" =: toId heading <> "style" =: "margin-top: 3em")
         child
 
+  {-
     performEvent_ $ (void . liftJSM $ do
       o <- obj
       o <# ("offset" :: Text) $ (30 :: Int)
       o <# ("context" :: Text) $ _element_raw contextEl
       o <# ("observeChanges" :: Text) $ True
       jQuery (_element_raw stickyEl) ^. js1 ("sticky" :: Text) o) <$ pb
+-}
 
     return ()
 
@@ -140,12 +143,12 @@ putSections sections = do
       = MenuItem (toId heading) heading def $ renderItems rest
 
 example :: JSM ()
-example = mainWidget $ do
+example = catchJS $ mainWidget $ do
 
   elAttr "div" ("id" =: "masthead" <> "class" =: "ui vertical segment") $ do
     divClass "ui container" $ do
       let semanticLogo = Image "https://semantic-ui.com/images/logo.png" $ def
-            & size |?~ Massive & rounded |?~ Rounded
+            & size |?~ Massive & shape |~ Rounded
       ui $ Header H1 (text "Semantic UI for Reflex Dom") $ def
         & image .~ AlwaysRender semanticLogo
         & subHeader ?~ text "Documentation and examples"
@@ -156,5 +159,6 @@ example = mainWidget $ do
         text "GitHub"
       return ()
 
-  putSections [ checkboxes, dropdowns, flags, headers, icons, labels, menu, messages, radioGroups ]
+  --putSections [ transitions, checkboxes, dropdowns, flags, headers, icons, labels, menu, messages, radioGroups ]
+  putSections [ transitions, checkboxes, flags, headers, icons, labels, messages ]
 

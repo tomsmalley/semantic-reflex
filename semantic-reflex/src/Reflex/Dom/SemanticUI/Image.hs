@@ -11,10 +11,13 @@ module Reflex.Dom.SemanticUI.Image where
 
 import           Data.Default (Default (def))
 import Data.Map (Map)
+import qualified Data.Map as M
 import           Data.Maybe (catMaybes)
 import           Data.Semigroup ((<>))
+import qualified Data.Set as S
 import           Data.Text (Text)
 import qualified Data.Text as T
+import Data.Traversable (sequenceA)
 import           Reflex
 import           Reflex.Dom.Core hiding
   ( checkbox, Checkbox (..), checkbox_value, checkbox_change
@@ -22,42 +25,49 @@ import           Reflex.Dom.Core hiding
   )
 
 import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Transition
 
-data ImageRounded = Rounded | Circular deriving (Eq, Show)
+data ImageShape = Square | Rounded | Circular deriving (Eq, Show)
 
-instance ToClassText ImageRounded where
+instance ToClassText ImageShape where
   toClassText Rounded = "rounded"
   toClassText Circular = "circular"
+  toClassText Square = ""
 
 data ImageConfig t = ImageConfig
   { _size :: Active t (Maybe Size)
-  , _rounded :: Active t (Maybe ImageRounded)
+  , _shape :: Active t ImageShape
   , _avatar :: Active t Bool
   , _floated :: Active t (Maybe Floated)
-  , _hidden :: Active t Bool
   , _component :: Bool
+  , _title :: Active t (Maybe Text)
+  , _hidden :: Active t Bool
+  , _config :: ActiveElConfig t
   }
 
 instance Reflex t => Default (ImageConfig t) where
   def = ImageConfig
-    { _size = pure Nothing
-    , _rounded = pure Nothing
-    , _avatar = pure False
-    , _floated = pure Nothing
-    , _hidden = pure False
+    { _size = Static Nothing
+    , _shape = Static Square
+    , _avatar = Static False
+    , _floated = Static Nothing
     , _component = False
+    , _title = Static Nothing
+    , _hidden = Static False
+    , _config = def
     }
 
 instance ToPart (Image t) where
   toPart (Image src config) = Image src $ config { _component = True }
 
-imageConfigClasses :: Reflex t => ImageConfig t -> Active t ClassText
-imageConfigClasses ImageConfig {..} = mconcat
-  [ toClassText <$> _size
-  , toClassText <$> _rounded
-  , memptyUnless "avatar" <$> _avatar
-  , toClassText <$> _floated
-  , memptyUnless "hidden" <$> _hidden
+imageConfigClasses :: Reflex t => ImageConfig t -> Active t Classes
+imageConfigClasses ImageConfig {..} = activeClasses
+  [ Static $ justWhen (not _component) "ui image"
+  , fmap toClassText <$> _size
+  , Just . toClassText <$> _shape
+--  , memptyUnless "avatar" <$> _avatar
+  , fmap toClassText <$> _floated
+  , boolClass "hidden" _hidden
   ]
 
 data Image t = Image
@@ -67,9 +77,14 @@ data Image t = Image
 
 instance t ~ t' => UI t' m (Image t) where
   type Return t' m (Image t) = ()
-  ui' (Image src config@ImageConfig {..})
-    = elActiveAttr' "img" (mkAttrs <$> src <*> imageConfigClasses config) blank
+  ui' (Image src config@ImageConfig {..}) = do
+
+    elWithAnim' "img" attrs blank
+
     where
-      mkAttrs s c = "src" =: s <> "class" =:
-        getClass (if _component then  c else mconcat ["ui", "image", c])
+      attrs = _config <> def
+        { _classes = imageConfigClasses config
+        , _attrs = mkAttrs <$> src <*> _title
+        }
+      mkAttrs s t = "src" =: s <> maybe mempty ("title" =:) t
 

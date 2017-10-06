@@ -35,17 +35,17 @@ icons = LinkedSection "Icon" blank $ do
         ui $ Icons
           [ Icon "circle" $ def & size |?~ Big & color |?~ Blue
           , Icon "car" $ def & inverted |~ True
-          ] $ def & size ?~ Huge
+          ] $ def & size |?~ Huge
         ui $ Icons
           [ Icon "thin circle" $ def & size |?~ Big
           , Icon "user" def
-          ] $ def & size ?~ Huge
+          ] $ def & size |?~ Huge
         ui $ Icons
           [ Icon "certificate" $ def
               & size |?~ Big & loading |~ True
               & color |?~ Grey & inverted |~ True
           , Icon "cloud download" def
-          ] $ def & size ?~ Huge
+          ] $ def & size |?~ Huge
         |]
 
       divClass "column" $ do
@@ -55,6 +55,6 @@ icons = LinkedSection "Icon" blank $ do
           & icon .~ AlwaysRender (Icons
               [ Icon "twitter" def
               , Icon "corner add" $ def & inverted |~ True
-              ] (def & size ?~ Large) )
+              ] (def & size |?~ Large) )
         |]
 
