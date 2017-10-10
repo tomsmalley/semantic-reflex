@@ -160,5 +160,6 @@ example = catchJS $ mainWidget $ do
       return ()
 
   --putSections [ transitions, checkboxes, dropdowns, flags, headers, icons, labels, menu, messages, radioGroups ]
-  putSections [ transitions, checkboxes, flags, headers, icons, labels, messages ]
+  --putSections [ transitions, checkboxes, flags, headers, icons, labels, messages ]
+  putSections [ transitions ]
 

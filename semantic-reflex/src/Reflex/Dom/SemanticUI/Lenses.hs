@@ -64,14 +64,14 @@ $(makeFieldsNoPrefix ''AnimationConfig)
 -- $(makeFieldsNoPrefix ''ActiveElConfig)
 -- $(makeFieldsNoPrefix ''Animation)
 
-instance HasConfig a (ActiveElConfig t) => HasAnimation t a where
-  animation = config . elConfigAnimation
-
 instance HasConfig a (ActiveElConfig t) => HasAttributes t a where
   attributes = config . elConfigAttributes
 
 instance HasConfig a (ActiveElConfig t) => HasStyle t a where
   style = config . elConfigStyle
+
+instance HasConfig a (ActiveElConfig t) => HasClasses t a where
+  classes = config . elConfigClasses
 
 instance HasConfig a (ActiveElConfig t) => HasTransition t a where
   transition = config . elConfigTransition

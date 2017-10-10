@@ -3,6 +3,7 @@ let
 
   dontCheckPackages = [
     "lens"
+    "jsaddle-warp"
   ];
 
   pkgs = import <nixpkgs> { };

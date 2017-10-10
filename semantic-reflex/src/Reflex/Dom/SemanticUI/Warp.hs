@@ -27,6 +27,7 @@ server port css app mstatic = do
 -- | Restart the warp server and tell any connected clients to refresh
 daemon :: Int -> ByteString -> JSM () -> Maybe FilePath -> IO ()
 daemon port css app mstatic = do
+--  debug port app
   debugWrapper (runApp css port app mstatic)
   putStrLn $ "restarting warp server: http://localhost:" ++ show port
 

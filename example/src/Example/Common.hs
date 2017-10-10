@@ -40,26 +40,33 @@ orElse a _ True = a
 orElse _ b False = b
 
 exampleCard :: forall t m a. MonadWidget t m => Text -> Text -> (String, m a) -> m a
-exampleCard headerText subText (code, widget) = divClass "ui segments" $ do
+exampleCard headerText subText (code, widget) = do
   -- Title segment
-  divClass "ui segment" $ ui $ Header H4 (text headerText) $ def
+  divClass "ui top attached segment" $ ui $ Header H4 (text headerText) $ def
       & subHeader .~ if subText == "" then Nothing else Just (text subText)
   -- Main segment
-  widgetResult <- divClass "ui segment" widget
+  widgetResult <- divClass "ui attached segment" widget
   -- Control buttons
 --  let classes open = def { _uiButton_custom = Just ("basic tiny compact"
 --      <> if open then " attached" else " bottom attached") }
-  let attrs open = "class" =: ("ui basic tiny compact buttons"
-          <> if open then " attached" else " bottom attached")
-  rec codeIsOpen <- toggle False <=< elDynAttr "div" (attrs <$> codeIsOpen)
+  rec codeIsOpen <- toggle False <=< divClass "ui tiny compact bottom attached buttons"
         $ ui $ Button
           (Dynamic $ "Hide Code" `orElse` "Show Code" <$> codeIsOpen)
           (def & icon .~ AlwaysRender (Icon "code" def))
-  void $ dyn $ codeEl <$> codeIsOpen
+
+  void $ codeEl $ updated codeIsOpen
   return widgetResult
   where
-    codeEl False = blank
-    codeEl True = divClass "ui segment" $ hscode code
+    codeEl evt = elWithAnim "div"
+      ( def
+        & elConfigClasses |~ "ui fluid bottom center popup"
+        & elConfigStyle |~ Style ("top" =: "auto")
+        & elConfigTransition ?~ fmap mkTransition evt
+      ) $ hscode code
+    mkTransition t = Transition Scale $ def
+      & direction ?~ (if t then In else Out)
+      & duration .~ 0.3
+      & forceVisible .~ True
 
 exampleCardReset :: forall t m a. MonadWidget t m => Text -> Text -> (String, Event t () -> m a) -> m a
 exampleCardReset headerText subText (code, widget) = divClass "ui segments" $ do

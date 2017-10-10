@@ -33,7 +33,9 @@ data Button t = Button
 
 data ButtonConfig t = ButtonConfig
   { _color :: Active t (Maybe Color)
+  , _size :: Active t (Maybe Size)
   , _disabled :: Active t Bool
+  , _compact :: Active t Bool
   , _icon :: RenderWhen t (Icon t)
   , _attached :: Active t (Maybe ExclusiveAttached)
   , _config :: ActiveElConfig t
@@ -42,7 +44,9 @@ data ButtonConfig t = ButtonConfig
 instance Default (ButtonConfig t) where
   def = ButtonConfig
     { _color = Static Nothing
+    , _size = Static Nothing
     , _disabled = Static False
+    , _compact = Static False
     , _icon = NeverRender
     , _attached = Static Nothing
     , _config = def
@@ -52,7 +56,9 @@ buttonConfigClasses :: Reflex t => ButtonConfig t -> Active t Classes
 buttonConfigClasses ButtonConfig {..} = activeClasses
   [ Static $ Just "ui button"
   , boolClass "disabled" _disabled
+  , boolClass "compact" _compact
   , fmap toClassText <$> _color
+  , fmap toClassText <$> _size
   , fmap toClassText <$> _attached
   ]
 

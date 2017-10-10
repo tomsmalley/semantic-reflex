@@ -19,20 +19,19 @@ module Reflex.Dom.SemanticUI.Transition
   , TransitionType (..)
   , TransitionConfig (..)
   , AnimationType (..)
-  , Animation (..)
   , AnimationConfig (..)
   , Direction (..)
   , ActiveElConfig (..)
   , elWithAnim
   , elWithAnim'
-  , HasAnimation (..)
-  , elConfigAnimation
   , HasTransition (..)
   , elConfigTransition
   , HasAttributes (..)
   , elConfigAttributes
   , HasStyle (..)
   , elConfigStyle
+  , HasClasses (..)
+  , elConfigClasses
   ) where
 
 import Control.Concurrent
@@ -59,7 +58,8 @@ import Data.Time
 import Reflex.Dom.SemanticUI.Common
 
 data TransitionType
-  = Scale
+  = Instant
+  | Scale
   | Fade | FadeUp | FadeDown | FadeLeft | FadeRight
   | HorizontalFlip | VerticalFlip
   | Drop
@@ -73,6 +73,7 @@ instance Default TransitionType where
   def = Fade
 
 instance ToClassText TransitionType where
+  toClassText Instant = ""
   toClassText Scale = "scale"
   toClassText Fade = "fade"
   toClassText FadeUp = "fade up"
@@ -119,9 +120,9 @@ instance ToClassText Direction where
   toClassText In = "in"
   toClassText Out = "out"
 
-directionToHidden :: Direction -> Bool
-directionToHidden In = False
-directionToHidden Out = True
+flipDirection :: Direction -> Direction
+flipDirection In = Out
+flipDirection Out = In
 
 class HasAddClass a where
   addClass :: a -> a
@@ -129,106 +130,15 @@ class HasAddClass a where
 data TransitionConfig = TransitionConfig
   { _duration :: NominalDiffTime
   , _direction :: Maybe Direction
+  , _forceVisible :: Bool
   }
 
 instance Default TransitionConfig where
   def = TransitionConfig
     { _duration = 0.75
     , _direction = Nothing
+    , _forceVisible = False
     }
-
-data Transition = Transition
-  { _transitionType :: TransitionType
-  , _config :: TransitionConfig
-  }
-
-getTransDuration :: Transition -> NominalDiffTime
-getTransDuration (Transition _ TransitionConfig{..}) = _duration
-
-getDirection :: Transition -> Maybe Direction
-getDirection (Transition _ TransitionConfig{..}) = _direction
-
-flipDirection :: Direction -> Direction
-flipDirection In = Out
-flipDirection Out = In
-
-getTions :: Transition -> (NominalDiffTime, Maybe Direction)
-getTions (Transition _ TransitionConfig{..}) = (_duration, _direction)
-
-data Trans
-  = TStart TransitionType NominalDiffTime Direction
-  | TEnd Direction
-
-getTime :: Transition -> Int
-getTime (Transition _ TransitionConfig {..}) = fromEnum _duration
-
-runTransition :: MonadWidget t m => Event t Transition
-             -> m (AnimationAttrs t)
-runTransition request = do
-
-  let flipDir Nothing In = Out
-      flipDir Nothing Out = In
-      flipDir (Just d) _ = d
-
-  lastDir <- foldDyn flipDir In $ leftmost [ getDirection <$> request ]
-
---  let printTime = formatTime defaultTimeLocale "%M:%S%Q"
-
-  -- We transform the request into a more useful type, tagging with the
-  -- direction. Must be promptly tagged or we use the wrong direction.
-  reqTime <- performEvent $ ffor (attachPromptlyDyn lastDir request) $
-    \(dir, Transition t (TransitionConfig dur _)) -> do
-    timeRequested <- liftIO getCurrentTime
-    return (timeRequested, TStart t dur dir)
-
---  performEvent_ $ ffor reqTime $ \(TStart t t' d d') -> do
---    liftJSM $ consoleLog $ "Got request " ++ show t ++ " at " ++ printTime t' ++ " for " ++ show d ++ " with direction " ++ show d'
-
-  -- Holds the time that animations are currently running until. Future
-  -- animation requests must be delayed until after the resultant time. We add
-  -- 0.1s to the time to prevent out of order events (lazy solution).
-  let timer (when, TStart _ howLong _) after
-        | after < when = addUTCTime (howLong + 0.1) when
-        | otherwise = addUTCTime (howLong + 0.1) after
-  now <- liftIO getCurrentTime
-  scheduleAfter <- foldDyn timer now reqTime
-
---  dyn $ ffor scheduleAfter $ liftJSM . consoleLog . printTime
-
-  -- Queue the requests using the last value of scheduleAfter
-  queue <- performEventAsync $ ffor (attach (current scheduleAfter) reqTime) $
-    \(after, (_, t)) cb -> liftIO $ void $ forkIO $ do
-      now <- getCurrentTime
-      Concurrent.delay $ ceiling $ 1000000 * after `diffUTCTime` now
-      cb t
-
---  performEvent_ $ ffor queue $ \(TStart t t' d d') -> do
---    liftJSM $ consoleLog $ "Queued request " ++ show t ++ " at " ++ printTime t' ++ " for " ++ show d ++ " with direction " ++ show d'
-
-  -- Delay the queue events by their duration, to signal when the transitions
-  -- have ended
-  finish <- performEventAsync $ ffor queue $ \(TStart _ howLong d) cb ->
-    liftIO $ void $ forkIO $ do
-      Concurrent.delay $ ceiling $ howLong * 1000000
-      cb $ TEnd d
-
-  mClasses <- holdDyn Nothing $ fmap mkTransClasses $ leftmost [queue, finish]
-  mStyle <- holdDyn Nothing $ fmap mkTransStyle $ leftmost [queue, finish]
-
-  return $ AnimationAttrs mClasses mStyle
-
-mkTransClasses :: Trans -> Maybe Classes
-mkTransClasses (TStart t _ d)
-  = Just $ Classes ["animating", "transition", toClassText t, toClassText d]
-mkTransClasses (TEnd Out)
-  = Just $ Classes ["transition", "hidden"]
-mkTransClasses (TEnd In) = Nothing
-
-mkTransStyle :: Trans -> Maybe Style
-mkTransStyle (TStart _ d _) = Just $ Style $ "animation-duration" =: tshow d
-mkTransStyle _ = Nothing
-
--- Animation
 
 data AnimationConfig = AnimationConfig
   { _duration :: NominalDiffTime
@@ -239,35 +149,88 @@ instance Default AnimationConfig where
     { _duration = 0.75
     }
 
-data Animation = Animation
-  { _animationType :: AnimationType
-  , _config :: AnimationConfig
-  }
+data Transition
+  = Transition TransitionType TransitionConfig
+  | Animation AnimationType AnimationConfig
 
-getDuration :: Animation -> NominalDiffTime
+getDuration :: Transition -> NominalDiffTime
+getDuration (Transition Instant _) = 0
+getDuration (Transition _ TransitionConfig{..}) = _duration
 getDuration (Animation _ AnimationConfig{..}) = _duration
+
+getDirection :: Transition -> Maybe Direction
+getDirection (Transition _ TransitionConfig{..}) = _direction
+getDirection (Animation _ _) = Just In
 
 data AnimationAttrs t = AnimationAttrs
   { _class :: Dynamic t (Maybe Classes)
   , _style :: Dynamic t (Maybe Style)
   }
 
-runAnimation :: MonadWidget t m => Event t Animation
-             -> m (AnimationAttrs t)
-runAnimation request = do
-  rec finish <- delaySelf $ gate (isNothing <$> current mAnim)
-                          $ fmap getDuration request
-      mAnim <- holdDyn Nothing $ leftmost [Just <$> request, Nothing <$ finish]
-  return $ AnimationAttrs (fmap animClasses <$> mAnim)
-                          (fmap animStyle <$> mAnim)
+runTransition :: MonadWidget t m => Event t Transition -> m (AnimationAttrs t)
+runTransition transitionRequest = do
 
-animClasses :: Animation -> Classes
-animClasses (Animation animType _)
-  = Classes ["animating", "transition", toClassText animType]
+  let flipDir Nothing In = Out
+      flipDir Nothing Out = In
+      flipDir (Just d) _ = d
 
-animStyle :: Animation -> Style
-animStyle (Animation _ AnimationConfig {..})
-  = Style $ "animation-duration" =: tshow _duration
+  lastDir <- foldDyn flipDir In $ leftmost [ getDirection <$> transitionRequest ]
+
+  -- We transform the transitionRequest into a more useful type, tagging with
+  -- the direction. Must be promptly tagged or we use the wrong direction.
+  reqTime <- performEvent $ ffor (attachPromptlyDyn lastDir transitionRequest) $
+    \(dir, t) -> do
+      timeRequested <- liftIO getCurrentTime
+      return (timeRequested, dir, t)
+
+  -- Holds the time that animations are currently running until. Future
+  -- animation requests must be delayed until after the resultant time. We add
+  -- 0.1s to the time to prevent out of order events (lazy solution).
+  let timer (when, _, t) after
+        | after < when = addUTCTime (getDuration t + 0.1) when
+        | otherwise = addUTCTime (getDuration t + 0.1) after
+  now <- liftIO getCurrentTime
+  scheduleAfter <- foldDyn timer now reqTime
+
+  -- Queue the requests using the last value of scheduleAfter
+  queue <- performEventAsync $ ffor (attach (current scheduleAfter) reqTime) $
+    \(after, (_, d, t)) cb -> liftIO $ void $ forkIO $ do
+      now <- getCurrentTime
+      Concurrent.delay $ ceiling $ 1000000 * after `diffUTCTime` now
+      cb (d, t)
+
+  -- Delay the queue events by their duration, to signal when the transitions
+  -- have ended
+  finish <- performEventAsync $ ffor queue $ \(d, t) cb -> case t of
+    Transition Instant TransitionConfig{..} -> liftIO $ cb (d, _forceVisible)
+    Transition _ TransitionConfig{..} -> liftIO $ void $ forkIO $ do
+      Concurrent.delay $ ceiling $ _duration * 1000000
+      cb (d, _forceVisible)
+    Animation _ AnimationConfig{..} -> liftIO $ void $ forkIO $ do
+      Concurrent.delay $ ceiling $ _duration * 1000000
+      cb (In, False)
+
+  mClasses <- holdDyn Nothing $ leftmost
+    [ mkTransClasses <$> queue
+    , mkTransEndClasses <$> finish ]
+  mStyle <- holdDyn Nothing $ leftmost
+    [ mkTransStyle . snd <$> queue
+    , Nothing <$ finish ]
+  return $ AnimationAttrs mClasses mStyle
+
+mkTransClasses :: (Direction, Transition) -> Maybe Classes
+mkTransClasses (d, Transition t _)
+  = Just $ Classes ["animating", "transition", toClassText t, toClassText d]
+mkTransClasses (_, Animation t _)
+  = Just $ Classes ["animating", "transition", toClassText t]
+
+mkTransEndClasses :: (Direction, Bool) -> Maybe Classes
+mkTransEndClasses (Out, _) = Just $ Classes ["transition", "hidden"]
+mkTransEndClasses (In, True) = Just $ Classes ["transition", "visible"]
+mkTransEndClasses (In, False) = Nothing
+
+mkTransStyle :: Transition -> Maybe Style
+mkTransStyle t = Just $ Style $ "animation-duration" =: tshow (getDuration t)
 
 -- Active elements
 
@@ -275,7 +238,6 @@ data ActiveElConfig t = ActiveElConfig
   { _classes :: Active t Classes
   , _style :: Active t Style
   , _attrs :: Active t (Map Text Text)
-  , _animation :: Maybe (Event t Animation)
   , _transition :: Maybe (Event t Transition)
   }
 
@@ -284,14 +246,13 @@ instance Default (ActiveElConfig t) where
     { _classes = Static mempty
     , _style = Static mempty
     , _attrs = Static mempty
-    , _animation = Nothing
     , _transition = Nothing
     }
 
 -- | Left biased
 instance Reflex t => Semigroup (ActiveElConfig t) where
-  ActiveElConfig a b c d e <> ActiveElConfig a' b' c' d' e'
-    = ActiveElConfig (a <> a') (b <> b') (c <> c') d e
+  ActiveElConfig a b c d <> ActiveElConfig a' b' c' d'
+    = ActiveElConfig (a <> a') (b <> b') (c <> c') d
 
 instance Reflex t => Monoid (ActiveElConfig t) where
   mempty = def
@@ -303,7 +264,6 @@ elWithAnim elType conf = fmap snd . elWithAnim' elType conf
 elWithAnim' :: MonadWidget t m => Text -> ActiveElConfig t -> m a
             -> m (Element EventResult (DomBuilderSpace m) t, a)
 elWithAnim' _element ActiveElConfig {..} child = do
-  --animAttrs <- traverse runAnimation _animation
   transAttrs <- traverse runTransition _transition
   case transAttrs of
     Nothing -> let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
@@ -338,31 +298,31 @@ delaySnd e = performEventAsync $ ffor e $ \(a, dt) cb ->
 
 -- Lenses
 
-class HasAnimation t a where
-  animation :: Lens' a (Maybe (Event t Animation))
-
-elConfigAnimation :: Lens' (ActiveElConfig t) (Maybe (Event t Animation))
-elConfigAnimation f (ActiveElConfig c s at a t)
-  = fmap (\a' -> ActiveElConfig c s at a' t) $ f a
-
 class HasTransition t a where
   transition :: Lens' a (Maybe (Event t Transition))
 
 elConfigTransition :: Lens' (ActiveElConfig t) (Maybe (Event t Transition))
-elConfigTransition f (ActiveElConfig c s at a t)
-  = fmap (\t' -> ActiveElConfig c s at a t') $ f t
+elConfigTransition f (ActiveElConfig c s at t)
+  = fmap (\t' -> ActiveElConfig c s at t') $ f t
 
 class HasAttributes t a where
   attributes :: Lens' a (Active t (Map Text Text))
 
 elConfigAttributes :: Lens' (ActiveElConfig t) (Active t (Map Text Text))
-elConfigAttributes f (ActiveElConfig c s at a t)
-  = fmap (\at' -> ActiveElConfig c s at' a t) $ f at
+elConfigAttributes f (ActiveElConfig c s at t)
+  = fmap (\at' -> ActiveElConfig c s at' t) $ f at
 
 class HasStyle t a where
   style :: Lens' a (Active t Style)
 
 elConfigStyle :: Lens' (ActiveElConfig t) (Active t Style)
-elConfigStyle f (ActiveElConfig c s at a t)
-  = fmap (\s' -> ActiveElConfig c s' at a t) $ f s
+elConfigStyle f (ActiveElConfig c s at t)
+  = fmap (\s' -> ActiveElConfig c s' at t) $ f s
+
+class HasClasses t a where
+  classes :: Lens' a (Active t Classes)
+
+elConfigClasses :: Lens' (ActiveElConfig t) (Active t Classes)
+elConfigClasses f (ActiveElConfig c s at t)
+  = fmap (\c' -> ActiveElConfig c' s at t) $ f c
 

@@ -32,6 +32,7 @@ mymode = Exts.defaultParseMode
       , Exts.TypeFamilies
       , Exts.ExplicitForAll
       , Exts.DataKinds
+      , Exts.LambdaCase
       , Exts.GADTs
       , Exts.MultiParamTypeClasses
       , Exts.RecordWildCards
