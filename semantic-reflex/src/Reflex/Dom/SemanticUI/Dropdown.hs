@@ -14,6 +14,7 @@
 
 module Reflex.Dom.SemanticUI.Dropdown
   (
+  {-
     Dropdown (..)
 
   , DropdownConfig (..)
@@ -23,6 +24,7 @@ module Reflex.Dom.SemanticUI.Dropdown
   , DropdownItemConfig (..)
 
   , Divider(..)
+  -}
   ) where
 
 import           Control.Monad
@@ -51,6 +53,8 @@ import           Reflex.Dom.SemanticUI.Icon
 import           Reflex.Dom.SemanticUI.Image
 import           Reflex.Dom.SemanticUI.Header
 ------------------------------------------------------------------------------
+
+{-
 
 data DropdownAction
   = Activate
@@ -323,3 +327,5 @@ dropdownInternal items isMulti conf@DropdownConfig {..} = do
     classes = "ui" : "dropdown" : (if isMulti then "multiple" else "") : dropdownConfigClasses conf
     getIndices :: Foldable f => f a -> [Int]
     getIndices vs = L.findIndices (`elem` vs) $ toValues items
+
+-}

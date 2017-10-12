@@ -61,12 +61,12 @@ printDefinition postproc preproc name = do
       runIO $ putStrLn $ stripModules $ pprint info
       fail str
 
-hscode :: MonadWidget t m => String -> m ()
-hscode = void . elAttr "code" ("class" =: "haskell")
+hscode :: MonadWidget t m => String -> Restrict None m ()
+hscode = Restrict . void . elAttr "code" ("class" =: "haskell")
        . elDynHtml' "pre" . constDyn . hscolour
 
-hsCodeInline :: MonadWidget t m => String -> m ()
-hsCodeInline = void . elAttr "code" ("class" =: "haskell inline")
+hsCodeInline :: MonadWidget t m => String -> Restrict Inline m ()
+hsCodeInline = Restrict . void . elAttr "code" ("class" =: "haskell inline")
              . elDynHtml' "pre" . constDyn . hscolour
 
 hscolour :: String -> Text

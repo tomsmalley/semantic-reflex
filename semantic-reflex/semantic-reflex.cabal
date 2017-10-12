@@ -35,6 +35,7 @@ library
     Reflex.Dom.SemanticUI.Common
     Reflex.Dom.SemanticUI.Container
     Reflex.Dom.SemanticUI.Dropdown
+    Reflex.Dom.SemanticUI.Functions
     Reflex.Dom.SemanticUI.Header
     Reflex.Dom.SemanticUI.Icon
     Reflex.Dom.SemanticUI.Image
@@ -45,7 +46,9 @@ library
     Reflex.Dom.SemanticUI.Message
     Reflex.Dom.SemanticUI.Modal
     Reflex.Dom.SemanticUI.RadioGroup
+    Reflex.Dom.SemanticUI.Segment
     Reflex.Dom.SemanticUI.Transition
+    Reflex.Dom.SemanticUI.TH
   if !impl(ghcjs)
     exposed-modules: Reflex.Dom.SemanticUI.Warp
 
@@ -61,7 +64,10 @@ library
     , mtl
     , reflex          >= 0.5 && < 0.6
     , reflex-dom-core >= 0.4 && < 0.5
+    , ref-tf
+    , template-haskell
     , text
+    , th-abstraction
     , these
     , time
     , unbounded-delays

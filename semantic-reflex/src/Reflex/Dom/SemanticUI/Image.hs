@@ -57,15 +57,17 @@ instance Reflex t => Default (ImageConfig t) where
     , _config = def
     }
 
+{-
 instance ToPart (Image t) where
   toPart (Image src config) = Image src $ config { _component = True }
+-}
 
 imageConfigClasses :: Reflex t => ImageConfig t -> Active t Classes
 imageConfigClasses ImageConfig {..} = activeClasses
   [ Static $ justWhen (not _component) "ui image"
   , fmap toClassText <$> _size
   , Just . toClassText <$> _shape
---  , memptyUnless "avatar" <$> _avatar
+  , boolClass "avatar" _avatar
   , fmap toClassText <$> _floated
   , boolClass "hidden" _hidden
   ]
@@ -75,14 +77,12 @@ data Image t = Image
   , _config :: ImageConfig t
   }
 
-instance t ~ t' => UI t' m (Image t) where
+instance t ~ t' => UI t' m None (Image t) where
   type Return t' m (Image t) = ()
-  ui' (Image src config@ImageConfig {..}) = do
-
-    elWithAnim' "img" attrs blank
-
+  ui' (Image src config@ImageConfig {..})
+    = reRestrict $ elWithAnim' "img" elConfig blank
     where
-      attrs = _config <> def
+      elConfig = _config <> def
         { _classes = imageConfigClasses config
         , _attrs = mkAttrs <$> src <*> _title
         }

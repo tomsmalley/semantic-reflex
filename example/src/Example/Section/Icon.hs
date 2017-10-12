@@ -25,7 +25,7 @@ icons = LinkedSection "Icon" blank $ do
   hscode $ $(printDefinition id stripParens ''IconConfig)
   hscode $ $(printDefinition id stripParens ''IconsConfig)
 
-  ui $ Header H3 (text "Groups") def
+  ui $ Header H3 (ui $ Text "Groups") def
 
   divClass "ui equal width stackable grid" $ do
 
@@ -51,7 +51,7 @@ icons = LinkedSection "Icon" blank $ do
       divClass "column" $ do
         exampleCard "Corner Icon" "A group of icons can display a smaller corner icon"
           [mkExample|
-        ui $ Header H2 (text "Add on Twitter") $ def
+        ui_ $ Header H2 (ui $ Text "Add on Twitter") $ def
           & icon .~ AlwaysRender (Icons
               [ Icon "twitter" def
               , Icon "corner add" $ def & inverted |~ True

@@ -8,13 +8,14 @@
 
 module Reflex.Dom.SemanticUI.RadioGroup
   (
+  {-
   -- * Radio Group
     RadioGroup (..)
   , RadioGroupConfig (..)
   -- * Radio Item
   , RadioItem (..)
   , RadioItemConfig (..)
-
+  -}
   ) where
 
 import           Control.Monad (void)
@@ -38,6 +39,7 @@ import Reflex.Dom.SemanticUI.Checkbox (CheckboxType (..))
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
+{-
 --------------------------------------------------------------------------------
 -- Radio Item
 
@@ -207,3 +209,5 @@ setRadioGroup es (Just v) = do
     ^. js0 ("val" :: Text)
   syncPoint -- needed for the initial set event to fire
   fromJSValUnchecked selected
+
+-}

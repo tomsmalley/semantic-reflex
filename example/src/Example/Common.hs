@@ -14,7 +14,7 @@ import Reflex.Dom.SemanticUI
 
 import Example.QQ
 
-data Section m = LinkedSection Text (m ()) (m ())
+data Section m = LinkedSection Text (Restrict Inline m ()) (Restrict None m ())
 
 removableWidget :: MonadWidget t m => Event t () -> m (Event t ()) -> m ()
 removableWidget restore widget = do
@@ -24,35 +24,37 @@ removableWidget restore widget = do
         ]
   return ()
 
-dynShowCode :: (MonadWidget t m, DynShow t a) => a -> m ()
+dynShowCode :: (MonadWidget t m, DynShow t a) => a -> Restrict r m ()
 dynShowCode a = do
   a' <- dynShow a
-  void $ dyn $ hscode <$> a'
+  Restrict $ void $ dyn $ runRestricted . hscode <$> a'
 
-dynCode :: (MonadWidget t m, Show a) => Dynamic t a -> m ()
-dynCode d = void $ dyn $ hscode . show <$> d
+dynCode :: (MonadWidget t m, Show a) => Dynamic t a -> Restrict r m ()
+dynCode d = Restrict $ void $ dyn $ runRestricted . hscode . show <$> d
 
-simpleLink :: DomBuilder t m => Text -> m ()
-simpleLink url = elAttr "a" ("href" =: url) $ text url
+simpleLink :: DomBuilder t m => Text -> Restrict Inline m ()
+simpleLink url = Restrict $ elAttr "a" ("href" =: url) $ text url
 
 orElse :: a -> a -> Bool -> a
 orElse a _ True = a
 orElse _ b False = b
 
-exampleCard :: forall t m a. MonadWidget t m => Text -> Text -> (String, m a) -> m a
-exampleCard headerText subText (code, widget) = do
+exampleCard :: forall t m a. MonadWidget t m => Text -> Text -> (String, Restrict None m a) -> Restrict None m a
+exampleCard headerText subText (code, widget) = divClass "example" $ do
   -- Title segment
-  divClass "ui top attached segment" $ ui $ Header H4 (text headerText) $ def
-      & subHeader .~ if subText == "" then Nothing else Just (text subText)
+  ui $ Segment (def & attached |?~ TopAttached) $ do
+    ui $ Header H4 (ui $ Text $ Static headerText) $ def
+      & subHeader .~ if subText == "" then Nothing else Just (ui $ Text $ Static subText)
   -- Main segment
-  widgetResult <- divClass "ui attached segment" widget
+  widgetResult <- ui $ Segment (def & attached |?~ Attached) widget
   -- Control buttons
---  let classes open = def { _uiButton_custom = Just ("basic tiny compact"
---      <> if open then " attached" else " bottom attached") }
-  rec codeIsOpen <- toggle False <=< divClass "ui tiny compact bottom attached buttons"
-        $ ui $ Button
+  rec codeIsOpen <- toggle False <=< ui $ Button
           (Dynamic $ "Hide Code" `orElse` "Show Code" <$> codeIsOpen)
-          (def & icon .~ AlwaysRender (Icon "code" def))
+          $ def & icon .~ AlwaysRender (Icon "code" def)
+                & size |?~ Tiny
+                & compact |~ True
+                & attached |?~ Vertically BottomAttached
+                & realButton .~ False -- needed for bottom attached to work
 
   void $ codeEl $ updated codeIsOpen
   return widgetResult
@@ -68,56 +70,77 @@ exampleCard headerText subText (code, widget) = do
       & duration .~ 0.3
       & forceVisible .~ True
 
-exampleCardReset :: forall t m a. MonadWidget t m => Text -> Text -> (String, Event t () -> m a) -> m a
-exampleCardReset headerText subText (code, widget) = divClass "ui segments" $ do
+exampleCardReset :: forall t m a. MonadWidget t m => Text -> Text -> (String, Event t () -> Restrict None m a) -> Restrict None m a
+exampleCardReset headerText subText (code, widget) = divClass "example" $ do
   -- Title segment
-  divClass "ui segment" $ ui $ Header H4 (text headerText) $ def
-      & subHeader .~ if subText == "" then Nothing else Just (text subText)
+  ui $ Segment (def & attached |?~ TopAttached) $ do
+    ui $ Header H4 (ui $ Text $ Static headerText) $ def
+      & subHeader .~ if subText == "" then Nothing else Just (ui $ Text $ Static subText)
   rec
     -- Main segment
-    widgetResult <- divClass "ui segment" $ widget resetEvent
+    widgetResult <- ui $ Segment (def & attached |?~ Attached) $ widget resetEvent
     -- Control buttons
-    let attrs open = "class" =: ("ui two basic tiny compact buttons"
-            <> if open then " attached" else " bottom attached")
-    (resetEvent, codeIsOpen) <- elDynAttr "div" (attrs <$> codeIsOpen) $ do
+    (resetEvent, codeIsOpen) <- ui $ Buttons (def
+      & size |?~ Tiny & attached |?~ BottomAttached) $ do
+
       r <- ui $ Button "Reset" $ def & icon .~ AlwaysRender (Icon "refresh" def)
       rec c <- toggle False <=< ui $ Button
             (Dynamic $ "Hide Code" `orElse` "Show Code" <$> c)
             (def & icon .~ AlwaysRender (Icon "code" def))
       return (r, c)
-  void $ dyn $ codeEl <$> codeIsOpen
+
+  void $ codeEl $ updated codeIsOpen
   return widgetResult
   where
-    codeEl False = blank
-    codeEl True = divClass "ui segment" $ hscode code
+    codeEl evt = elWithAnim "div"
+      ( def
+        & elConfigClasses |~ "ui fluid bottom center popup"
+        & elConfigStyle |~ Style ("top" =: "auto")
+        & elConfigTransition ?~ fmap mkTransition evt
+      ) $ hscode code
+    mkTransition t = Transition Scale $ def
+      & direction ?~ (if t then In else Out)
+      & duration .~ 0.3
+      & forceVisible .~ True
+
 
 exampleCardDyn :: forall t m a. MonadWidget t m
-               => (a -> m ()) -> Text -> Text
-               -> (String, Event t () -> m a) -> m ()
-exampleCardDyn renderResult headerText subText (code, widget) = divClass "ui segments" $ do
+               => (a -> Restrict None m ()) -> Text -> Text
+               -> (String, Event t () -> Restrict None m a) -> Restrict None m ()
+exampleCardDyn renderResult headerText subText (code, widget) = divClass "example" $ do
   -- Title segment
-  divClass "ui segment" $ ui $ Header H4 (text headerText) $ def
-      & subHeader .~ if subText == "" then Nothing else Just (text subText)
+  ui $ Segment (def & attached |?~ TopAttached) $ do
+    ui $ Header H4 (ui $ Text $ Static headerText) $ def
+      & subHeader .~ if subText == "" then Nothing else Just (ui $ Text $ Static subText)
   rec
     -- Main segment
-    widgetResult <- divClass "ui segment" $ widget resetEvent
+    widgetResult <- ui $ Segment (def & attached |?~ Attached) $ widget resetEvent
     -- Value segment
-    divClass "ui segment" $ do
-      ui $ Header H4 (text "Value") $ def & header .~ ContentHeader
+    ui $ Segment (def & attached |?~ Attached) $ do
+      ui $ Header H4 (ui $ Text $ Static "Value") $ def & header .~ ContentHeader
       renderResult widgetResult
     -- Control buttons
-    let attrs open = "class" =: ("ui two basic tiny compact buttons"
-            <> if open then " attached" else " bottom attached")
-    (resetEvent, codeIsOpen) <- elDynAttr "div" (attrs <$> codeIsOpen) $ do
+    (resetEvent, codeIsOpen) <- ui $ Buttons (def
+      & size |?~ Tiny & attached |?~ BottomAttached) $ do
+
       r <- ui $ Button "Reset" $ def & icon .~ AlwaysRender (Icon "refresh" def)
       rec c <- toggle False <=< ui $ Button
             (Dynamic $ "Hide Code" `orElse` "Show Code" <$> c)
             (def & icon .~ AlwaysRender (Icon "code" def))
       return (r, c)
-  void $ dyn $ codeEl <$> codeIsOpen
+
+  void $ codeEl $ updated codeIsOpen
   where
-    codeEl False = blank
-    codeEl True = divClass "ui segment" $ hscode code
+    codeEl evt = elWithAnim "div"
+      ( def
+        & elConfigClasses |~ "ui fluid bottom center popup"
+        & elConfigStyle |~ Style ("top" =: "auto")
+        & elConfigTransition ?~ fmap mkTransition evt
+      ) $ hscode code
+    mkTransition t = Transition Scale $ def
+      & direction ?~ (if t then In else Out)
+      & duration .~ 0.3
+      & forceVisible .~ True
 
 -- | Throughput
 data Throughput = Unmetered | Metered Int deriving (Eq, Show)

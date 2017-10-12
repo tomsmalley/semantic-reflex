@@ -25,7 +25,7 @@ labels = LinkedSection "Label" blank $ do
   hscode $ $(printDefinition id stripParens ''Label)
   hscode $ $(printDefinition id stripParens ''LabelConfig)
 
-  ui $ Header H3 (text "Types") def
+  ui $ Header H3 (ui $ Text "Types") def
 
   divClass "ui equal width stackable grid" $ do
 
@@ -34,30 +34,37 @@ labels = LinkedSection "Label" blank $ do
         exampleCard "Label" "" [mkExample|
         ui $ Label "Veronika" $ def
           & image .~ AlwaysRender (Image "https://semantic-ui.com/images/avatar/small/veronika.jpg" def)
-          & detail |?~ "Friend"
+          & detail .~ AlwaysRender "Friend"
           & color |?~ Blue
         ui $ Label "Jenny" $ def
           & image .~ AlwaysRender (Image "https://semantic-ui.com/images/avatar/small/jenny.jpg" def)
-          & detail |?~ "Student"
+          & detail .~ AlwaysRender "Student"
           & color |?~ Teal
         ui $ Label "Christian" $ def
           & image .~ AlwaysRender (Image "https://semantic-ui.com/images/avatar/small/christian.jpg" def)
-          & detail |?~ "Co-worker"
+          & detail .~ AlwaysRender "Co-worker"
           & color |?~ Yellow
         |]
 
+    resetEvent <- ui $ Button "Reset" def
     divClass "row" $ do
       divClass "column" $ do
-        exampleCardReset "Label" "" [mkExample|
-        \resetEvent -> do
+--        exampleCardReset "Label" "" [mkExample|
+--        \resetEvent -> do
           let src person = "https://semantic-ui.com/images/avatar/small/" <> person <> ".jpg"
               mkLabel (person, url, colour) = do
-                LabelResult _ iconResult _ <- ui $ Label (pure person) $ def
-                  & image .~ AlwaysRender (Image (pure $ src url) def)
-                  & rightIcon .~ AlwaysRender (Icon "delete" def)
-                  & color |?~ colour
-                return $ switch . current $ fmap (maybe never (domEvent Click . fst)) iconResult
-          mapM_ (removableWidget resetEvent . mkLabel)
+                rec
+                  let onClose = switch . current $ fmap (maybe never (domEvent Click . fst)) iconResult
+                  LabelResult _ iconResult _ <- ui $ Label (pure person) $ def
+                    & image .~ AlwaysRender (Image (pure $ src url) def)
+                    & rightIcon .~ AlwaysRender (Icon "delete" def)
+                    & color |?~ colour
+                    & transition ?~ leftmost
+                      [ Transition Instant (def & direction ?~ In) <$ resetEvent
+                      , Transition Scale (def & direction ?~ Out) <$ onClose ]
+                return ()
+
+          mapM_ mkLabel
             [ ("Justen", "justen", Grey)
             , ("Adrienne", "ade", Blue)
             , ("Zoe", "zoe", Teal)
@@ -65,7 +72,7 @@ labels = LinkedSection "Label" blank $ do
             , ("Joe", "joe", Yellow)
             , ("Matt", "matt", Orange)
             ]
-        |]
+--        |]
 
   return ()
 

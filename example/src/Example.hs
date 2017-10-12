@@ -70,59 +70,69 @@ setLocationHash hash = do
     hash' = if "#" `T.isPrefixOf` hash then hash else "#" <> hash
 
 
-putSections :: MonadWidget t m => [Section m] -> m ()
+putSections :: MonadWidget t m => [Section m] -> Restrict None m ()
 putSections sections = do
   pb :: Event t () <- delay 0.1 =<< getPostBuild
   onLoadEvent <- performEvent $ liftJSM getLocationHash <$ pb
   performEvent_ $ liftJSM . scrollIntoView <$> fmapMaybe id onLoadEvent
 
-  elAttr "div" ("id" =: "main" <> "class" =: "ui container") $ do
+  elWithAnim "div" (def
+    & elConfigAttributes |~ ("id" =: "main")
+    & elConfigClasses |~ "ui container") $ do
+
     -- Menu
     (stickyEl, _) <- divClass "ui dividing right rail" $ do
-      elAttr' "div" ("class" =: "ui sticky") $ do
-
-        ui $ Header H4 (text "Components") def
+      elAttr' "div" ("class" =: "ui sticky") `mapRestrict` do
+        ui $ Header H4 (staticText "Components") def
         --divClass "ui vertical following fluid accordion text menu" $ do
-        (selected, HNil) <- ui $ Menu
-          (renderItems sections) $ def
-            & vertical .~ True
-            & fluid .~ True
-            & textContent .~ True
-            & setValue .~ onLoadEvent
+
+        let conf = def
+              & vertical .~ True
+              & fluid .~ True
+              & textContent .~ True
+              & setValue .~ onLoadEvent
+
+            renderItem (LinkedSection heading _ _) = MenuItem (toId heading) def $ staticText heading
+
+        (selected, _) <- ui $ Menu conf $ mapM_ (ui_ . renderItem) sections
+
         performEvent_ $ fmap (\id -> do
           liftJSM $ setLocationHash id
           liftJSM $ scrollIntoView id
           ) $ fmapMaybe id $ updated selected
 
     -- Sections
-    (contextEl, _) <- el' "div" $ do
+    --(contextEl, _) <- el' "div" $ do
+    divClass "context" $ do
 
       divClass "intro" $ do
-        ui $ Header H2 (text "Introduction") def
-        el "p" $ do
-          text "This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the "
-          elAttr "a" ("href" =: "https://github.com/reflex-frp/reflex-dom-semui") $ text "reflex-dom-semui"
-          text " library."
-        el "p" $ text "This page serves to provide an example of the library and components in use. Examples are shown along with the code that generated them."
+        ui $ Header H2 (ui $ Text "Introduction") def
+        ui $ Paragraph $ do
+          ui $ Text "This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the "
+          ui $ Anchor (ui $ Text "reflex-dom-semui") $ def
+            & href |?~ "https://github.com/reflex-frp/reflex-dom-semui"
+          ui $ Text " library."
+        ui $ Paragraph $ ui $ Text "This page serves to provide an example of the library and components in use. Examples are shown along with the code that generated them."
 
-        ui $ Header H3 (text "Overview") def
-        el "p" $ text "The library exposes components in the form of data types. The convention is to have a record with all parts required to specify a component, with the last being a config type that contains the optional or unnecessary parts. All of the component types have overloaded field lenses so they can be modified concisely."
-        el "p" $ do
-          text "Components can be rendered using the function "
+        ui $ Header H3 (ui $ Text "Overview") def
+        ui $ Paragraph $ ui $ Text "The library exposes components in the form of data types. The convention is to have a record with all parts required to specify a component, with the last being a config type that contains the optional or unnecessary parts. All of the component types have overloaded field lenses so they can be modified concisely."
+        ui $ Paragraph $ do
+          ui $ Text "Components can be rendered using the function "
           hsCodeInline $(printDefinition oneline id 'ui)
-          text "."
+          ui $ Text "."
 
-        el "p" $ text "To avoid having lots of unnecessary dynamics in config types, we use the type:"
+        ui $ Paragraph $ ui $ Text "To avoid having lots of unnecessary dynamics in config types, we use the type:"
         hscode $(printDefinition oneline id ''Active)
-        el "p" $ text "For the common use case of config values to 'pure value' (in the case of Active, this translates to Static), we also provide lenses:"
+        ui $ Paragraph $ ui $ Text "For the common use case of config values to 'pure value' (in the case of Active, this translates to Static), we also provide lenses:"
         hscode $(printDefinition oneline id '(|?~))
         hscode $(printDefinition oneline id '(|~))
 
       forM_ sections $ \(LinkedSection heading subHeading child) -> do
-        ui $ Header H2 (text heading) $ def
+        ui $ Header H2 (ui $ Text $ Static heading) $ def
           & dividing |~ True
           & subHeader ?~ subHeading
-          & attributes |~ ("id" =: toId heading <> "style" =: "margin-top: 3em")
+          & style |~ Style ("margin-top" =: "3em")
+          & attributes |~ ("id" =: toId heading)
         child
 
   {-
@@ -138,28 +148,30 @@ putSections sections = do
 
   where
     toId = T.intercalate "-" . T.words . T.toLower
+    {-
     renderItems [] = MenuBase
     renderItems (LinkedSection heading _ _:rest)
       = MenuItem (toId heading) heading def $ renderItems rest
+      -}
 
 example :: JSM ()
-example = catchJS $ mainWidget $ do
+example = catchJS $ mainWidget $ runRestricted $ do
 
-  elAttr "div" ("id" =: "masthead" <> "class" =: "ui vertical segment") $ do
+  ui $ Segment (def & attributes |~ ("id" =: "masthead") & vertical |~ True) $ do
+
     divClass "ui container" $ do
       let semanticLogo = Image "https://semantic-ui.com/images/logo.png" $ def
             & size |?~ Massive & shape |~ Rounded
-      ui $ Header H1 (text "Semantic UI for Reflex Dom") $ def
+      ui $ Header H1 (ui $ Text "Semantic UI for Reflex Dom") $ def
         & image .~ AlwaysRender semanticLogo
-        & subHeader ?~ text "Documentation and examples"
-      elAttr "a" ("class" =: "ui disabled button" <> "href" =: "") $ text "Hackage"
-      elAttr "a" ("class" =: "ui teal button"
-               <> "href" =: "https://github.com/tomsmalley/reflex-dom-semui") $ do
-        ui $ Icon "github" $ def
-        text "GitHub"
+        & subHeader ?~ ui (Text "Documentation and examples")
+      ui $ Button "Hackage" $ def & disabled |~ True
+      ui $ Button "GitHub" $ def
+        & icon .~ AlwaysRender (Icon "github" def)
+        & color |?~ Teal
+        & attributes |~ ("href" =: "https://github.com/tomsmalley/reflex-dom-semui")
+
       return ()
 
   --putSections [ transitions, checkboxes, dropdowns, flags, headers, icons, labels, menu, messages, radioGroups ]
-  --putSections [ transitions, checkboxes, flags, headers, icons, labels, messages ]
-  putSections [ transitions ]
-
+  putSections [ menu, transitions, checkboxes, flags, headers, icons, labels, messages ]

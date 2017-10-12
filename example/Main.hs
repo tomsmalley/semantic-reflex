@@ -25,7 +25,7 @@ port :: Int
 port = 3708
 
 css :: ByteString
-css = $(embedFile =<< makeRelativeToProject "styling.css")
+css = $(embedFile =<< makeRelativeToProject "resources/styling.css")
 
 static :: Maybe FilePath
 static = Just $(strToExp =<< makeRelativeToProject "resources")

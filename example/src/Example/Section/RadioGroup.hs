@@ -21,6 +21,8 @@ import Example.Common
 radioGroups :: forall t m. MonadWidget t m => Section m
 radioGroups = LinkedSection "Radio Group" blank $ do
 
+  {-
+
   hscode $ $(printDefinition id stripParens ''RadioGroup)
   hscode $ $(printDefinition id stripParens ''RadioGroupConfig)
   hscode $ $(printDefinition id stripParens ''RadioItem)
@@ -48,6 +50,7 @@ radioGroups = LinkedSection "Radio Group" blank $ do
                 & setValue .~ (Just Unmetered <$ resetEvent)
                 & altType ?~ Slider
         |]
+  -}
 
   return ()
 

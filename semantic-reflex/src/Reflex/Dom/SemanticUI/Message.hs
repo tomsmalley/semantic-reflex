@@ -38,7 +38,8 @@ import Reflex.Dom.Core hiding (message, Message, MessageConfig)
 
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Icon
-import Reflex.Dom.SemanticUI.Transition
+import Reflex.Dom.SemanticUI.Transition hiding (divClass)
+import Reflex.Dom.SemanticUI.Header
 
 data MessageType
   = ErrorMessage
@@ -61,9 +62,9 @@ instance ToClassText MessageType where
 -- and set events in order to logically disconnect them from their dynamic
 -- return values in MessageResult.
 data MessageConfig t m a b = MessageConfig
-  { _header :: Maybe (m a)
+  { _header :: Maybe (Restrict Inline m a)
   -- ^ Message header content
-  , _message :: Maybe (m b)
+  , _message :: Maybe (Restrict Inline m b)
   -- ^ Message content
   , _icon :: Maybe (Icon t)
   -- ^ Message icon
@@ -134,55 +135,39 @@ data Message t m a b = Message
   { _config :: MessageConfig t m a b
   }
 
-instance (t ~ t', m ~ m') => UI t' m' (Message t m a b) where
+instance (t ~ t', m ~ m') => UI t' m' None (Message t m a b) where
   type Return t' m' (Message t m a b) = MessageResult t m a b
-  ui' (Message config) = message config
+  ui' (Message config@MessageConfig{..}) = do
 
-dismissable :: MonadWidget t m => (Event t Bool)
-            -> (a -> Event t ()) -> m a -> m (Dynamic t a)
-dismissable hidden getDismiss m = do
-  rec aDyn <- widgetHold m $ leftmost
-        [ sample (current aDyn) <$ switch (current $ getDismiss <$> aDyn)
-        , (\h -> if h then sample (current aDyn) else m) <$> hidden
-        ]
-  return aDyn
+    let dismissIcon = domEvent Click . fst <$> unRestrict (ui' $ Icon "close" def)
 
-message
-  :: forall t m a b. MonadWidget t m
-  => MessageConfig t m a b
-  -> m (Element EventResult (DomBuilderSpace m) t, MessageResult t m a b)
-message config@MessageConfig {..} = do
+    let content = do
+          dismissed <- if _dismissable then dismissIcon else return never
+          header <- traverse (divClass "header" `mapRestrict`) _header
+          message <- traverse (el "p" `mapRestrict`) _message
+          return (header, message, dismissed)
 
-  let dismissIcon = domEvent Click . fst <$> ui' (Icon "close" def)
+    rec
+      hidden <- holdDyn False $ leftmost
+        [ True <$ dismissed
+        , _setHidden ]
 
-  let content = do
-        dismissed <- if _dismissable then dismissIcon else return never
-        header <- traverse (divClass "header") _header
-        message <- traverse (el "p") _message
-        return (header, message, dismissed)
+      (divEl, (icon, (header, message, dismissed))) <-
+        reRestrict $ elWithAnim' "div" (attrs hidden) $ do
+          case _icon of
+            Nothing -> (,) Nothing <$> reRestrict content
+            Just icon -> do
+              i <- unRestrict $ ui' icon
+              c <- divClass "content" `mapRestrict` reRestrict content
+              return (Just i, c)
 
-  rec
-    hidden <- holdDyn False $ leftmost
-      [ True <$ dismissed
-      , _setHidden ]
+    return $ (divEl, MessageResult
+      { _header = header
+      , _message = message
+      , _icon = icon
+      })
 
-    (divEl, (icon, (header, message, dismissed))) <-
-      --elActiveAttr' "div" (divAttrs $ Dynamic hidden) $ do
-      elWithAnim' "div" (attrs hidden) $ do
-        case _icon of
-          Nothing -> (,) Nothing <$> content
-          Just icon -> do
-            i <- ui' icon
-            c <- divClass "content" content
-            return (Just i, c)
-
-  return $ (divEl, MessageResult
-    { _header = header
-    , _message = message
-    , _icon = icon
-    })
-
-  where
-    attrs hidden = _config <> def
-      { _classes = addClassMaybe <$> (boolClass "hidden" $ Dynamic hidden) <*> messageConfigClasses config
-      }
+    where
+      attrs hidden = _config <> def
+        { _classes = addClassMaybe <$> (boolClass "hidden" $ Dynamic hidden) <*> messageConfigClasses config
+        }

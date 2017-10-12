@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE RecordWildCards          #-}
 {-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeApplications         #-}
 
 module Reflex.Dom.SemanticUI.Input where
 
@@ -11,7 +12,9 @@ import Data.Default
 import Data.Monoid
 import Data.Text (Text)
 import Reflex.Dom.Core hiding (Input, fromJSString)
+
 import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Transition
 import Reflex.Dom.SemanticUI.Icon
 
 data Input t = Input
@@ -22,6 +25,7 @@ data InputConfig t = InputConfig
   { _disabled :: Active t Bool
   , _icon :: RenderWhen t (Icon t)
   , _placeholder :: Active t (Maybe Text)
+  , _config :: ActiveElConfig t
   }
 
 instance Default (InputConfig t) where
@@ -29,6 +33,7 @@ instance Default (InputConfig t) where
     { _disabled = Static False
     , _icon = NeverRender
     , _placeholder = Static Nothing
+    , _config = def
     }
 
 inputConfigClasses :: Reflex t => InputConfig t -> Active t ClassText
@@ -40,14 +45,14 @@ inputConfigClasses InputConfig {..} = mconcat
 data InputResult t = InputResult
   { _value :: Dynamic t Text }
 
-instance t' ~ t => UI t' m (Input t) where
+instance t' ~ t => UI t' m None (Input t) where
   type Return t' m (Input t) = InputResult t
 
   ui' (Input config@InputConfig {..}) = do
-    (divEl, inputResult) <- elActiveAttr' "div" divAttrs $ do
-      TextInput {..} <- textInput def
+    (divEl, inputResult) <- reRestrict $ elActiveAttr' "div" divAttrs $ do
+      TextInput {..} <- Restrict $ textInput def
         { _textInputConfig_attributes = inputAttrs }
-      runRenderWhen ui' _icon
+      runRenderWhen @None ui' _icon
       return _textInput_value
     return (divEl, InputResult inputResult)
     where

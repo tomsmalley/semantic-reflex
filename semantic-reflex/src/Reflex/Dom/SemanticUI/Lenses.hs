@@ -21,10 +21,13 @@ import Reflex.Dom.SemanticUI.Image
 import Reflex.Dom.SemanticUI.Label
 import Reflex.Dom.SemanticUI.Menu
 import Reflex.Dom.SemanticUI.Message
+import Reflex.Dom.SemanticUI.Segment
 import Reflex.Dom.SemanticUI.Transition
 
 $(makeFieldsNoPrefix ''Button)
 $(makeFieldsNoPrefix ''ButtonConfig)
+$(makeFieldsNoPrefix ''ButtonsConfig)
+$(makeFieldsNoPrefix ''ConditionalConfig)
 
 $(makeFieldsNoPrefix ''Input)
 $(makeFieldsNoPrefix ''InputConfig)
@@ -34,6 +37,7 @@ $(makeFieldsNoPrefix ''Checkbox)
 $(makeFieldsNoPrefix ''CheckboxResult)
 $(makeFieldsNoPrefix ''CheckboxConfig)
 
+{-
 $(makeFieldsNoPrefix ''Dropdown)
 $(makeFieldsNoPrefix ''DropdownConfig)
 
@@ -43,6 +47,10 @@ $(makeFieldsNoPrefix ''DropdownItemConfig)
 $(makeFieldsNoPrefix ''RadioItem)
 $(makeFieldsNoPrefix ''RadioItemConfig)
 $(makeFieldsNoPrefix ''RadioGroupConfig)
+-}
+
+$(makeFieldsNoPrefix ''MenuConfig)
+$(makeFieldsNoPrefix ''MenuItemConfig)
 
 $(makeFieldsNoPrefix ''LabelConfig)
 
@@ -50,9 +58,9 @@ $(makeFieldsNoPrefix ''ImageConfig)
 $(makeFieldsNoPrefix ''IconConfig)
 $(makeFieldsNoPrefix ''IconsConfig)
 $(makeFieldsNoPrefix ''HeaderConfig)
+$(makeFieldsNoPrefix ''AnchorConfig)
 
-$(makeFieldsNoPrefix ''MenuConfig)
-$(makeFieldsNoPrefix ''MenuItemConfig)
+$(makeFieldsNoPrefix ''SegmentConfig)
 
 $(makeFieldsNoPrefix ''Message)
 -- $(makeFieldsNoPrefix ''MessageResult)

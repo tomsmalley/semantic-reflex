@@ -13,21 +13,30 @@
 {-# LANGUAGE TypeFamilyDependencies   #-}
 {-# LANGUAGE UndecidableInstances     #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving     #-}
-{-# LANGUAGE DeriveFunctor     #-}
-{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DataKinds     #-}
 {-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE GADTs     #-}
 {-# LANGUAGE LambdaCase     #-}
+{-# LANGUAGE StandaloneDeriving     #-}
+{-# LANGUAGE InstanceSigs     #-}
+{-# LANGUAGE PolyKinds     #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE TypeInType     #-}
+{-# LANGUAGE FunctionalDependencies     #-}
 
 module Reflex.Dom.SemanticUI.Common where
 
 ------------------------------------------------------------------------------
 import Control.Monad.Fix (MonadFix)
+import Control.Monad.Ref
+import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Reader (MonadReader)
+import Control.Monad.Writer (WriterT, runWriterT, lift, writer)
 import Control.Lens ((^.), set, ASetter)
 import Control.Monad (void, (<=<))
 import Data.Default
 import Data.Kind (Type)
+import GHC.TypeLits
 import Data.String
 import Data.Semigroup
 import Data.Map (Map)
@@ -90,6 +99,29 @@ imap f = go 0
 (_:xs) !? n = xs !? (n - 1)
 
 ------------------------------------------------------------------------------
+
+newtype Restrict r m a = Restrict { runRestricted :: m a }
+  deriving (Functor, Applicative, Monad, MonadFix, MonadSample t, MonadHold t, TriggerEvent t, MonadIO, PostBuild t, MonadReader r')
+
+#ifndef ghcjs_HOST_OS
+deriving instance MonadJSM m => MonadJSM (Restrict r m)
+#endif
+
+instance PerformEvent t m => PerformEvent t (Restrict None m) where
+  type Performable (Restrict None m) = Performable m
+  performEvent = Restrict . performEvent
+  performEvent_ = Restrict . performEvent_
+
+reRestrict :: Restrict r' m a -> Restrict r m a
+reRestrict (Restrict m) = Restrict m
+
+unRestrict :: Restrict None m a -> Restrict r m a
+unRestrict (Restrict m) = Restrict m
+
+mapRestrict :: (m a -> m b) -> Restrict r m a -> Restrict r m b
+mapRestrict f (Restrict m) = Restrict $ f m
+
+--
 
 newtype ClassText = ClassText (Maybe Text) deriving (Eq, Show)
 
@@ -161,28 +193,30 @@ instance (Reflex t, Monoid a, Semigroup a) => Monoid (Active t a) where
 
 elActiveAttr'
   :: (PostBuild t m, DomBuilder t m)
-  => Text -> Active t (Map Text Text) -> m a
-  -> m (Element EventResult (DomBuilderSpace m) t, a)
-elActiveAttr' elType (Static attrs) = elAttr' elType attrs
-elActiveAttr' elType (Dynamic attrs) = elDynAttr' elType attrs
-
+  => Text -> Active t (Map Text Text) -> Restrict r m a
+  -> Restrict None m (Element EventResult (DomBuilderSpace m) t, a)
+elActiveAttr' elType (Static attrs) = Restrict . elAttr' elType attrs . runRestricted
+elActiveAttr' elType (Dynamic attrs) = Restrict . elDynAttr' elType attrs . runRestricted
 
 elActiveAttr
   :: (PostBuild t m, DomBuilder t m)
-  => Text -> Active t (Map Text Text) -> m a -> m a
+  => Text -> Active t (Map Text Text) -> Restrict r m a -> Restrict None m a
 elActiveAttr t a = fmap snd . elActiveAttr' t a
 
-activeText :: (PostBuild t m, DomBuilder t m) => Active t Text -> m ()
-activeText (Static t) = text t
-activeText (Dynamic t) = dynText t
+activeText :: (PostBuild t m, DomBuilder t m) => Active t Text -> Restrict None m ()
+activeText (Static t) = Restrict $ text t
+activeText (Dynamic t) = Restrict $ dynText t
 
 activeMaybe :: (PostBuild t m, DomBuilder t m) => (a -> m ()) -> Active t (Maybe a) -> m ()
 activeMaybe f (Static ma) = maybe blank f ma
 activeMaybe f (Dynamic dma) = void $ dyn $ maybe blank f <$> dma
 
-runActive :: (MonadWidget t m, UI t m a) => Active t a -> m ()
-runActive (Dynamic a) = void $ dyn $ ui_ <$> a
+{-
+runActive :: (Restriction r a, MonadWidget t m, UI t m a)
+          => Active t a -> Restrict r m ()
+runActive (Dynamic a) = Restrict $ void $ dyn $ runRestricted . ui_ <$> a
 runActive (Static a) = ui_ a
+-}
 
 zipActiveWith :: Reflex t => (a -> b -> c) -> Active t a -> Active t b -> Active t c
 zipActiveWith f a b = f <$> a <*> b
@@ -230,8 +264,8 @@ data Style = Style (Map Text Text) deriving (Eq, Show)
 styleAttr :: Style -> Map Text Text
 styleAttr (Style m)
   | M.null m = mempty
-  | otherwise = "style" =: M.foldlWithKey' f "" m
-  where f acc k x = acc <> "; " <> k <> ": " <> x
+  | otherwise = "style" =: M.foldrWithKey f "" m
+  where f k x acc = k <> ": " <> x <> "; " <> acc
 
 
 instance Semigroup Style where
@@ -248,40 +282,77 @@ styleText (Style m)
 addStyle :: Text -> Text -> Style -> Style
 addStyle name value (Style m) = Style $ M.insert name value m
 
+staticText :: DomBuilder t m => Text -> Restrict Inline m ()
+staticText t = Restrict $ text t
+
+widgetHold' :: (MonadHold t m, DomBuilder t m) => Restrict r m a -> Event t (Restrict r m a) -> Restrict r m (Dynamic t a)
+widgetHold' (Restrict m) evt = Restrict $ widgetHold m $ fmap runRestricted evt
 
 --type Attrs = Attrs $ Map Text Text
 
-
+data Inline
+data None
 
 instance Reflex t => IsString (Dynamic t Text) where
   fromString = pure . fromString
 
-class UI t m a where
+class UI t m (r :: k) a where
   type Return t m a
-  ui' :: MonadWidget t m => a -> m (El t, Return t m a)
+--  default ui' :: (UI t m None a, Restriction r a, MonadWidget t m)
+--              => a -> Restrict r m (El t, Return t m a)
+--  ui' = unRestrict . ui'
+  ui' :: MonadWidget t m => a -> Restrict r m (El t, Return t m a)
+--  ui' :: MonadWidget t m => a -> m (El t, Return t m a)
 --  uiDyn :: MonadWidget t m => Dynamic t a -> m (El t, Return t m a)
 
-ui :: (MonadWidget t m, UI t m a) => a -> m (Return t m a)
+-- | This instance is here to provide a more helpful and clear error message
+-- when other instances are not selected
+instance {-# OVERLAPPABLE #-} TypeError
+  (    'Text "Cannot use the component:"
+  :$$: 'ShowType a
+  :$$: 'Text "In the restricted context of:"
+  :$$: 'ShowType r
+  ) => UI t m r a
+
+ui :: forall r t m a. (MonadWidget t m, UI t m r a)
+   => a -> Restrict r m (Return t m a)
 ui = fmap snd . ui'
 
-ui_ :: (MonadWidget t m, UI t m a) => a -> m ()
+ui_ :: forall r t m a. (MonadWidget t m, UI t m r a)
+    => a -> Restrict r m ()
 ui_ = void . ui
 
-part_ :: (MonadWidget t m, Part t m a) => a -> m ()
+{-
+ui :: forall r t m a. (Restriction r a, MonadWidget t m, UI t m a)
+   => a -> Restrict r m (Return t m a)
+ui = fmap snd . ui'
+
+ui_ :: forall r t m a. (Restriction r a, MonadWidget t m, UI t m a)
+    => a -> Restrict r m ()
+ui_ = void . ui
+
+-}
+
+{-
+part_ :: (Restriction r a, MonadWidget t m, Part t m a)
+      => a -> Restrict r m ()
 part_ = void . part
 
-part :: (MonadWidget t m, Part t m a) => a -> m (Return t m a)
+part :: (Restriction r a, MonadWidget t m, Part t m a)
+     => a -> Restrict r m (Return t m a)
 part = fmap snd . part'
-
 class ToItem a where
   toItem :: a -> a
 
 class (ToPart a, UI t m a) => Part t m a where
-  part' :: MonadWidget t m => a -> m (El t, Return t m a)
+  part' :: (Restriction r a, MonadWidget t m)
+        => a -> Restrict r m (El t, Return t m a)
   part' = ui' . toPart
 
 instance (ToPart a, UI t m a) => Part t m a where
+-}
 
+{-
 instance UI t m Text where
   type Return t m Text = ()
   ui' = el' "" . text
@@ -294,6 +365,7 @@ class ToPart a where
 class ToInline a where
   toInline :: a -> a
 
+-}
 --class (ToInline a, UI t m a) => InlineContent t m a where
 --  putInline' :: MonadWidget t m => a -> m (El t, Return t m a)
 --  putInline' = ui' . toInline
@@ -311,21 +383,21 @@ instance Reflex t => Default (RenderWhen t a) where
   def = NeverRender
 
 runRenderWhen
-  :: forall t m a. (UI t m a, MonadWidget t m)
-  => (a -> m (El t, Return t m a))
+  :: forall r t m a. MonadWidget t m
+  => (a -> Restrict r m (El t, Return t m a))
   -> RenderWhen t a
-  -> m (Dynamic t (Maybe (El t, Return t m a)))
+  -> Restrict r m (Dynamic t (Maybe (El t, Return t m a)))
 runRenderWhen _ NeverRender = return $ pure Nothing
 runRenderWhen render (AlwaysRender widget) = fmap (pure . Just) $ render widget
 runRenderWhen render (RenderWhen when widget) = do
 
   trimmed :: Dynamic t Bool <- holdUniqDyn when
 
-  res <- dyn $ fmap (sequence . f) trimmed
+  res <- Restrict $ dyn $ fmap (runRestricted . sequence . f) trimmed
   holdDyn Nothing res
 
   where
-    f :: Bool -> Maybe (m (El t, Return t m a))
+    f :: Bool -> Maybe (Restrict r m (El t, Return t m a))
     f False = Nothing
     f True = Just $ render widget
 
@@ -367,6 +439,22 @@ instance ToClassText Floated where
   toClassText LeftFloated = "left floated"
   toClassText RightFloated = "right floated"
 
+data Width = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Eleven | Twelve
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
+
+instance ToClassText Width where
+  toClassText Two = "two"
+  toClassText Three = "three"
+  toClassText Four = "four"
+  toClassText Five = "five"
+  toClassText Six = "six"
+  toClassText Seven = "seven"
+  toClassText Eight = "eight"
+  toClassText Nine = "nine"
+  toClassText Ten = "ten"
+  toClassText Eleven = "eleven"
+  toClassText Twelve = "twelve"
+
 data Size = Mini | Tiny | Small | Medium | Large | Big | Huge | Massive
   deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
@@ -381,7 +469,7 @@ instance ToClassText Size where
   toClassText Massive = "massive"
 
 data HorizontalAttached = LeftAttached | RightAttached deriving (Eq, Show)
-data VerticalAttached = TopAttached | BottomAttached deriving (Eq, Show)
+data VerticalAttached = TopAttached | Attached | BottomAttached deriving (Eq, Show)
 
 data ExclusiveAttached
   = Horizontally HorizontalAttached
@@ -394,6 +482,7 @@ instance ToClassText ExclusiveAttached where
 
 instance ToClassText VerticalAttached where
   toClassText TopAttached = "top attached"
+  toClassText Attached = "attached"
   toClassText BottomAttached = "bottom attached"
 
 instance ToClassText HorizontalAttached where
@@ -406,6 +495,7 @@ combineAttached mv mh = Just $ T.unwords $ catMaybes
   [ vClass <$> mv, hClass <$> mh, Just "attached" ]
   where
     vClass TopAttached = "top"
+    vClass Attached = ""
     vClass BottomAttached = "bottom"
     hClass LeftAttached = "left"
     hClass RightAttached = "right"

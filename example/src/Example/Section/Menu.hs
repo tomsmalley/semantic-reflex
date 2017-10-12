@@ -12,6 +12,8 @@ module Example.Section.Menu where
 import GHC.Tuple -- TH requires this for (,)
 import Control.Lens
 import Control.Monad ((<=<), void, when, join)
+import Control.Monad.Writer (tell)
+import Data.Monoid (First(..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
@@ -26,16 +28,91 @@ data Favourite
   deriving (Eq, Show)
 
 menu :: forall t m. MonadWidget t m => Section m
-menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") $ do
+menu = LinkedSection "Menu" (ui $ Text "A menu displays grouped navigation actions") $ do
 
-  el "p" $ text "In Semantic UI menus are just exposed as styling elements and any active state must be managed by you. Here the current state is managed for you, providing a standalone widget which returns the currently selected value and the results of any sub widgets in a 'HList'."
+  ui $ Paragraph $ ui $ Text "In Semantic UI menus are just exposed as styling elements and any active state must be managed by you. Here the state is managed for you."
 
   hscode $(printDefinition id stripParens ''Menu)
-  hscode $(printDefinition id stripParens ''MenuDef)
-  hscode $(printDefinition id id ''MenuItems)
+--  hscode $(printDefinition id stripParens ''MenuDef)
+--  hscode $(printDefinition id id ''MenuItems)
 
   hscode $(printDefinition id stripParens ''MenuConfig)
   hscode $(printDefinition id stripParens ''MenuItemConfig)
+
+  (dynVal, myVal) <- ui $ Menu def $ do
+
+--    ui $ Header H1 "hi" def
+    ui $ MenuItem 1 def $ ui $ Text "One"
+    ui $ MenuItem 2 def $ ui $ Text "Two"
+{-  Ideal setup:
+    ui $ Header H3 (ui $ Text "Header") def
+    search <- ui $ Input $ def & placeholder |?~ "Search..."
+    ui $ MenuItem 1 (ui $ Text "One") def
+    ui $ MenuItem 2 (ui $ Text "Two") def
+    ui $ Dropdown ... etc
+    button <- ui $ Button "hi" def
+    return (search, button)
+-}
+
+    --return () :: Restrict MenuM (MonadMenuT Int t m) ()
+
+  Restrict $ display dynVal
+  return ()
+
+  exampleCardDyn dynCode "Buttons" "" [mkExample|
+  \resetEvent -> do
+    ui $ Buttons (def & width |?~ Three) $ do
+      redCount <- count <=< ui $ Button "Red" $ def & color |?~ Red
+      ui $ Conditional def
+      greenCount <- count <=< ui $ Button "Green" $ def & color |?~ Green
+      ui $ Conditional $ def & dataText |?~ "ou"
+      blueCount <- count <=< ui $ Button "Blue" $ def & color |?~ Blue
+      return $ (,,) <$> redCount <*> greenCount <*> blueCount
+  |]
+
+  exampleCardDyn dynCode "Vertical Menu" "A vertical menu displays elements vertically" [mkExample|
+  \resetEvent -> do
+    let counter txt = let widget = count <=< ui $ Button (Static txt) def-- :: m (Dynamic t Int)
+                      in join <$> widgetHold' widget (widget <$ resetEvent)
+
+    inboxCount <- counter "Add inbox item"
+    spamCount <- counter "Add spam item"
+    updatesCount <- counter "Add updates item"
+
+    let mkLabel dCount mColor = Label (Dynamic $ tshow <$> dCount) $ def
+          & color |~ mColor
+          & transition ?~ leftmost
+            [ Animation Jiggle (def & duration .~ 0.4) <$ (ffilter id $ updated $ (> 0) <$> dCount)
+            , Transition Fade (def & direction ?~ Out) <$ (ffilter id $ updated $ (<= 0) <$> dCount)
+            ]
+
+        conf = def & vertical .~ True
+                   & setValue .~ (Just "inbox" <$ resetEvent)
+                   & initialValue ?~ "inbox"
+
+    (selected, myVal) <- ui $ Menu conf $ do
+      ui $ MenuItem ("inbox" :: Text) (def & color ?~ Teal) $ do
+        ui $ Text "Inbox"
+        ui $ mkLabel inboxCount $ Just Teal
+      ui $ MenuItem ("spam" :: Text) def $ do
+        ui $ Text "Spam"
+        ui $ mkLabel spamCount Nothing
+      ui $ MenuItem ("updates" :: Text) def $ do
+        ui $ Text "Updates"
+        ui $ mkLabel updatesCount Nothing
+
+    return selected
+
+--      $ MenuWidget (ui (Input $ def
+--        & icon .~ AlwaysRender (Icon "search" def)
+--        & placeholder |?~ "Search mail...")) def
+--
+--      ) $ def & setValue .~ (Just "Inbox" <$ resetEvent)
+--              & initialValue ?~ "Inbox"
+--              & vertical .~ True
+  |]
+
+{-
 
   exampleCardDyn dynCode "Header" "A menu item may include a header or may itself be a header" [mkExample|
   \resetEvent -> do
@@ -191,3 +268,4 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
 
   return ()
 
+-}

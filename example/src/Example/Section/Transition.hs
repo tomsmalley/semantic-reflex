@@ -18,6 +18,7 @@ import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
+import GHC.Tuple
 
 import Example.QQ
 import Example.Common
@@ -31,7 +32,7 @@ spaceBeforeUpper (c:cs)
 animalUrl :: Text -> Active t Text
 animalUrl a = Static $ "images/animals/" <> a <> ".png"
 
-mkButton :: MonadWidget t m => TransitionType -> m (Event t Transition)
+mkButton :: MonadWidget t m => TransitionType -> Restrict None m (Event t Transition)
 mkButton transType = do
   run <- ui $ Button (Static $ T.pack $ spaceBeforeUpper $ show transType) $ def
     & style |~ Style ("margin-bottom" =: "1em")
@@ -42,11 +43,13 @@ mkButton transType = do
 transitions :: forall t m. MonadWidget t m => Section m
 transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/modules/transition.html") $ do
 
-  divClass "ui info message" $ do
-    ui $ Icon "announcement" def
-    text "The implementation of the Transition module does not depend on the Semantic UI or jQuery Javascript libraries."
+  ui $ Message $ def
+    & messageType |?~ InfoMessage
+    & message ?~ (do
+      ui $ Icon "announcement" def
+      ui $ Text "The implementation of the Transition module does not depend on the Semantic UI or jQuery Javascript libraries.")
 
-  el "p" $ text "Any element is capable of animation with Transition or Animation. Animation or Transition events are placed into a queue which allows time for each transition to finish."
+  ui $ Paragraph $ ui $ Text "Any of the components in this library are capable of Semantic UI transitions. The difference between animations and transitions is more clear cut, with different data constructors for each:"
 
   hscode $(printDefinition id stripParens ''Transition)
   hscode $(printDefinition oneline stripParens ''TransitionType)
@@ -55,23 +58,44 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   hscode $(printDefinition oneline stripParens ''AnimationType)
   hscode $(printDefinition id stripParens ''AnimationConfig)
 
-  ui $ Header H3 (text "Examples") def
+  ui $ Paragraph $ ui $ Text "If the direction of a transition event is not specified, the transition will flip the current state of the element. Animation events will cause hidden elements to be shown, and they will remain shown after the animation finishes."
 
-  exampleCard "Animations" "" [mkExample|
-  let img (anim, animal) = divClass "center aligned column" $ do
-        run <- ui $ Button (Static $ T.pack $ show anim) $ def
-          & style |~ Style ("margin-bottom" =: "1em")
-        ui $ Image (animalUrl animal) $ def
+  ui $ Paragraph $ ui $ Text "Animation or Transition events are placed into a queue which allows time for each transition to finish. The animation or transition speeds are specified in seconds using the duration config fields."
+
+  ui $ Header H3 (ui $ Text "Examples") def
+
+  divClass "ui equal width grid" $ do
+
+    divClass "row" $ divClass "column" $ do
+      exampleCard "Animations" "An element can be animated to draw attention to it" [mkExample|
+      let img (anim, animal) = divClass "center aligned column" $ do
+            run <- ui $ Button (Static $ T.pack $ show anim) $ def
+              & style |~ Style ("margin-bottom" =: "1em")
+            ui $ Image (animalUrl animal) $ def
+              & size |?~ Small
+              & shape |~ Rounded
+              & transition ?~ (Animation anim def <$ run)
+
+      divClass "ui six column vertically padded grid" $
+        traverse_ img $ zip [Jiggle .. Bounce]
+          ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]
+      |]
+
+    divClass "row" $ do
+      divClass "column" $ do
+        exampleCard "Transitions" "An element can be hidden or shown using a transition" [mkExample|
+        toggleButton <- ui $ Button "Toggle" def
+        showButton <- ui $ Button "Show" def
+        hideButton <- ui $ Button "Hide" def
+        ui $ Image (animalUrl "crocodile") $ def
           & size |?~ Small
           & shape |~ Rounded
-          & transition ?~ (Animation anim def <$ run)
-
-  divClass "ui six column vertically padded grid" $
-    traverse_ img $ zip [Jiggle .. Bounce]
-      ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]
-  |]
-
-  divClass "ui two column grid" $ do
+          & transition ?~ leftmost
+            [ Transition Instant def <$ toggleButton
+            , Transition Instant (def & direction ?~ In) <$ showButton
+            , Transition Instant (def & direction ?~ Out) <$ hideButton
+            ]
+        |]
 
     divClass "row" $ do
       divClass "column" $ do
@@ -147,13 +171,4 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
           & size |?~ Small
           & shape |~ Rounded
           & transition ?~ leftmost evts
-        |]
-
-      divClass "column" $ do
-        exampleCard "Instant" "An element can be instantly hidden or shown" [mkExample|
-        evt <- mkButton Instant
-        ui $ Image (animalUrl "crocodile") $ def
-          & size |?~ Small
-          & shape |~ Rounded
-          & transition ?~ evt
         |]

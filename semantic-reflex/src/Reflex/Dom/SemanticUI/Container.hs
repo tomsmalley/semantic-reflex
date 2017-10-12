@@ -27,7 +27,7 @@ import Reflex.Dom.SemanticUI.Transition
 
 data Container t m a = Container
   { _config :: ContainerConfig t
-  , _contents :: m a
+  , _contents :: Restrict None m a
   }
 
 data ContainerConfig t = ContainerConfig
@@ -47,10 +47,10 @@ containerConfigClasses ContainerConfig {..} = activeClasses
     , fmap toClassText <$> _size
     ]
 
-instance (t ~ t', m ~ m') => UI t' m' (Container t m a) where
+instance (t ~ t', m ~ m') => UI t' m' None (Container t m a) where
   type Return t' m' (Container t m a) = a
   ui' (Container config@ContainerConfig {..} contents)
-    = elWithAnim' "i" attrs contents
+    = reRestrict $ elWithAnim' "i" attrs contents
     where
       attrs = _config <> def
         { _classes = containerConfigClasses config

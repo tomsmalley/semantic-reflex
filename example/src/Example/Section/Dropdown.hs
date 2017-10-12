@@ -24,7 +24,9 @@ import Example.CountryEnum
 
 dropdowns :: MonadWidget t m => Section m
 dropdowns = LinkedSection "Dropdown" blank $ do
+  ui $ Text "Not implemented"
 
+{-
   elAttr "a" ("href" =: "https://semantic-ui.com/modules/dropdown.html") $ text "Semantic UI Docs"
   hscode $ $(printDefinition id stripParens ''DropdownConfig)
   hscode $ $(printDefinition id stripParens ''DropdownItem)
@@ -198,3 +200,4 @@ dropdowns = LinkedSection "Dropdown" blank $ do
 
   return ()
 
+-}

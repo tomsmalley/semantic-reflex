@@ -17,6 +17,7 @@ module Reflex.Dom.SemanticUI
   , module Reflex.Dom.SemanticUI.Lenses
   , module Reflex.Dom.SemanticUI.Modal
   , module Reflex.Dom.SemanticUI.RadioGroup
+  , module Reflex.Dom.SemanticUI.Segment
   , module Reflex.Dom.SemanticUI.Transition
   , semanticMain
   , semanticMainWithCss
@@ -26,7 +27,7 @@ module Reflex.Dom.SemanticUI
 import           Data.ByteString
 import           Reflex.Dom.SemanticUI.Button
 import           Reflex.Dom.SemanticUI.Checkbox
-import           Reflex.Dom.SemanticUI.Common (tshow, Color (..), Size (..), ui, ui', ui_, Floated(..), Part (..), part, jQuery, consoleLog, consoleTime, consoleTimeEnd, catchJS, Active (..), RenderWhen(..), (|~), (|?~), HorizontalAttached (..), VerticalAttached (..), ExclusiveAttached(..), Aligned(..), zipActiveWith, DynShow(..), Classes(..), Style(..))
+import           Reflex.Dom.SemanticUI.Common (tshow, Color (..), Size (..), ui, ui', ui_, Floated(..), jQuery, consoleLog, consoleTime, consoleTimeEnd, catchJS, Active (..), RenderWhen(..), (|~), (|?~), HorizontalAttached (..), VerticalAttached (..), ExclusiveAttached(..), Aligned(..), zipActiveWith, DynShow(..), Classes(..), Style(..), Width(..), mapRestrict, Restrict(..), None, activeText, Inline, staticText, widgetHold')
 import           Reflex.Dom.SemanticUI.Dropdown
 import           Reflex.Dom.SemanticUI.Header
 import           Reflex.Dom.SemanticUI.Icon
@@ -38,6 +39,7 @@ import           Reflex.Dom.SemanticUI.Message
 import           Reflex.Dom.SemanticUI.Lenses
 import           Reflex.Dom.SemanticUI.Modal
 import           Reflex.Dom.SemanticUI.RadioGroup
+import           Reflex.Dom.SemanticUI.Segment
 import           Reflex.Dom.SemanticUI.Transition
 import Reflex.Dom.Core hiding
   ( checkbox, Checkbox (..), checkbox_value, checkbox_change
@@ -45,6 +47,7 @@ import Reflex.Dom.Core hiding
   , HasSetValue (..), HasValue (..), HasAttributes (..)
   , Dropdown (..), DropdownConfig (..), dropdown_change, dropdown_value, Select
   , link, Link, Input, Drop
+  , divClass
   )
 import Language.Javascript.JSaddle (JSM)
 

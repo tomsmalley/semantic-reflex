@@ -32,6 +32,7 @@ module Reflex.Dom.SemanticUI.Transition
   , elConfigStyle
   , HasClasses (..)
   , elConfigClasses
+  , divClass
   ) where
 
 import Control.Concurrent
@@ -51,7 +52,7 @@ import qualified GHCJS.DOM.Types as DOM
 import qualified GHCJS.DOM.HTMLInputElement as Input
 import Language.Javascript.JSaddle (liftJSM)
 import Reflex
-import Reflex.Dom.Core hiding (Drop, HasAttributes)
+import Reflex.Dom.Core hiding (Drop, HasAttributes, divClass)
 
 import Data.Time
 
@@ -258,13 +259,13 @@ instance Reflex t => Monoid (ActiveElConfig t) where
   mempty = def
   mappend = (<>)
 
-elWithAnim :: MonadWidget t m => Text -> ActiveElConfig t -> m a -> m a
+elWithAnim :: MonadWidget t m => Text -> ActiveElConfig t -> Restrict r m a -> Restrict None m a
 elWithAnim elType conf = fmap snd . elWithAnim' elType conf
 
-elWithAnim' :: MonadWidget t m => Text -> ActiveElConfig t -> m a
-            -> m (Element EventResult (DomBuilderSpace m) t, a)
+elWithAnim' :: MonadWidget t m => Text -> ActiveElConfig t -> Restrict r m a
+            -> Restrict None m (Element EventResult (DomBuilderSpace m) t, a)
 elWithAnim' _element ActiveElConfig {..} child = do
-  transAttrs <- traverse runTransition _transition
+  transAttrs <- Restrict $ traverse runTransition _transition
   case transAttrs of
     Nothing -> let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
                    mkAttrs classes style attrs
@@ -279,6 +280,10 @@ elWithAnim' _element ActiveElConfig {..} child = do
              <> styleAttr (maybe style (<> style) mStyle)
              <> attrs
       elActiveAttr' _element activeAttrs child
+
+divClass :: MonadWidget t m
+         => Active t Classes -> Restrict None m a -> Restrict None m a
+divClass classes = elWithAnim "div" (def & elConfigClasses .~ classes)
 
 -- | Delay an Event's occurrences by a given amount in seconds.
 delaySelf :: (PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))

@@ -127,14 +127,14 @@ data Checkbox t = Checkbox
   , _config :: CheckboxConfig t
   }
 
-instance UI t m (Checkbox t) where
+instance UI t m None (Checkbox t) where
   type Return t m (Checkbox t) = CheckboxResult t
-  ui' (Checkbox label config) = checkbox label config
+  ui' (Checkbox label config) = unRestrict $ checkbox label config
 
 checkbox
-  :: forall t m. MonadWidget t m
+  :: forall r t m. MonadWidget t m
   => Active t Text -> CheckboxConfig t
-  -> m (Element EventResult (DomBuilderSpace m) t, CheckboxResult t)
+  -> Restrict None m (Element EventResult (DomBuilderSpace m) t, CheckboxResult t)
 checkbox label config@CheckboxConfig {..} = do
 
   let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
@@ -142,9 +142,9 @@ checkbox label config@CheckboxConfig {..} = do
         & elementConfig_eventSpec %~ addEventSpecFlags
             (Proxy @(DomBuilderSpace m)) Click (const stopPropagation)
 
-  (divEl, inputEl) <- elWithAnim' "div" divAttrs $ do
-    (inputEl, _) <- element "input" cfg blank
-    el "label" $ activeText label
+  (divEl, inputEl) <- unRestrict $ elWithAnim' "div" divAttrs $ do
+    (inputEl, _) <- Restrict $ element "input" cfg blank
+    el "label" `mapRestrict` activeText label
     return inputEl
 
   let e = DOM.uncheckedCastTo DOM.HTMLInputElement $ _element_raw inputEl

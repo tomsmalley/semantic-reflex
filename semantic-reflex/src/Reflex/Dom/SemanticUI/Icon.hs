@@ -8,10 +8,12 @@
 {-# LANGUAGE JavaScriptFFI            #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE OverloadedLists          #-}
 {-# LANGUAGE RecordWildCards          #-}
 {-# LANGUAGE RecursiveDo              #-}
 {-# LANGUAGE ScopedTypeVariables      #-}
 {-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
 module Reflex.Dom.SemanticUI.Icon where
@@ -27,17 +29,25 @@ import Data.Maybe (catMaybes)
 import           Reflex.Dom.SemanticUI.Common
 import           Reflex.Dom.SemanticUI.Transition
 
---data Flag t = Flag (Dynamic t Text)
-data Flag t = Flag (Active t Text)
+data Flag t = Flag (Active t Text) (FlagConfig t)
 
-instance t ~ t' => UI t' m (Flag t) where
+data FlagConfig t = FlagConfig
+  { _config :: ActiveElConfig t
+  }
+
+instance Default (FlagConfig t) where
+  def = FlagConfig def
+
+instance t ~ t' => UI t' m None (Flag t) where
   type Return t' m (Flag t) = ()
-  --ui' (Flag flagDyn) = elDynAttr' "i" (attr <$> flagDyn) blank
-  ui' (Flag flagActive) = case flagActive of
-    Static flag -> elAttr' "i" (attr flag) blank
-    Dynamic flagDyn -> elDynAttr' "i" (attr <$> flagDyn) blank
+  ui' (Flag flagActive FlagConfig {..})
+    = reRestrict $ elWithAnim' "i" config blank
     where
-      attr flag = "class" =: (flag <> " flag")
+      config = _config
+        & elConfigClasses .~ (flip addClass (Classes ["flag"]) <$> flagActive)
+
+instance t ~ t' => UI t' m Inline (Flag t) where
+  ui' = unRestrict . ui'
 
 data Icon t
   = Icon (Active t Text) (IconConfig t)
@@ -107,20 +117,24 @@ iconsConfigClasss IconsConfig {..} = activeClasses
   , fmap toClassText <$> _size
   ]
 
-instance t' ~ t => UI t' m (Icon t) where
+instance t' ~ t => UI t' m None (Icon t) where
   type Return t' m (Icon t) = ()
 
-  ui' (Icon activeIcon config@IconConfig {..}) = elWithAnim' "i" attrs blank
+  ui' (Icon activeIcon config@IconConfig {..})
+    = reRestrict $ elWithAnim' "i" elConfig blank
     where
-      attrs = _config <> def
+      elConfig = _config <> def
         { _classes = addClass <$> activeIcon <*> iconConfigClasses config
         , _attrs = maybe mempty ("title" =:) <$> _title
         }
 
   ui' (Icons icons config@IconsConfig {..})
-    = elWithAnim' "i" attrs $ traverse_ ui_ icons
-      where 
-        attrs = _config <> def
+    = reRestrict $ elWithAnim' "i" elConfig $ traverse_ (ui_ @None) icons
+      where
+        elConfig = _config <> def
           { _classes = iconsConfigClasss config
           }
+
+instance t' ~ t => UI t' m Inline (Icon t) where
+  ui' = unRestrict . ui'
 

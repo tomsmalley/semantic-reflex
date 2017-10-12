@@ -3,7 +3,6 @@ docs: ghcjs
 	cp -r result/dist/js docs
 	cp result/dist/semantic.min.css docs
 	cp -r result/dist/themes docs
-	cp example/styling.css docs
 	cp -r example/resources/* docs
 
 docs-nocc: ghcjs-nocc
@@ -11,7 +10,6 @@ docs-nocc: ghcjs-nocc
 	cp -r result/dist/js docs
 	cp result/dist/semantic.min.css docs
 	cp -r result/dist/themes docs
-	cp example/styling.css docs
 	cp -r example/resources/* docs
 
 ghcjs: semantic-reflex example
