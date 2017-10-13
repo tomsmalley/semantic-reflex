@@ -47,12 +47,3 @@ containerConfigClasses ContainerConfig {..} = activeClasses
     , fmap toClassText <$> _size
     ]
 
-instance (t ~ t', m ~ m') => UI t' m' None (Container t m a) where
-  type Return t' m' (Container t m a) = a
-  ui' (Container config@ContainerConfig {..} contents)
-    = reRestrict $ elWithAnim' "i" attrs contents
-    where
-      attrs = _config <> def
-        { _classes = containerConfigClasses config
-        }
-

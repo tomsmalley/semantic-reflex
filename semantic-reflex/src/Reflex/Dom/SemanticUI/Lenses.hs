@@ -12,6 +12,7 @@ import Control.Lens.TH
 import Control.Lens
 import Reflex.Dom.SemanticUI.Button
 import Reflex.Dom.SemanticUI.Checkbox
+import Reflex.Dom.SemanticUI.Divider
 import Reflex.Dom.SemanticUI.Dropdown
 import Reflex.Dom.SemanticUI.Header
 import Reflex.Dom.SemanticUI.RadioGroup
@@ -21,6 +22,7 @@ import Reflex.Dom.SemanticUI.Image
 import Reflex.Dom.SemanticUI.Label
 import Reflex.Dom.SemanticUI.Menu
 import Reflex.Dom.SemanticUI.Message
+import Reflex.Dom.SemanticUI.Paragraph
 import Reflex.Dom.SemanticUI.Segment
 import Reflex.Dom.SemanticUI.Transition
 
@@ -52,7 +54,10 @@ $(makeFieldsNoPrefix ''RadioGroupConfig)
 $(makeFieldsNoPrefix ''MenuConfig)
 $(makeFieldsNoPrefix ''MenuItemConfig)
 
+$(makeFieldsNoPrefix ''DividerConfig)
+
 $(makeFieldsNoPrefix ''LabelConfig)
+$(makeFieldsNoPrefix ''LabelAttached)
 
 $(makeFieldsNoPrefix ''ImageConfig)
 $(makeFieldsNoPrefix ''IconConfig)
@@ -66,6 +71,7 @@ $(makeFieldsNoPrefix ''Message)
 -- $(makeFieldsNoPrefix ''MessageResult)
 $(makeFieldsNoPrefix ''MessageConfig)
 
+$(makeFieldsNoPrefix ''SetValue')
 $(makeFieldsNoPrefix ''TransitionConfig)
 -- $(makeFieldsNoPrefix ''Transition)
 $(makeFieldsNoPrefix ''AnimationConfig)

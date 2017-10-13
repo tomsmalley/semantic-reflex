@@ -6,7 +6,7 @@
 module Example.Common where
 
 import Control.Lens
-import Control.Monad ((<=<), void)
+import Control.Monad ((<=<), void, when)
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -32,8 +32,9 @@ dynShowCode a = do
 dynCode :: (MonadWidget t m, Show a) => Dynamic t a -> Restrict r m ()
 dynCode d = Restrict $ void $ dyn $ runRestricted . hscode . show <$> d
 
-simpleLink :: DomBuilder t m => Text -> Restrict Inline m ()
-simpleLink url = Restrict $ elAttr "a" ("href" =: url) $ text url
+simpleLink :: MonadWidget t m => Text -> Restrict Inline m ()
+simpleLink url = ui_ $ Anchor (text $ Static url) $ def
+  & href |?~ url
 
 orElse :: a -> a -> Bool -> a
 orElse a _ True = a
@@ -43,14 +44,15 @@ exampleCard :: forall t m a. MonadWidget t m => Text -> Text -> (String, Restric
 exampleCard headerText subText (code, widget) = divClass "example" $ do
   -- Title segment
   ui $ Segment (def & attached |?~ TopAttached) $ do
-    ui $ Header H4 (ui $ Text $ Static headerText) $ def
-      & subHeader .~ if subText == "" then Nothing else Just (ui $ Text $ Static subText)
+    ui $ PageHeader H4 def $ ui $ Content def $ do
+      text $ Static headerText
+      when (subText /= "") $ ui $ SubHeader $ text $ Static subText
   -- Main segment
   widgetResult <- ui $ Segment (def & attached |?~ Attached) widget
   -- Control buttons
   rec codeIsOpen <- toggle False <=< ui $ Button
           (Dynamic $ "Hide Code" `orElse` "Show Code" <$> codeIsOpen)
-          $ def & icon .~ AlwaysRender (Icon "code" def)
+          $ def -- & icon .~ AlwaysRender (Icon "code" def)
                 & size |?~ Tiny
                 & compact |~ True
                 & attached |?~ Vertically BottomAttached
@@ -63,7 +65,7 @@ exampleCard headerText subText (code, widget) = divClass "example" $ do
       ( def
         & elConfigClasses |~ "ui fluid bottom center popup"
         & elConfigStyle |~ Style ("top" =: "auto")
-        & elConfigTransition ?~ fmap mkTransition evt
+        & elConfigTransition . event ?~ fmap mkTransition evt
       ) $ hscode code
     mkTransition t = Transition Scale $ def
       & direction ?~ (if t then In else Out)
@@ -74,8 +76,9 @@ exampleCardReset :: forall t m a. MonadWidget t m => Text -> Text -> (String, Ev
 exampleCardReset headerText subText (code, widget) = divClass "example" $ do
   -- Title segment
   ui $ Segment (def & attached |?~ TopAttached) $ do
-    ui $ Header H4 (ui $ Text $ Static headerText) $ def
-      & subHeader .~ if subText == "" then Nothing else Just (ui $ Text $ Static subText)
+    ui $ PageHeader H4 def $ ui $ Content def $ do
+      text $ Static headerText
+      when (subText /= "") $ ui $ SubHeader $ text $ Static subText
   rec
     -- Main segment
     widgetResult <- ui $ Segment (def & attached |?~ Attached) $ widget resetEvent
@@ -83,10 +86,11 @@ exampleCardReset headerText subText (code, widget) = divClass "example" $ do
     (resetEvent, codeIsOpen) <- ui $ Buttons (def
       & size |?~ Tiny & attached |?~ BottomAttached) $ do
 
-      r <- ui $ Button "Reset" $ def & icon .~ AlwaysRender (Icon "refresh" def)
+      r <- ui $ Button "Reset" $ def -- & icon .~ AlwaysRender (Icon "refresh" def)
       rec c <- toggle False <=< ui $ Button
             (Dynamic $ "Hide Code" `orElse` "Show Code" <$> c)
-            (def & icon .~ AlwaysRender (Icon "code" def))
+            def
+--            (def & icon .~ AlwaysRender (Icon "code" def))
       return (r, c)
 
   void $ codeEl $ updated codeIsOpen
@@ -96,7 +100,7 @@ exampleCardReset headerText subText (code, widget) = divClass "example" $ do
       ( def
         & elConfigClasses |~ "ui fluid bottom center popup"
         & elConfigStyle |~ Style ("top" =: "auto")
-        & elConfigTransition ?~ fmap mkTransition evt
+        & elConfigTransition . event ?~ fmap mkTransition evt
       ) $ hscode code
     mkTransition t = Transition Scale $ def
       & direction ?~ (if t then In else Out)
@@ -110,23 +114,25 @@ exampleCardDyn :: forall t m a. MonadWidget t m
 exampleCardDyn renderResult headerText subText (code, widget) = divClass "example" $ do
   -- Title segment
   ui $ Segment (def & attached |?~ TopAttached) $ do
-    ui $ Header H4 (ui $ Text $ Static headerText) $ def
-      & subHeader .~ if subText == "" then Nothing else Just (ui $ Text $ Static subText)
+    ui $ PageHeader H4 def $ ui $ Content def $ do
+      text $ Static headerText
+      when (subText /= "") $ ui $ SubHeader $ text $ Static subText
   rec
     -- Main segment
     widgetResult <- ui $ Segment (def & attached |?~ Attached) $ widget resetEvent
     -- Value segment
     ui $ Segment (def & attached |?~ Attached) $ do
-      ui $ Header H4 (ui $ Text $ Static "Value") $ def & header .~ ContentHeader
+      ui $ ContentHeader def $ ui $ Content def $ do
+        text $ Static "Value"
       renderResult widgetResult
     -- Control buttons
     (resetEvent, codeIsOpen) <- ui $ Buttons (def
       & size |?~ Tiny & attached |?~ BottomAttached) $ do
 
-      r <- ui $ Button "Reset" $ def & icon .~ AlwaysRender (Icon "refresh" def)
+      r <- ui $ Button "Reset" $ def -- & icon .~ AlwaysRender (Icon "refresh" def)
       rec c <- toggle False <=< ui $ Button
             (Dynamic $ "Hide Code" `orElse` "Show Code" <$> c)
-            (def & icon .~ AlwaysRender (Icon "code" def))
+            (def) --  & icon .~ AlwaysRender (Icon "code" def))
       return (r, c)
 
   void $ codeEl $ updated codeIsOpen
@@ -135,7 +141,7 @@ exampleCardDyn renderResult headerText subText (code, widget) = divClass "exampl
       ( def
         & elConfigClasses |~ "ui fluid bottom center popup"
         & elConfigStyle |~ Style ("top" =: "auto")
-        & elConfigTransition ?~ fmap mkTransition evt
+        & elConfigTransition . event ?~ fmap mkTransition evt
       ) $ hscode code
     mkTransition t = Transition Scale $ def
       & direction ?~ (if t then In else Out)

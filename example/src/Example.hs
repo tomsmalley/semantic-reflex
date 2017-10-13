@@ -29,6 +29,7 @@ import Example.QQ
 import Example.Common
 
 import Example.Section.Checkbox (checkboxes)
+import Example.Section.Divider (dividers)
 import Example.Section.Dropdown (dropdowns)
 import Example.Section.Flag (flags)
 import Example.Section.Header
@@ -50,7 +51,7 @@ scrollIntoView id = do
   document <- jsg ("document" :: Text)
   o <- obj
   o <# ("block" :: Text) $ ("start" :: Text)
-  o <# ("behavior" :: Text) $ ("smooth" :: Text)
+--  o <# ("behavior" :: Text) $ ("smooth" :: Text)
   mEl :: Maybe JSVal <- fromJSVal =<< document ^. js1 ("getElementById" :: Text) id
   case mEl of
     Nothing -> consoleLog ("el does not exist" :: Text) >> return ()
@@ -83,7 +84,7 @@ putSections sections = do
     -- Menu
     (stickyEl, _) <- divClass "ui dividing right rail" $ do
       elAttr' "div" ("class" =: "ui sticky") `mapRestrict` do
-        ui $ Header H4 (staticText "Components") def
+        ui $ PageHeader H4 def $ ui $ Content def $ text "Components"
         --divClass "ui vertical following fluid accordion text menu" $ do
 
         let conf = def
@@ -106,33 +107,35 @@ putSections sections = do
     divClass "context" $ do
 
       divClass "intro" $ do
-        ui $ Header H2 (ui $ Text "Introduction") def
+        ui $ PageHeader H2 def $ ui $ Content def $ text "Introduction"
         ui $ Paragraph $ do
-          ui $ Text "This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the "
-          ui $ Anchor (ui $ Text "reflex-dom-semui") $ def
+          text "This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the "
+          ui $ Anchor (text "reflex-dom-semui") $ def
             & href |?~ "https://github.com/reflex-frp/reflex-dom-semui"
-          ui $ Text " library."
-        ui $ Paragraph $ ui $ Text "This page serves to provide an example of the library and components in use. Examples are shown along with the code that generated them."
+          text " library."
+        ui $ Paragraph $ text "This page serves to provide an example of the library and components in use. Examples are shown along with the code that generated them."
 
-        ui $ Header H3 (ui $ Text "Overview") def
-        ui $ Paragraph $ ui $ Text "The library exposes components in the form of data types. The convention is to have a record with all parts required to specify a component, with the last being a config type that contains the optional or unnecessary parts. All of the component types have overloaded field lenses so they can be modified concisely."
+        ui $ PageHeader H3 def $ ui $ Content def $ text "Overview"
+        ui $ Paragraph $ text "The library exposes components in the form of data types. The convention is to have a record with all parts required to specify a component, with the last being a config type that contains the optional or unnecessary parts. All of the component types have overloaded field lenses so they can be modified concisely."
         ui $ Paragraph $ do
-          ui $ Text "Components can be rendered using the function "
+          text "Components can be rendered using the function "
           hsCodeInline $(printDefinition oneline id 'ui)
-          ui $ Text "."
+          text "."
 
-        ui $ Paragraph $ ui $ Text "To avoid having lots of unnecessary dynamics in config types, we use the type:"
+        ui $ Paragraph $ text "To avoid having lots of unnecessary dynamics in config types, we use the type:"
         hscode $(printDefinition oneline id ''Active)
-        ui $ Paragraph $ ui $ Text "For the common use case of config values to 'pure value' (in the case of Active, this translates to Static), we also provide lenses:"
+        ui $ Paragraph $ text "For the common use case of config values to 'pure value' (in the case of Active, this translates to Static), we also provide lenses:"
         hscode $(printDefinition oneline id '(|?~))
         hscode $(printDefinition oneline id '(|~))
 
       forM_ sections $ \(LinkedSection heading subHeading child) -> do
-        ui $ Header H2 (ui $ Text $ Static heading) $ def
-          & dividing |~ True
-          & subHeader ?~ subHeading
-          & style |~ Style ("margin-top" =: "3em")
-          & attributes |~ ("id" =: toId heading)
+        let hConf = def
+              & dividing |~ True
+              & style |~ Style ("margin-top" =: "3em")
+              & attributes |~ ("id" =: toId heading)
+        ui $ PageHeader H2 hConf $ ui $ Content def $ do
+          text $ Static heading
+          ui $ SubHeader subHeading
         child
 
   {-
@@ -161,17 +164,19 @@ example = catchJS $ mainWidget $ runRestricted $ do
 
     divClass "ui container" $ do
       let semanticLogo = Image "https://semantic-ui.com/images/logo.png" $ def
-            & size |?~ Massive & shape |~ Rounded
-      ui $ Header H1 (ui $ Text "Semantic UI for Reflex Dom") $ def
-        & image .~ AlwaysRender semanticLogo
-        & subHeader ?~ ui (Text "Documentation and examples")
+            & shape |?~ Rounded
+      ui $ PageHeader H1 def $ do
+        ui semanticLogo
+        ui $ Content def $ do
+          text "Semantic UI for Reflex Dom"
+          ui $ SubHeader $ text "Documentation and examples"
       ui $ Button "Hackage" $ def & disabled |~ True
       ui $ Button "GitHub" $ def
-        & icon .~ AlwaysRender (Icon "github" def)
+--        & icon .~ AlwaysRender (Icon "github" def)
         & color |?~ Teal
         & attributes |~ ("href" =: "https://github.com/tomsmalley/reflex-dom-semui")
 
       return ()
 
   --putSections [ transitions, checkboxes, dropdowns, flags, headers, icons, labels, menu, messages, radioGroups ]
-  putSections [ menu, transitions, checkboxes, flags, headers, icons, labels, messages ]
+  putSections [ checkboxes, dividers, flags, headers, icons, labels, menu, messages, transitions ]

@@ -27,6 +27,11 @@ import qualified Data.Text as T
 
 mymode = Exts.defaultParseMode
     { Exts.baseLanguage = Exts.Haskell2010
+    , Exts.fixities = Just $ Exts.preludeFixities
+                          ++ Exts.baseFixities
+                          ++ Exts.infixl_ 8 ["^?", "^."]
+                          ++ Exts.infixr_ 4 ["%~", ".~", "?~", "|~", "|?~"]
+                          ++ Exts.infixl_ 1 ["&"]
     , Exts.extensions = Exts.EnableExtension <$>
       [ Exts.ExistentialQuantification
       , Exts.TypeFamilies
@@ -145,6 +150,10 @@ mkExample = QuasiQuoter
   , quoteType = const $ error "ex: not an expression"
   , quoteDec = const $ error "ex: not an expression"
   }
+
+str :: QuasiQuoter
+str = mkExample
+  { quoteExp = \ex -> [|ex|] }
 
 mkResetExample :: QuasiQuoter
 mkResetExample = mkExample

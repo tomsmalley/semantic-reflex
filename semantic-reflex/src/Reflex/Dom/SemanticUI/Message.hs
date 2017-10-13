@@ -10,17 +10,7 @@
 
 -- | Semantic UI messages. Pure reflex implementation is provided.
 -- https://semantic-ui.com/collections/messages.html
-module Reflex.Dom.SemanticUI.Message
-  (
-  -- * Message
-    Message (..)
-  -- * Message type
-  , MessageType (..)
-  -- * Message result
-  , MessageResult (..)
-  -- * Message config
-  , MessageConfig (..)
-  ) where
+module Reflex.Dom.SemanticUI.Message where
 
 import Control.Lens ((%~))
 import Control.Monad ((<=<))
@@ -66,8 +56,6 @@ data MessageConfig t m a b = MessageConfig
   -- ^ Message header content
   , _message :: Maybe (Restrict Inline m b)
   -- ^ Message content
-  , _icon :: Maybe (Icon t)
-  -- ^ Message icon
   , _dismissable :: Bool
   -- ^ Messages can be dismissable
   , _setHidden :: Event t Bool
@@ -93,7 +81,6 @@ instance Reflex t => Default (MessageConfig t m a b) where
   def = MessageConfig
     { _header = Nothing
     , _message = Nothing
-    , _icon = Nothing
     , _dismissable = False
     , _setHidden = never
 
@@ -110,7 +97,6 @@ instance Reflex t => Default (MessageConfig t m a b) where
 messageConfigClasses :: Reflex t => MessageConfig t m a b -> Active t Classes
 messageConfigClasses MessageConfig {..} = activeClasses
   [ Static $ Just "ui message"
-  , boolClass "icon" $ Static $ isJust _icon
   , boolClass "floating" _floating
   , fmap toClassText <$> _attached
   , boolClass "compact" _compact
@@ -119,55 +105,8 @@ messageConfigClasses MessageConfig {..} = activeClasses
   , fmap toClassText <$> _size
   ]
 
--- | Result of running a message
-data MessageResult t m a b = MessageResult
-  { _header :: Maybe a
-  -- ^ The header return value
-  , _message :: Maybe b
-  -- ^ The message return value
-  , _icon :: Maybe (El t, Return t m (Icon t))
-  -- ^ Icon result
-  }
-
 -- | Message UI Element. The minimum useful message only needs a label and a
 -- default configuration.
 data Message t m a b = Message
   { _config :: MessageConfig t m a b
   }
-
-instance (t ~ t', m ~ m') => UI t' m' None (Message t m a b) where
-  type Return t' m' (Message t m a b) = MessageResult t m a b
-  ui' (Message config@MessageConfig{..}) = do
-
-    let dismissIcon = domEvent Click . fst <$> unRestrict (ui' $ Icon "close" def)
-
-    let content = do
-          dismissed <- if _dismissable then dismissIcon else return never
-          header <- traverse (divClass "header" `mapRestrict`) _header
-          message <- traverse (el "p" `mapRestrict`) _message
-          return (header, message, dismissed)
-
-    rec
-      hidden <- holdDyn False $ leftmost
-        [ True <$ dismissed
-        , _setHidden ]
-
-      (divEl, (icon, (header, message, dismissed))) <-
-        reRestrict $ elWithAnim' "div" (attrs hidden) $ do
-          case _icon of
-            Nothing -> (,) Nothing <$> reRestrict content
-            Just icon -> do
-              i <- unRestrict $ ui' icon
-              c <- divClass "content" `mapRestrict` reRestrict content
-              return (Just i, c)
-
-    return $ (divEl, MessageResult
-      { _header = header
-      , _message = message
-      , _icon = icon
-      })
-
-    where
-      attrs hidden = _config <> def
-        { _classes = addClassMaybe <$> (boolClass "hidden" $ Dynamic hidden) <*> messageConfigClasses config
-        }

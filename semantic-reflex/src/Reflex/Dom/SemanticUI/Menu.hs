@@ -47,6 +47,7 @@ data MenuConfig t a = MenuConfig
   , _vertical :: Bool
   , _fluid :: Bool
   , _textContent :: Bool
+  , _compact :: Bool
   , _customMenu :: Maybe Text
   , _floated :: Maybe Floated
   , _config :: ActiveElConfig t
@@ -60,6 +61,7 @@ instance Reflex t => Applicative (MenuConfig t) where
     , _vertical = False
     , _fluid = False
     , _textContent = False
+    , _compact = False
     , _customMenu = Nothing
     , _floated = Nothing
     , _config = def
@@ -86,6 +88,7 @@ menuConfigClasses MenuConfig {..} = activeClasses
   , boolClass "vertical" $ Static _vertical
   , boolClass "fluid" $ Static _fluid
   , boolClass "text" $ Static _textContent
+  , boolClass "compact" $ Static _compact
   , Static $ toClassText <$> _floated
 --  , uiText <$> _color
   , Static $ _customMenu
@@ -101,8 +104,6 @@ data MenuItemConfig t = MenuItemConfig
   { _color :: Maybe Color
   , _link :: MenuLink
   --, _render :: Maybe (Dynamic t (m ())) -- Extra arbitrary content
-  , _icon :: Maybe (Icon t)
-  , _label :: Maybe (Label t)
   , _config :: ActiveElConfig t
   }
 
@@ -110,9 +111,6 @@ instance Default (MenuItemConfig t) where
   def = MenuItemConfig
     { _color = Nothing
     , _link = NoLink
-    --, _render = Nothing
-    , _icon = Nothing
-    , _label = Nothing
     , _config = def
     }
 
@@ -125,6 +123,7 @@ menuItemConfigClasses MenuItemConfig {..} = activeClasses
   ]
 
 data MenuItem t m v = forall b. MenuItem v (MenuItemConfig t) (Restrict Inline m b)
+
 itemElAttrs :: Reflex t => MenuItemConfig t -> (Text, ActiveElConfig t)
 itemElAttrs conf@MenuItemConfig{..} = case _link of
   MenuLink href -> ("a", elConfig { _attrs = Static $ "href" =: href })
@@ -132,43 +131,12 @@ itemElAttrs conf@MenuItemConfig{..} = case _link of
   where elConfig = _config <> def
           { _classes = menuItemConfigClasses conf }
 
-instance ( t ~ t', m ~ m', Ord v
-          , MonadReader (Demux t (Maybe v)) m, EventWriter t (First v) m)
-  => UI t' m' Menu (MenuItem t m v) where
-  type Return t' m' (MenuItem t m v) = ()
-  ui' (MenuItem value config@MenuItemConfig{..} widget) = do
-    selected <- ask
-    let isSelected = Dynamic $ demuxed selected $ Just value
-
-    (e, _) <- reRestrict $ elWithAnim' "div" (elConfig isSelected) widget
-    Restrict $ tellEvent $ (First value) <$ domEvent Click e
-    return (e, ())
-      where
-        (elType, attrs') = itemElAttrs config { _link = reLink _link }
-        reLink NoLink = StyleLink
-        reLink a = a
-        elConfig isSelected = _config <> def
-          { _classes = addClassMaybe <$> boolClass "active" isSelected
-                                     <*> menuItemConfigClasses config
-          }
-
 
 data Menu t m v b = Menu
   { _config :: MenuConfig t (Maybe v)
   , _items :: MonadWidget t m => Restrict Menu (ReaderT (Demux t (Maybe v))
                                                (EventWriterT t (First v) m)) b
   }
-
-instance (Ord v, t ~ t', m ~ m') => UI t' m' None (Menu t m v a) where
-  type Return t' m' (Menu t m v a) = (Dynamic t (Maybe v), a)
-  ui' (Menu config@MenuConfig{..} items) = reRestrict $ elWithAnim' "div" elConfig $ do
-    rec
-      (b, evt) <- Restrict $ runEventWriterT $ runReaderT (runRestricted items) (demux current)
-      current <- holdDyn _initialValue $ leftmost [Just . getFirst <$> evt, _setValue]
-    return (current, b)
-    where
-      elConfig = _config <> def
-        { _classes = menuConfigClasses config }
 
 --data MenuDef t m a = MenuDef
 --  { _items :: [Restrict MenuM m a]

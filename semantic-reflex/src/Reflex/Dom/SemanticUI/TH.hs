@@ -9,6 +9,7 @@ import Data.Char (toLower)
 import Language.Haskell.TH
 import Language.Haskell.TH.Datatype
 import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Class
 
 -- | Make top level function declarations for the given semantic component type.
 -- Given a data type like:

@@ -172,7 +172,7 @@ instance Reflex t => Functor (Active t) where
   fmap f (Dynamic a) = Dynamic $ fmap f a
 
 instance Reflex t => Applicative (Active t) where
-  pure a = Static a
+  pure = Static
   Static f  <*> Static a  = Static  $ f a
   Static f  <*> Dynamic a = Dynamic $ f <$> a
   Dynamic f <*> Static a  = Dynamic $ fmap ($ a) f
@@ -296,32 +296,6 @@ data None
 instance Reflex t => IsString (Dynamic t Text) where
   fromString = pure . fromString
 
-class UI t m (r :: k) a where
-  type Return t m a
---  default ui' :: (UI t m None a, Restriction r a, MonadWidget t m)
---              => a -> Restrict r m (El t, Return t m a)
---  ui' = unRestrict . ui'
-  ui' :: MonadWidget t m => a -> Restrict r m (El t, Return t m a)
---  ui' :: MonadWidget t m => a -> m (El t, Return t m a)
---  uiDyn :: MonadWidget t m => Dynamic t a -> m (El t, Return t m a)
-
--- | This instance is here to provide a more helpful and clear error message
--- when other instances are not selected
-instance {-# OVERLAPPABLE #-} TypeError
-  (    'Text "Cannot use the component:"
-  :$$: 'ShowType a
-  :$$: 'Text "In the restricted context of:"
-  :$$: 'ShowType r
-  ) => UI t m r a
-
-ui :: forall r t m a. (MonadWidget t m, UI t m r a)
-   => a -> Restrict r m (Return t m a)
-ui = fmap snd . ui'
-
-ui_ :: forall r t m a. (MonadWidget t m, UI t m r a)
-    => a -> Restrict r m ()
-ui_ = void . ui
-
 {-
 ui :: forall r t m a. (Restriction r a, MonadWidget t m, UI t m a)
    => a -> Restrict r m (Return t m a)
@@ -370,57 +344,17 @@ class ToInline a where
 --  putInline' :: MonadWidget t m => a -> m (El t, Return t m a)
 --  putInline' = ui' . toInline
 
-data RenderWhen t a
-  = NeverRender
-  | AlwaysRender a
-  | RenderWhen (Dynamic t Bool) a
-
-isNeverRender :: RenderWhen t a -> Bool
-isNeverRender NeverRender = True
-isNeverRender _ = False
-
-instance Reflex t => Default (RenderWhen t a) where
-  def = NeverRender
-
-runRenderWhen
-  :: forall r t m a. MonadWidget t m
-  => (a -> Restrict r m (El t, Return t m a))
-  -> RenderWhen t a
-  -> Restrict r m (Dynamic t (Maybe (El t, Return t m a)))
-runRenderWhen _ NeverRender = return $ pure Nothing
-runRenderWhen render (AlwaysRender widget) = fmap (pure . Just) $ render widget
-runRenderWhen render (RenderWhen when widget) = do
-
-  trimmed :: Dynamic t Bool <- holdUniqDyn when
-
-  res <- Restrict $ dyn $ fmap (runRestricted . sequence . f) trimmed
-  holdDyn Nothing res
-
-  where
-    f :: Bool -> Maybe (Restrict r m (El t, Return t m a))
-    f False = Nothing
-    f True = Just $ render widget
-
-
-type family Append (as :: [Type]) (bs :: [Type]) :: [Type] where
-  Append '[] bs = bs
-  Append (a ': as) bs = a ': (Append as bs)
-
-class HListAppend as bs where
-  hlistAppend :: HList as -> HList bs -> HList (Append as bs)
-
-instance HListAppend '[] bs where
-  hlistAppend HNil bs = bs
-instance (Append (a ': as) bs ~ (a ': Append as bs), HListAppend as bs) => HListAppend (a ': as) bs where
-  hlistAppend (a `HCons` as) bs = a `HCons` hlistAppend as bs
-
 ---------
 
 (|~) :: (Applicative (f t'), Reflex t') => ASetter s t a (f t' b) -> b -> s -> t
 l |~ b = set l (pure b)
 
+infixr 4 |~
+
 (|?~) :: (Applicative (f t'), Reflex t') => ASetter s t a (f t' (Maybe b)) -> b -> s -> t
 l |?~ b = set l (pure $ Just b)
+
+infixr 4 |?~
 
 -- | Like 'count', but keeps the most recent event
 data CountWithLast a = NotFired | Fired Int a deriving (Eq, Show)

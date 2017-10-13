@@ -23,40 +23,28 @@ data Input t = Input
 
 data InputConfig t = InputConfig
   { _disabled :: Active t Bool
-  , _icon :: RenderWhen t (Icon t)
+--  , _icon :: RenderWhen t (Icon t)
   , _placeholder :: Active t (Maybe Text)
+  , _fluid :: Active t Bool
   , _config :: ActiveElConfig t
   }
 
 instance Default (InputConfig t) where
   def = InputConfig
     { _disabled = Static False
-    , _icon = NeverRender
+--    , _icon = NeverRender
     , _placeholder = Static Nothing
+    , _fluid = Static False
     , _config = def
     }
 
-inputConfigClasses :: Reflex t => InputConfig t -> Active t ClassText
-inputConfigClasses InputConfig {..} = mconcat
-  [ memptyUnless "disabled" <$> _disabled
-  , if isNeverRender _icon then mempty else "icon"
+inputConfigClasses :: Reflex t => InputConfig t -> Active t Classes
+inputConfigClasses InputConfig {..} = activeClasses
+  [ Static $ Just "ui input"
+  , boolClass "disabled" _disabled
+--  , if isNeverRender _icon then mempty else Just <$> "icon"
+  , boolClass "fluid" _fluid
   ]
 
 data InputResult t = InputResult
   { _value :: Dynamic t Text }
-
-instance t' ~ t => UI t' m None (Input t) where
-  type Return t' m (Input t) = InputResult t
-
-  ui' (Input config@InputConfig {..}) = do
-    (divEl, inputResult) <- reRestrict $ elActiveAttr' "div" divAttrs $ do
-      TextInput {..} <- Restrict $ textInput def
-        { _textInputConfig_attributes = inputAttrs }
-      runRenderWhen @None ui' _icon
-      return _textInput_value
-    return (divEl, InputResult inputResult)
-    where
-      divAttrs = mkDivAttrs <$> inputConfigClasses config
-      mkDivAttrs c = "class" =: getClass (mconcat ["ui input", c])
-      inputAttrs = active pure id $ mkInputAttrs <$> _placeholder
-      mkInputAttrs mp = "type" =: "text" <> maybe mempty ("placeholder" =:) mp

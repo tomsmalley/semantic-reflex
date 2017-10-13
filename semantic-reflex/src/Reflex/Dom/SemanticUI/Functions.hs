@@ -20,7 +20,8 @@ import Reflex.Dom.SemanticUI.TH
 
 $(makeFunctions ''Button)
 $(makeFunctions ''Checkbox)
-$(makeFunctions ''Header)
+-- $(makeFunctions ''ContentHeader)
+-- $(makeFunctions ''PageHeader)
 $(makeFunctions ''Icon)
 $(makeFunctions ''Image)
 $(makeFunctions ''Input)

@@ -27,6 +27,8 @@ import           Reflex.Dom.Core hiding (fromJSString)
 import Data.Maybe (catMaybes)
 
 import           Reflex.Dom.SemanticUI.Common
+import           Reflex.Dom.SemanticUI.Label
+import           Reflex.Dom.SemanticUI.Header (HeaderContent, Header)
 import           Reflex.Dom.SemanticUI.Transition
 
 data Flag t = Flag (Active t Text) (FlagConfig t)
@@ -37,17 +39,6 @@ data FlagConfig t = FlagConfig
 
 instance Default (FlagConfig t) where
   def = FlagConfig def
-
-instance t ~ t' => UI t' m None (Flag t) where
-  type Return t' m (Flag t) = ()
-  ui' (Flag flagActive FlagConfig {..})
-    = reRestrict $ elWithAnim' "i" config blank
-    where
-      config = _config
-        & elConfigClasses .~ (flip addClass (Classes ["flag"]) <$> flagActive)
-
-instance t ~ t' => UI t' m Inline (Flag t) where
-  ui' = unRestrict . ui'
 
 data Icon t
   = Icon (Active t Text) (IconConfig t)
@@ -116,25 +107,4 @@ iconsConfigClasss IconsConfig {..} = activeClasses
   [ Static $ Just "icons"
   , fmap toClassText <$> _size
   ]
-
-instance t' ~ t => UI t' m None (Icon t) where
-  type Return t' m (Icon t) = ()
-
-  ui' (Icon activeIcon config@IconConfig {..})
-    = reRestrict $ elWithAnim' "i" elConfig blank
-    where
-      elConfig = _config <> def
-        { _classes = addClass <$> activeIcon <*> iconConfigClasses config
-        , _attrs = maybe mempty ("title" =:) <$> _title
-        }
-
-  ui' (Icons icons config@IconsConfig {..})
-    = reRestrict $ elWithAnim' "i" elConfig $ traverse_ (ui_ @None) icons
-      where
-        elConfig = _config <> def
-          { _classes = iconsConfigClasss config
-          }
-
-instance t' ~ t => UI t' m Inline (Icon t) where
-  ui' = unRestrict . ui'
 

@@ -28,9 +28,9 @@ data Favourite
   deriving (Eq, Show)
 
 menu :: forall t m. MonadWidget t m => Section m
-menu = LinkedSection "Menu" (ui $ Text "A menu displays grouped navigation actions") $ do
+menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") $ do
 
-  ui $ Paragraph $ ui $ Text "In Semantic UI menus are just exposed as styling elements and any active state must be managed by you. Here the state is managed for you."
+  ui $ Paragraph $ text "In Semantic UI menus are just exposed as styling elements and any active state must be managed by you. Here the state is managed for you."
 
   hscode $(printDefinition id stripParens ''Menu)
 --  hscode $(printDefinition id stripParens ''MenuDef)
@@ -42,13 +42,13 @@ menu = LinkedSection "Menu" (ui $ Text "A menu displays grouped navigation actio
   (dynVal, myVal) <- ui $ Menu def $ do
 
 --    ui $ Header H1 "hi" def
-    ui $ MenuItem 1 def $ ui $ Text "One"
-    ui $ MenuItem 2 def $ ui $ Text "Two"
+    ui $ MenuItem 1 def $ text "One"
+    ui $ MenuItem 2 def $ text "Two"
 {-  Ideal setup:
-    ui $ Header H3 (ui $ Text "Header") def
+    ui $ Header H3 (text "Header") def
     search <- ui $ Input $ def & placeholder |?~ "Search..."
-    ui $ MenuItem 1 (ui $ Text "One") def
-    ui $ MenuItem 2 (ui $ Text "Two") def
+    ui $ MenuItem 1 (text "One") def
+    ui $ MenuItem 2 (text "Two") def
     ui $ Dropdown ... etc
     button <- ui $ Button "hi" def
     return (search, button)
@@ -70,8 +70,10 @@ menu = LinkedSection "Menu" (ui $ Text "A menu displays grouped navigation actio
       return $ (,,) <$> redCount <*> greenCount <*> blueCount
   |]
 
-  exampleCardDyn dynCode "Vertical Menu" "A vertical menu displays elements vertically" [mkExample|
-  \resetEvent -> do
+  resetEvent <- ui $ Button "Reset" def
+  void $ do
+--  exampleCardDyn dynCode "Vertical Menu" "A vertical menu displays elements vertically" [mkExample|
+--  \resetEvent -> do
     let counter txt = let widget = count <=< ui $ Button (Static txt) def-- :: m (Dynamic t Int)
                       in join <$> widgetHold' widget (widget <$ resetEvent)
 
@@ -79,9 +81,11 @@ menu = LinkedSection "Menu" (ui $ Text "A menu displays grouped navigation actio
     spamCount <- counter "Add spam item"
     updatesCount <- counter "Add updates item"
 
-    let mkLabel dCount mColor = Label (Dynamic $ tshow <$> dCount) $ def
+    let mkLabel dCount mColor = Label (labelConfig dCount mColor) (text $ Dynamic $ tshow <$> dCount)
+        labelConfig dCount mColor = def
           & color |~ mColor
-          & transition ?~ leftmost
+          & transition . initial .~ True
+          & transition . event ?~ leftmost
             [ Animation Jiggle (def & duration .~ 0.4) <$ (ffilter id $ updated $ (> 0) <$> dCount)
             , Transition Fade (def & direction ?~ Out) <$ (ffilter id $ updated $ (<= 0) <$> dCount)
             ]
@@ -92,13 +96,13 @@ menu = LinkedSection "Menu" (ui $ Text "A menu displays grouped navigation actio
 
     (selected, myVal) <- ui $ Menu conf $ do
       ui $ MenuItem ("inbox" :: Text) (def & color ?~ Teal) $ do
-        ui $ Text "Inbox"
+        text "Inbox"
         ui $ mkLabel inboxCount $ Just Teal
       ui $ MenuItem ("spam" :: Text) def $ do
-        ui $ Text "Spam"
+        text "Spam"
         ui $ mkLabel spamCount Nothing
       ui $ MenuItem ("updates" :: Text) def $ do
-        ui $ Text "Updates"
+        text "Updates"
         ui $ mkLabel updatesCount Nothing
 
     return selected
@@ -110,7 +114,7 @@ menu = LinkedSection "Menu" (ui $ Text "A menu displays grouped navigation actio
 --      ) $ def & setValue .~ (Just "Inbox" <$ resetEvent)
 --              & initialValue ?~ "Inbox"
 --              & vertical .~ True
-  |]
+--  |]
 
 {-
 

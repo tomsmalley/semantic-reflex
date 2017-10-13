@@ -47,9 +47,9 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
     & messageType |?~ InfoMessage
     & message ?~ (do
       ui $ Icon "announcement" def
-      ui $ Text "The implementation of the Transition module does not depend on the Semantic UI or jQuery Javascript libraries.")
+      text "The implementation of the Transition module does not depend on the Semantic UI or jQuery Javascript libraries.")
 
-  ui $ Paragraph $ ui $ Text "Any of the components in this library are capable of Semantic UI transitions. The difference between animations and transitions is more clear cut, with different data constructors for each:"
+  ui $ Paragraph $ text "Any of the components in this library are capable of Semantic UI transitions. The difference between animations and transitions is more clear cut, with different data constructors for each:"
 
   hscode $(printDefinition id stripParens ''Transition)
   hscode $(printDefinition oneline stripParens ''TransitionType)
@@ -58,11 +58,11 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   hscode $(printDefinition oneline stripParens ''AnimationType)
   hscode $(printDefinition id stripParens ''AnimationConfig)
 
-  ui $ Paragraph $ ui $ Text "If the direction of a transition event is not specified, the transition will flip the current state of the element. Animation events will cause hidden elements to be shown, and they will remain shown after the animation finishes."
+  ui $ Paragraph $ text "If the direction of a transition event is not specified, the transition will flip the current state of the element. Animation events will cause hidden elements to be shown, and they will remain shown after the animation finishes."
 
-  ui $ Paragraph $ ui $ Text "Animation or Transition events are placed into a queue which allows time for each transition to finish. The animation or transition speeds are specified in seconds using the duration config fields."
+  ui $ Paragraph $ text "Animation or Transition events are placed into a queue which allows time for each transition to finish. The animation or transition speeds are specified in seconds using the duration config fields."
 
-  ui $ Header H3 (ui $ Text "Examples") def
+  ui $ PageHeader H3 def $ ui $ Content def $ text "Examples"
 
   divClass "ui equal width grid" $ do
 
@@ -73,8 +73,8 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
               & style |~ Style ("margin-bottom" =: "1em")
             ui $ Image (animalUrl animal) $ def
               & size |?~ Small
-              & shape |~ Rounded
-              & transition ?~ (Animation anim def <$ run)
+              & shape |?~ Rounded
+              & transition . event ?~ (Animation anim def <$ run)
 
       divClass "ui six column vertically padded grid" $
         traverse_ img $ zip [Jiggle .. Bounce]
@@ -89,8 +89,8 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         hideButton <- ui $ Button "Hide" def
         ui $ Image (animalUrl "crocodile") $ def
           & size |?~ Small
-          & shape |~ Rounded
-          & transition ?~ leftmost
+          & shape |?~ Rounded
+          & transition . event ?~ leftmost
             [ Transition Instant def <$ toggleButton
             , Transition Instant (def & direction ?~ In) <$ showButton
             , Transition Instant (def & direction ?~ Out) <$ hideButton
@@ -103,8 +103,8 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         evt <- mkButton Scale
         ui $ Image (animalUrl "gorilla") $ def
           & size |?~ Small
-          & shape |~ Rounded
-          & transition ?~ evt
+          & shape |?~ Rounded
+          & transition . event ?~ evt
         |]
 
       divClass "column" $ do
@@ -112,8 +112,8 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         evts <- traverse mkButton [Fade, FadeLeft, FadeRight, FadeUp, FadeDown]
         ui $ Image (animalUrl "cow") $ def
           & size |?~ Small
-          & shape |~ Rounded
-          & transition ?~ leftmost evts
+          & shape |?~ Rounded
+          & transition . event ?~ leftmost evts
         |]
 
     divClass "row" $ do
@@ -122,8 +122,8 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         evts <- traverse mkButton [HorizontalFlip, VerticalFlip]
         ui $ Image (animalUrl "panda") $ def
           & size |?~ Small
-          & shape |~ Rounded
-          & transition ?~ leftmost evts
+          & shape |?~ Rounded
+          & transition . event ?~ leftmost evts
         |]
 
       divClass "column" $ do
@@ -131,8 +131,8 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         evt <- mkButton Drop
         ui $ Image (animalUrl "turtle") $ def
           & size |?~ Small
-          & shape |~ Rounded
-          & transition ?~ evt
+          & shape |?~ Rounded
+          & transition . event ?~ evt
         |]
 
     divClass "row" $ do
@@ -141,8 +141,8 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         evts <- traverse mkButton [FlyLeft, FlyRight, FlyUp, FlyDown]
         ui $ Image (animalUrl "bird") $ def
           & size |?~ Small
-          & shape |~ Rounded
-          & transition ?~ leftmost evts
+          & shape |?~ Rounded
+          & transition . event ?~ leftmost evts
         |]
 
       divClass "column" $ do
@@ -150,8 +150,8 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         evts <- traverse mkButton [SwingLeft, SwingRight, SwingUp, SwingDown]
         ui $ Image (animalUrl "monkey") $ def
           & size |?~ Small
-          & shape |~ Rounded
-          & transition ?~ leftmost evts
+          & shape |?~ Rounded
+          & transition . event ?~ leftmost evts
         |]
 
     divClass "row" $ do
@@ -160,8 +160,8 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         evts <- traverse mkButton [Browse, BrowseRight]
         ui $ Image (animalUrl "frog") $ def
           & size |?~ Small
-          & shape |~ Rounded
-          & transition ?~ leftmost evts
+          & shape |?~ Rounded
+          & transition . event ?~ leftmost evts
         |]
 
       divClass "column" $ do
@@ -169,6 +169,6 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         evts <- traverse mkButton [SlideDown, SlideUp, SlideLeft, SlideRight]
         ui $ Image (animalUrl "wolf") $ def
           & size |?~ Small
-          & shape |~ Rounded
-          & transition ?~ leftmost evts
+          & shape |?~ Rounded
+          & transition . event ?~ leftmost evts
         |]

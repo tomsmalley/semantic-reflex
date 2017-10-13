@@ -12,16 +12,7 @@
 
 -- | Semantic UI segments. Pure reflex implementation is provided.
 -- https://semantic-ui.com/collections/segments.html
-module Reflex.Dom.SemanticUI.Segment
-  (
-  -- * Segment
-    Segment (..)
-  -- * Segment config
-  , SegmentConfig (..)
-  -- * Segment types
-  , Stacked (..)
-  , Emphasis (..)
-  ) where
+module Reflex.Dom.SemanticUI.Segment where
 
 import Control.Lens ((%~))
 import Control.Monad ((<=<))
@@ -41,7 +32,6 @@ import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Transition hiding (divClass)
 import Reflex.Dom.SemanticUI.Header
-import Reflex.Dom.SemanticUI.TH
 
 data Stacked = Stacked | TallStacked | Piled
   deriving (Eq, Show)
@@ -141,12 +131,3 @@ data Segment t m a = Segment
   { _config :: SegmentConfig t
   , _content :: Restrict None m a
   }
-
-instance (t ~ t', m ~ m') => UI t' m' None (Segment t m a) where
-  type Return t' m' (Segment t m a) = a
-  ui' (Segment config@SegmentConfig{..} content) = do
-
-    reRestrict $ elWithAnim' "div" elConfig content
-
-    where
-      elConfig = _config <> def { _classes = segmentConfigClasses config }

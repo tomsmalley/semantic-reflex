@@ -33,6 +33,7 @@ module Reflex.Dom.SemanticUI.Transition
   , HasClasses (..)
   , elConfigClasses
   , divClass
+  , SetValue' (..)
   ) where
 
 import Control.Concurrent
@@ -168,14 +169,20 @@ data AnimationAttrs t = AnimationAttrs
   , _style :: Dynamic t (Maybe Style)
   }
 
-runTransition :: MonadWidget t m => Event t Transition -> m (AnimationAttrs t)
-runTransition transitionRequest = do
+runTransition
+  :: MonadWidget t m
+  => Bool                 -- ^ Element is hidden initially?
+  -> Event t Transition   -- ^ Transition events
+  -> m (AnimationAttrs t)
+runTransition initHidden transitionRequest = do
 
   let flipDir Nothing In = Out
       flipDir Nothing Out = In
       flipDir (Just d) _ = d
 
-  lastDir <- foldDyn flipDir In $ leftmost [ getDirection <$> transitionRequest ]
+  let initDirection = if initHidden then Out else In
+
+  lastDir <- foldDyn flipDir initDirection $ getDirection <$> transitionRequest
 
   -- We transform the transitionRequest into a more useful type, tagging with
   -- the direction. Must be promptly tagged or we use the wrong direction.
@@ -211,7 +218,7 @@ runTransition transitionRequest = do
       Concurrent.delay $ ceiling $ _duration * 1000000
       cb (In, False)
 
-  mClasses <- holdDyn Nothing $ leftmost
+  mClasses <- holdDyn (mkTransEndClasses (initDirection, False)) $ leftmost
     [ mkTransClasses <$> queue
     , mkTransEndClasses <$> finish ]
   mStyle <- holdDyn Nothing $ leftmost
@@ -239,7 +246,7 @@ data ActiveElConfig t = ActiveElConfig
   { _classes :: Active t Classes
   , _style :: Active t Style
   , _attrs :: Active t (Map Text Text)
-  , _transition :: Maybe (Event t Transition)
+  , _transition :: SetValue' t Bool Transition
   }
 
 instance Default (ActiveElConfig t) where
@@ -247,8 +254,13 @@ instance Default (ActiveElConfig t) where
     { _classes = Static mempty
     , _style = Static mempty
     , _attrs = Static mempty
-    , _transition = Nothing
+    , _transition = SetValue False Nothing
     }
+
+data SetValue' t a b = SetValue
+  { _initial :: a
+  , _event :: Maybe (Event t b)
+  }
 
 -- | Left biased
 instance Reflex t => Semigroup (ActiveElConfig t) where
@@ -265,7 +277,7 @@ elWithAnim elType conf = fmap snd . elWithAnim' elType conf
 elWithAnim' :: MonadWidget t m => Text -> ActiveElConfig t -> Restrict r m a
             -> Restrict None m (Element EventResult (DomBuilderSpace m) t, a)
 elWithAnim' _element ActiveElConfig {..} child = do
-  transAttrs <- Restrict $ traverse runTransition _transition
+  transAttrs <- Restrict $ traverse (runTransition $ _initial _transition) $ _event _transition
   case transAttrs of
     Nothing -> let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
                    mkAttrs classes style attrs
@@ -300,13 +312,12 @@ delaySnd e = performEventAsync $ ffor e $ \(a, dt) cb ->
     Concurrent.delay $ ceiling $ dt * 1000000
     cb a
 
-
 -- Lenses
 
 class HasTransition t a where
-  transition :: Lens' a (Maybe (Event t Transition))
+  transition :: Lens' a (SetValue' t Bool Transition)
 
-elConfigTransition :: Lens' (ActiveElConfig t) (Maybe (Event t Transition))
+elConfigTransition :: Lens' (ActiveElConfig t) (SetValue' t Bool Transition)
 elConfigTransition f (ActiveElConfig c s at t)
   = fmap (\t' -> ActiveElConfig c s at t') $ f t
 

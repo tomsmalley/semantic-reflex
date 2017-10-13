@@ -25,51 +25,51 @@ import           Reflex.Dom.Core hiding
   )
 
 import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Header (Header)
 import Reflex.Dom.SemanticUI.Transition
 
-data ImageShape = Square | Rounded | Circular deriving (Eq, Show)
+data ImageShape = Rounded | Circular | Avatar deriving (Eq, Show)
 
 instance ToClassText ImageShape where
   toClassText Rounded = "rounded"
   toClassText Circular = "circular"
-  toClassText Square = ""
+  toClassText Avatar = "avatar"
+
+data Spaced = LeftSpaced | Spaced | RightSpaced deriving (Eq, Show)
+
+instance ToClassText Spaced where
+  toClassText LeftSpaced = "left spaced"
+  toClassText Spaced = "spaced"
+  toClassText RightSpaced = "right spaced"
 
 data ImageConfig t = ImageConfig
   { _size :: Active t (Maybe Size)
-  , _shape :: Active t ImageShape
-  , _avatar :: Active t Bool
+  , _shape :: Active t (Maybe ImageShape)
   , _floated :: Active t (Maybe Floated)
   , _component :: Bool
   , _title :: Active t (Maybe Text)
-  , _hidden :: Active t Bool
+  , _spaced :: Active t (Maybe Spaced)
   , _config :: ActiveElConfig t
   }
 
 instance Reflex t => Default (ImageConfig t) where
   def = ImageConfig
     { _size = Static Nothing
-    , _shape = Static Square
-    , _avatar = Static False
+    , _shape = Static Nothing
     , _floated = Static Nothing
     , _component = False
     , _title = Static Nothing
-    , _hidden = Static False
+    , _spaced = Static Nothing
     , _config = def
     }
-
-{-
-instance ToPart (Image t) where
-  toPart (Image src config) = Image src $ config { _component = True }
--}
 
 imageConfigClasses :: Reflex t => ImageConfig t -> Active t Classes
 imageConfigClasses ImageConfig {..} = activeClasses
   [ Static $ justWhen (not _component) "ui image"
   , fmap toClassText <$> _size
-  , Just . toClassText <$> _shape
-  , boolClass "avatar" _avatar
+  , fmap toClassText <$> _shape
   , fmap toClassText <$> _floated
-  , boolClass "hidden" _hidden
+  , fmap toClassText <$> _spaced
   ]
 
 data Image t = Image
@@ -77,14 +77,9 @@ data Image t = Image
   , _config :: ImageConfig t
   }
 
-instance t ~ t' => UI t' m None (Image t) where
-  type Return t' m (Image t) = ()
-  ui' (Image src config@ImageConfig {..})
-    = reRestrict $ elWithAnim' "img" elConfig blank
-    where
-      elConfig = _config <> def
-        { _classes = imageConfigClasses config
-        , _attrs = mkAttrs <$> src <*> _title
-        }
-      mkAttrs s t = "src" =: s <> maybe mempty ("title" =:) t
+data ContentImage t m a = ContentImage
+  { _src :: Active t Text
+  , _config :: ImageConfig t
+  , _content :: Restrict Image m a
+  }
 

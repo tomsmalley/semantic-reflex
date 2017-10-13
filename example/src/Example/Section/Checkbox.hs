@@ -27,23 +27,23 @@ checkboxes = LinkedSection "Checkbox" (simpleLink "https://semantic-ui.com/modul
     & messageType |?~ InfoMessage
     & message ?~ (do
       ui $ Icon "announcement" def
-      ui $ Text "The implementation of the Checkbox module does not depend on the Semantic UI or jQuery Javascript libraries.")
+      text "The implementation of the Checkbox module does not depend on the Semantic UI or jQuery Javascript libraries.")
 
-  ui $ Paragraph $ ui $ Text "Checkboxes consist of a label and a configuration."
+  ui $ Paragraph $ text "Checkboxes consist of a label and a configuration."
 
   hscode $(printDefinition id stripParens ''Checkbox)
 
-  ui $ Paragraph $ ui $ Text "The configuration allows you to set the value, indeterminate state, Semantic UI checkbox type, fitted property, and disabled state. The value and indeterminate states are separated into 'initial' and 'set' in order to disconnect them from the resultant dynamic values."
+  ui $ Paragraph $ text "The configuration allows you to set the value, indeterminate state, Semantic UI checkbox type, fitted property, and disabled state. The value and indeterminate states are separated into 'initial' and 'set' in order to disconnect them from the resultant dynamic values."
 
   hscode $(printDefinition id stripParens ''CheckboxConfig)
   hscode $(printDefinition oneline id ''CheckboxType)
 
   ui $ Paragraph $ do
-    ui $ Text $ Static "Running the checkbox gives access to the dynamic value, the change event (only changes caused by the user), the current indeterminate state and whether the checkbox has focus."
+    text "Running the checkbox gives access to the dynamic value, the change event (only changes caused by the user), the current indeterminate state and whether the checkbox has focus."
 
   hscode $(printDefinition id stripParens ''CheckboxResult)
 
-  ui $ Header H3 (ui $ Text "Examples") def
+  ui $ PageHeader H3 def $ ui $ Content def $ text "Examples"
 
   divClass "ui two column stackable grid" $ do
     divClass "row" $ do
