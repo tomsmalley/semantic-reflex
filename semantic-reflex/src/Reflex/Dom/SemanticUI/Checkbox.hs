@@ -16,18 +16,10 @@
 -- - Toggle on enter key
 module Reflex.Dom.SemanticUI.Checkbox where
 
-import Control.Lens ((%~))
-import Control.Monad ((<=<))
-import Data.Default (Default(..))
-import Data.Functor.Misc (WrapArg(..))
-import Data.Proxy (Proxy(..))
+import Data.Default
 import Data.Semigroup ((<>))
 import Data.Text (Text)
-import qualified GHCJS.DOM.Types as DOM
-import qualified GHCJS.DOM.HTMLInputElement as Input
-import Language.Javascript.JSaddle (liftJSM)
 import Reflex
-import Reflex.Dom.Core hiding (checkbox, Checkbox, CheckboxConfig)
 
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition

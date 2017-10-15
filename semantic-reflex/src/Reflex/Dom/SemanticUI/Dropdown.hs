@@ -27,6 +27,7 @@ module Reflex.Dom.SemanticUI.Dropdown
   -}
   ) where
 
+{-
 import           Control.Monad
 import           Control.Monad.Trans
 import           Control.Lens ((^.))
@@ -53,6 +54,7 @@ import           Reflex.Dom.SemanticUI.Icon
 import           Reflex.Dom.SemanticUI.Image
 import           Reflex.Dom.SemanticUI.Header
 ------------------------------------------------------------------------------
+-}
 
 {-
 

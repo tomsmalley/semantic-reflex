@@ -28,15 +28,11 @@ module Reflex.Dom.SemanticUI.Common where
 
 ------------------------------------------------------------------------------
 import Control.Monad.Fix (MonadFix)
-import Control.Monad.Ref
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Reader (MonadReader)
-import Control.Monad.Writer (WriterT, runWriterT, lift, writer)
+import Control.Monad.Writer hiding ((<>))
 import Control.Lens ((^.), set, ASetter)
 import Control.Monad (void, (<=<))
-import Data.Default
-import Data.Kind (Type)
-import GHC.TypeLits
 import Data.String
 import Data.Semigroup
 import Data.Map (Map)
@@ -46,9 +42,8 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
-import Language.Javascript.JSaddle
-import Reflex.Dom.Core hiding (Link)
-import Data.Foldable (fold)
+import Language.Javascript.JSaddle hiding (Success)
+import Reflex.Dom.Core hiding (Link, Error)
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
@@ -101,7 +96,7 @@ imap f = go 0
 ------------------------------------------------------------------------------
 
 newtype Restrict r m a = Restrict { runRestricted :: m a }
-  deriving (Functor, Applicative, Monad, MonadFix, MonadSample t, MonadHold t, TriggerEvent t, MonadIO, PostBuild t, MonadReader r')
+  deriving (Functor, Applicative, Monad, MonadFix, MonadSample t, MonadHold t, TriggerEvent t, MonadIO, PostBuild t, MonadReader r', MonadWriter w)
 
 #ifndef ghcjs_HOST_OS
 deriving instance MonadJSM m => MonadJSM (Restrict r m)
@@ -120,6 +115,42 @@ unRestrict (Restrict m) = Restrict m
 
 mapRestrict :: (m a -> m b) -> Restrict r m a -> Restrict r m b
 mapRestrict f (Restrict m) = Restrict $ f m
+
+-- WriterT Orphans
+
+{-
+instance (Monoid w, HasDocument m) => HasDocument (WriterT w m) where
+instance (Monoid w, HasJSContext m) => HasJSContext (WriterT w m) where
+  type JSContextPhantom (WriterT w m) = JSContextPhantom m
+  askJSContext = lift askJSContext
+
+instance (Monoid w, TriggerEvent t m) => TriggerEvent t (WriterT w m) where
+  newTriggerEvent = lift newTriggerEvent
+  newTriggerEventWithOnComplete = lift newTriggerEventWithOnComplete
+  newEventWithLazyTriggerWithOnComplete
+    = lift . newEventWithLazyTriggerWithOnComplete
+
+instance (Monoid w, PostBuild t m) => PostBuild t (WriterT w m) where
+  getPostBuild = lift getPostBuild
+
+instance (Monoid w, PerformEvent t m) => PerformEvent t (WriterT w m) where
+  type Performable (WriterT w m) = Performable m
+  performEvent = lift . performEvent
+  performEvent_ = lift . performEvent_
+
+instance (Monoid w, MonadAdjust t m) => MonadAdjust t (WriterT w m) where
+
+instance (Monoid w, DomBuilder t m) => DomBuilder t (WriterT w m) where
+  type DomBuilderSpace (WriterT w m) = DomBuilderSpace m
+  element tag cfg writerT = do
+    (el, (a, new)) <- lift $ element tag cfg $ runWriterT writerT
+    tell new
+    return (el, a)
+  selectElement cfg writerT = do
+    (el, (a, new)) <- lift $ selectElement cfg $ runWriterT writerT
+    tell new
+    return (el, a)
+-}
 
 --
 
@@ -280,7 +311,7 @@ styleText (Style m)
   = M.foldlWithKey' (\a k b -> a <> "; " <> k <> ": " <> b) "" m
 
 addStyle :: Text -> Text -> Style -> Style
-addStyle name value (Style m) = Style $ M.insert name value m
+addStyle name v (Style m) = Style $ M.insert name v m
 
 staticText :: DomBuilder t m => Text -> Restrict Inline m ()
 staticText t = Restrict $ text t
@@ -293,8 +324,10 @@ widgetHold' (Restrict m) evt = Restrict $ widgetHold m $ fmap runRestricted evt
 data Inline
 data None
 
+{-
 instance Reflex t => IsString (Dynamic t Text) where
   fromString = pure . fromString
+-}
 
 {-
 ui :: forall r t m a. (Restriction r a, MonadWidget t m, UI t m a)
@@ -374,7 +407,34 @@ instance ToClassText Floated where
   toClassText RightFloated = "right floated"
 
 data Width = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Eleven | Twelve
-  deriving (Eq, Ord, Read, Show, Enum, Bounded)
+  deriving (Eq, Ord, Read, Show, Bounded)
+
+instance Enum Width where
+
+  toEnum 2  = Two
+  toEnum 3  = Three
+  toEnum 4  = Four
+  toEnum 5  = Five
+  toEnum 6  = Six
+  toEnum 7  = Seven
+  toEnum 8  = Eight
+  toEnum 9  = Nine
+  toEnum 10 = Ten
+  toEnum 11 = Eleven
+  toEnum 12 = Twelve
+  toEnum _ = error "Width enum out of bounds"
+
+  fromEnum Two    = 2
+  fromEnum Three  = 3
+  fromEnum Four   = 4
+  fromEnum Five   = 5
+  fromEnum Six    = 6
+  fromEnum Seven  = 7
+  fromEnum Eight  = 8
+  fromEnum Nine   = 9
+  fromEnum Ten    = 10
+  fromEnum Eleven = 11
+  fromEnum Twelve = 12
 
 instance ToClassText Width where
   toClassText Two = "two"
@@ -443,6 +503,36 @@ instance ToClassText Aligned where
   toClassText CenterAligned = "center aligned"
   toClassText RightAligned = "right aligned"
   toClassText Justified = "justified"
+
+data Social
+  = Facebook | Twitter | GooglePlus | VK | LinkedIn | Instagram | YouTube
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
+
+instance ToClassText Social where
+  toClassText Facebook = "facebook"
+  toClassText Twitter = "twitter"
+  toClassText GooglePlus = "google plus"
+  toClassText VK = "vk"
+  toClassText LinkedIn = "linkedin"
+  toClassText Instagram = "instagram"
+  toClassText YouTube = "youtube"
+
+data Emphasis = Primary | Secondary | Tertiary
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
+
+instance ToClassText Emphasis where
+  toClassText Primary = "primary"
+  toClassText Secondary = "secondary"
+  toClassText Tertiary = "tertiary"
+
+data Positive = Positive | Negative | Success | Error
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
+
+instance ToClassText Positive where
+  toClassText Positive = "positive"
+  toClassText Negative = "negative"
+  toClassText Success = "success"
+  toClassText Error = "error"
 
 data Color
   = Red | Orange | Yellow | Olive | Green | Teal | Blue | Violet | Purple

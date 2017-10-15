@@ -2,11 +2,20 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE RecursiveDo          #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Example.Common where
 
 import Control.Lens
-import Control.Monad ((<=<), void, when)
+import Control.Monad ((<=<), void)
+import Data.Bool (bool)
+import Data.Default
+import Data.Foldable (traverse_, for_)
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -40,113 +49,91 @@ orElse :: a -> a -> Bool -> a
 orElse a _ True = a
 orElse _ b False = b
 
-exampleCard :: forall t m a. MonadWidget t m => Text -> Text -> (String, Restrict None m a) -> Restrict None m a
-exampleCard headerText subText (code, widget) = divClass "example" $ do
-  -- Title segment
-  ui $ Segment (def & attached |?~ TopAttached) $ do
-    ui $ PageHeader H4 def $ ui $ Content def $ do
-      text $ Static headerText
-      when (subText /= "") $ ui $ SubHeader $ text $ Static subText
-  -- Main segment
-  widgetResult <- ui $ Segment (def & attached |?~ Attached) widget
-  -- Control buttons
-  rec codeIsOpen <- toggle False <=< ui $ Button
-          (Dynamic $ "Hide Code" `orElse` "Show Code" <$> codeIsOpen)
-          $ def -- & icon .~ AlwaysRender (Icon "code" def)
-                & size |?~ Tiny
-                & compact |~ True
-                & attached |?~ Vertically BottomAttached
-                & realButton .~ False -- needed for bottom attached to work
+data ExampleConf m a = ExampleConf
+  { _subtitle :: Maybe (Restrict Inline m ())
+  , _inbetween :: Maybe (Restrict None m ())
+  , _dynamic :: Maybe (a -> Restrict None m ())
+  }
+$(makeLenses ''ExampleConf)
 
-  void $ codeEl $ updated codeIsOpen
-  return widgetResult
+instance Applicative m => Default (ExampleConf m a) where
+  def = ExampleConf
+    { _subtitle = Nothing
+    , _inbetween = Nothing
+    , _dynamic = Nothing
+    }
+
+upstreamIssue :: MonadWidget t m => Int -> Text -> Restrict None m ()
+upstreamIssue issue msg = ui_ $ Message def $ paragraph $ do
+  ui $ Icon "warning sign" def
+  text $ Static msg
+  ui $ Anchor (ui $ Image (Static shield) $ def & floated |?~ RightFloated)
+    $ def & href |?~ url
   where
-    codeEl evt = elWithAnim "div"
-      ( def
-        & elConfigClasses |~ "ui fluid bottom center popup"
-        & elConfigStyle |~ Style ("top" =: "auto")
-        & elConfigTransition . event ?~ fmap mkTransition evt
-      ) $ hscode code
-    mkTransition t = Transition Scale $ def
-      & direction ?~ (if t then In else Out)
-      & duration .~ 0.3
-      & forceVisible .~ True
+    shield = "https://img.shields.io/github/issues/detail/s/"
+          <> "Semantic-Org/Semantic-UI/" <> tshow issue <> ".svg?maxAge=2592000"
+    url = "https://github.com/Semantic-Org/Semantic-UI/issues/" <> tshow issue
 
-exampleCardReset :: forall t m a. MonadWidget t m => Text -> Text -> (String, Event t () -> Restrict None m a) -> Restrict None m a
-exampleCardReset headerText subText (code, widget) = divClass "example" $ do
-  -- Title segment
-  ui $ Segment (def & attached |?~ TopAttached) $ do
-    ui $ PageHeader H4 def $ ui $ Content def $ do
-      text $ Static headerText
-      when (subText /= "") $ ui $ SubHeader $ text $ Static subText
-  rec
-    -- Main segment
-    widgetResult <- ui $ Segment (def & attached |?~ Attached) $ widget resetEvent
+data Example t m a = Example
+  { _name :: Text
+  , _config :: ExampleConf m a
+  , _codeWidget :: (String, Either (Restrict None m a) (Event t () -> Restrict None m a))
+  }
+
+instance (t' ~ t, m' ~ m) => UI t' m' None (Example t m a) where
+  type Return t' m' (Example t m a) = a
+  ui' (Example name ExampleConf {..} (code, eitherWidget))
+
+    = let exampleConf = def & padded |~ True & vertical |~ True
+                            & classes |~ "example"
+
+      in ui' $ Segment exampleConf $ do
+
+    -- Title
+    ui $ Header (def & floated |?~ LeftFloated) $ do
+      text $ Static name
+      traverse_ (ui_ . SubHeader) _subtitle
+
     -- Control buttons
-    (resetEvent, codeIsOpen) <- ui $ Buttons (def
-      & size |?~ Tiny & attached |?~ BottomAttached) $ do
+    let bConf = def & floated |?~ RightFloated & size |?~ Large & basic |~ True
+                    & icon |~ True & circular |~ True
+    codeIsOpen <- toggle False <=< ui $ Button bConf $ ui $ Icon "code" def
+    resetEvent <- case eitherWidget of
+      Left _ -> return never
+      Right _ -> ui $ Button bConf $ ui $ Icon "refresh" def
 
-      r <- ui $ Button "Reset" $ def -- & icon .~ AlwaysRender (Icon "refresh" def)
-      rec c <- toggle False <=< ui $ Button
-            (Dynamic $ "Hide Code" `orElse` "Show Code" <$> c)
-            def
---            (def & icon .~ AlwaysRender (Icon "code" def))
-      return (r, c)
+    ui $ Divider $ def & hidden |~ True & clearing |~ True
 
-  void $ codeEl $ updated codeIsOpen
-  return widgetResult
-  where
-    codeEl evt = elWithAnim "div"
-      ( def
-        & elConfigClasses |~ "ui fluid bottom center popup"
-        & elConfigStyle |~ Style ("top" =: "auto")
-        & elConfigTransition . event ?~ fmap mkTransition evt
-      ) $ hscode code
-    mkTransition t = Transition Scale $ def
-      & direction ?~ (if t then In else Out)
-      & duration .~ 0.3
-      & forceVisible .~ True
+    for_ _inbetween $ \widget -> do
+      widget
+      ui $ Divider $ def & hidden |~ True & clearing |~ True
 
+    let flexConfig a c = def
+          & classes |~ addClass c "flex"
+          & basic |~ True & clearing |~ True & padded .~ Dynamic codeIsOpen
+          & attached .~ Dynamic (bool Nothing (Just a) <$> codeIsOpen)
 
-exampleCardDyn :: forall t m a. MonadWidget t m
-               => (a -> Restrict None m ()) -> Text -> Text
-               -> (String, Event t () -> Restrict None m a) -> Restrict None m ()
-exampleCardDyn renderResult headerText subText (code, widget) = divClass "example" $ do
-  -- Title segment
-  ui $ Segment (def & attached |?~ TopAttached) $ do
-    ui $ PageHeader H4 def $ ui $ Content def $ do
-      text $ Static headerText
-      when (subText /= "") $ ui $ SubHeader $ text $ Static subText
-  rec
-    -- Main segment
-    widgetResult <- ui $ Segment (def & attached |?~ Attached) $ widget resetEvent
+    -- Widget segment
+    widgetResult <- ui $ Segment (flexConfig TopAttached "widget") $
+      case eitherWidget of
+        Left widget -> widget
+        Right widget -> widget resetEvent
+
     -- Value segment
-    ui $ Segment (def & attached |?~ Attached) $ do
-      ui $ ContentHeader def $ ui $ Content def $ do
-        text $ Static "Value"
-      renderResult widgetResult
-    -- Control buttons
-    (resetEvent, codeIsOpen) <- ui $ Buttons (def
-      & size |?~ Tiny & attached |?~ BottomAttached) $ do
+    case _dynamic of
+      Nothing -> blank
+      Just f -> ui $ Segment (flexConfig Attached "value") $ f widgetResult
 
-      r <- ui $ Button "Reset" $ def -- & icon .~ AlwaysRender (Icon "refresh" def)
-      rec c <- toggle False <=< ui $ Button
-            (Dynamic $ "Hide Code" `orElse` "Show Code" <$> c)
-            (def) --  & icon .~ AlwaysRender (Icon "code" def))
-      return (r, c)
+    -- Code segment
+    let codeConfig evt = def
+          & transition . event ?~ fmap mkTransition evt
+          & transition . initial .~ True & attached |?~ BottomAttached
+        mkTransition t = Transition Instant $ def
+          & direction ?~ bool Out In t
 
-  void $ codeEl $ updated codeIsOpen
-  where
-    codeEl evt = elWithAnim "div"
-      ( def
-        & elConfigClasses |~ "ui fluid bottom center popup"
-        & elConfigStyle |~ Style ("top" =: "auto")
-        & elConfigTransition . event ?~ fmap mkTransition evt
-      ) $ hscode code
-    mkTransition t = Transition Scale $ def
-      & direction ?~ (if t then In else Out)
-      & duration .~ 0.3
-      & forceVisible .~ True
+    ui $ Segment (codeConfig $ updated codeIsOpen) $ hscode code
+
+    return widgetResult
 
 -- | Throughput
 data Throughput = Unmetered | Metered Int deriving (Eq, Show)

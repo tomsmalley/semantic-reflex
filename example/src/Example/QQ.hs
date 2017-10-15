@@ -7,11 +7,11 @@
 module Example.QQ where
 
 import Language.Haskell.TH (ExpQ, reify, pprint, runIO)
-import Language.Haskell.TH.Syntax (Name, Exp(LitE))
+import Language.Haskell.TH.Syntax (Name)
 import Language.Haskell.TH.Quote (QuasiQuoter(..))
 import qualified Language.Haskell.Exts as Exts
 -- For parsing the haskell strings to template-haskell AST
-import Language.Haskell.Meta (parseExp, parseResultToEither, toExp)
+import Language.Haskell.Meta (parseExp, toExp)
 import Language.Haskell.Meta.Utils (eitherQ)
 
 import Data.Char (isUpper, isAlpha, isAlphaNum, isNumber)
@@ -25,6 +25,7 @@ import Reflex.Dom.SemanticUI hiding (parseType)
 import Data.Text (Text)
 import qualified Data.Text as T
 
+mymode :: Exts.ParseMode
 mymode = Exts.defaultParseMode
     { Exts.baseLanguage = Exts.Haskell2010
     , Exts.fixities = Just $ Exts.preludeFixities
@@ -61,10 +62,10 @@ printDefinition postproc preproc name = do
     pp = prettyPrint . Exts.fromParseResult . parse $ info
   case parse info of
     Exts.ParseOk _ -> [|pp|]
-    Exts.ParseFailed loc str -> do
+    Exts.ParseFailed loc str' -> do
       runIO $ print loc
       runIO $ putStrLn $ stripModules $ pprint info
-      fail str
+      fail str'
 
 hscode :: MonadWidget t m => String -> Restrict None m ()
 hscode = Restrict . void . elAttr "code" ("class" =: "haskell")
@@ -135,13 +136,24 @@ stripTypes (x:rest) = x : stripTypes rest
 
 -- | Strips indentation spaces from a string
 unindent :: String -> String
-unindent str = unlines $ map (drop $ minSpaces loc) loc
-  where loc = lines str
+unindent s = unlines $ map (drop $ minSpaces loc) loc
+  where loc = lines s
 
 -- | Counts the smallest number of spaces that any string in the list is
 -- indented by
 minSpaces :: [String] -> Int
 minSpaces = minimum . map (length . takeWhile (== ' ')) . filter (/= "")
+
+example :: QuasiQuoter
+example = QuasiQuoter
+  { quoteExp = \ex -> [|(ex, $(return $ toExp $ Exts.fromParseResult $ Exts.parseExpWithMode mymode $ "Left $ do\n" ++ ex))|]
+  , quotePat = const $ error "ex: not an expression"
+  , quoteType = const $ error "ex: not an expression"
+  , quoteDec = const $ error "ex: not an expression"
+  }
+
+resetExample :: QuasiQuoter
+resetExample = example { quoteExp = \ex -> [|(ex, $(return $ toExp $ Exts.fromParseResult $ Exts.parseExpWithMode mymode $ "Right $ do\n" ++ ex))|] }
 
 mkExample :: QuasiQuoter
 mkExample = QuasiQuoter

@@ -7,15 +7,13 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
 
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
+
 module Example.Section.Menu where
 
-import GHC.Tuple -- TH requires this for (,)
 import Control.Lens
-import Control.Monad ((<=<), void, when, join)
-import Control.Monad.Writer (tell)
-import Data.Monoid (First(..))
+import Control.Monad ((<=<), void, join)
 import Data.Text (Text)
-import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
 
 import Example.QQ
@@ -39,7 +37,7 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
   hscode $(printDefinition id stripParens ''MenuConfig)
   hscode $(printDefinition id stripParens ''MenuItemConfig)
 
-  (dynVal, myVal) <- ui $ Menu def $ do
+  (dynVal, _) <- ui $ Menu def $ do
 
 --    ui $ Header H1 "hi" def
     ui $ MenuItem 1 def $ text "One"
@@ -59,22 +57,11 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
   Restrict $ display dynVal
   return ()
 
-  exampleCardDyn dynCode "Buttons" "" [mkExample|
-  \resetEvent -> do
-    ui $ Buttons (def & width |?~ Three) $ do
-      redCount <- count <=< ui $ Button "Red" $ def & color |?~ Red
-      ui $ Conditional def
-      greenCount <- count <=< ui $ Button "Green" $ def & color |?~ Green
-      ui $ Conditional $ def & dataText |?~ "ou"
-      blueCount <- count <=< ui $ Button "Blue" $ def & color |?~ Blue
-      return $ (,,) <$> redCount <*> greenCount <*> blueCount
-  |]
-
-  resetEvent <- ui $ Button "Reset" def
+  resetEvent <- ui $ Button def $ text "Reset"
   void $ do
 --  exampleCardDyn dynCode "Vertical Menu" "A vertical menu displays elements vertically" [mkExample|
 --  \resetEvent -> do
-    let counter txt = let widget = count <=< ui $ Button (Static txt) def-- :: m (Dynamic t Int)
+    let counter txt = let widget = count <=< ui $ Button def $ text $ Static txt
                       in join <$> widgetHold' widget (widget <$ resetEvent)
 
     inboxCount <- counter "Add inbox item"
@@ -94,7 +81,7 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
                    & setValue .~ (Just "inbox" <$ resetEvent)
                    & initialValue ?~ "inbox"
 
-    (selected, myVal) <- ui $ Menu conf $ do
+    (selected, _) <- ui $ Menu conf $ do
       ui $ MenuItem ("inbox" :: Text) (def & color ?~ Teal) $ do
         text "Inbox"
         ui $ mkLabel inboxCount $ Just Teal

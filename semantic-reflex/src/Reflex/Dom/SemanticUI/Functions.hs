@@ -6,6 +6,7 @@
 
 module Reflex.Dom.SemanticUI.Functions where
 
+{-
 import Reflex.Dom.SemanticUI.Button
 import Reflex.Dom.SemanticUI.Checkbox
 import Reflex.Dom.SemanticUI.Header
@@ -18,7 +19,7 @@ import Reflex.Dom.SemanticUI.Segment
 
 import Reflex.Dom.SemanticUI.TH
 
-$(makeFunctions ''Button)
+-- $(makeFunctions ''Button)
 $(makeFunctions ''Checkbox)
 -- $(makeFunctions ''ContentHeader)
 -- $(makeFunctions ''PageHeader)
@@ -28,3 +29,4 @@ $(makeFunctions ''Input)
 $(makeFunctions ''Label)
 $(makeFunctions ''Message)
 $(makeFunctions ''Segment)
+-}

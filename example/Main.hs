@@ -3,7 +3,7 @@
 
 module Main where
 
-import Example
+import qualified Example
 
 #ifndef ghcjs_HOST_OS
 
@@ -17,7 +17,7 @@ main :: IO ()
 
 #ifdef ghcjs_HOST_OS
 
-main = example
+main = Example.main
 
 #else
 
@@ -31,10 +31,10 @@ static :: Maybe FilePath
 static = Just $(strToExp =<< makeRelativeToProject "resources")
 
 -- | Start the warp server
-main = server port css example static
+main = server port css Example.main static
 
 -- | Restart the warp server and tell any connected clients to refresh
 debug :: IO ()
-debug = daemon port css example static
+debug = daemon port css Example.main static
 
 #endif

@@ -10,8 +10,7 @@
 module Example.Section.Flag where
 
 import Control.Lens
-import Control.Monad ((<=<), void, when, join)
-import Data.Text (Text)
+import Data.Foldable (for_)
 import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
 
@@ -22,15 +21,18 @@ import Example.CountryEnum
 flags :: MonadWidget t m => Section m
 flags = LinkedSection "Flag" (text "A flag is used to represent a political state") $ do
 
-  ui $ Paragraph $ do
+  ui_ $ Paragraph $ do
     text "For available flag types, see "
-    ui $ Anchor (text "the Semantic UI docs") $ def
+    ui_ $ Anchor (text "the Semantic UI docs") $ def
       & href |?~ "https://semantic-ui.com/elements/flag.html"
     text "."
 
   hscode $ $(printDefinition id id ''Flag)
 
-  exampleCard "Flag" "" [mkExample|
-  mapM_ (ui . flip Flag def . Static . T.toLower . T.pack . show) [minBound .. maxBound :: CountryEnum]
+  ui_ $ Example "Flag" (def
+    & subtitle ?~ text "A flag can use the two digit country code, the full name, or a common alias")
+    [example|
+  for_ [minBound .. maxBound :: CountryEnum] $
+    ui_ . flip Flag def . Static . T.toLower . T.pack . show
   |]
 

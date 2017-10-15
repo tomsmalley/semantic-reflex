@@ -42,7 +42,7 @@ runApp css port mainApp mUserFilePath middleware preApp = do
     settings = setPort port $ setTimeout 3600 $ defaultSettings
     app = makeHead css >> mainApp >> syncPoint
     static = staticApp $ (defaultFileServerSettings
-      $(strToExp =<< makeRelativeToProject "lib/dist"))
+      $(strToExp =<< makeRelativeToProject "data/static"))
         { ss404Handler = mUserStatic }
     mUserStatic = fmap (staticApp . defaultFileServerSettings) mUserFilePath
 

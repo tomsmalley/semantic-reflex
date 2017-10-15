@@ -18,30 +18,30 @@
 {-# LANGUAGE DataKinds     #-}
 {-# LANGUAGE TypeOperators     #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-methods -fno-warn-name-shadowing #-}
+
 module Reflex.Dom.SemanticUI.Class where
 
-import Control.Lens ((%~))
+import Control.Lens hiding (element)
 import Control.Monad ((<=<), void)
 import Control.Monad.Reader (MonadReader, ask, runReaderT)
 
 import Data.Default (Default(..))
-import Data.Foldable (traverse_)
 import Data.Functor.Misc (WrapArg(..))
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import Data.Proxy (Proxy(..))
 import Data.Semigroup ((<>), First(..))
-import Data.Text (Text)
-import qualified Data.Text as T
 
 import GHC.TypeLits
 import qualified GHCJS.DOM.Types as DOM
 import qualified GHCJS.DOM.HTMLInputElement as Input
 import Language.Javascript.JSaddle (liftJSM)
 
-import Reflex.Dom.Core hiding (fromJSString, divClass, Checkbox, CheckboxConfig, Input)
+import Reflex.Dom.Core hiding (fromJSString, divClass, Checkbox, CheckboxConfig, Input, setValue)
 
 import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Lenses
 
 import Reflex.Dom.SemanticUI.Button
 import Reflex.Dom.SemanticUI.Checkbox
@@ -52,7 +52,6 @@ import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Image
 import Reflex.Dom.SemanticUI.Input
 import Reflex.Dom.SemanticUI.Label
-import Reflex.Dom.SemanticUI.Lenses
 import Reflex.Dom.SemanticUI.Menu
 import Reflex.Dom.SemanticUI.Message
 import Reflex.Dom.SemanticUI.Segment
@@ -74,7 +73,8 @@ instance {-# OVERLAPPABLE #-} TypeError
   ':$$: 'ShowType a
   ':$$: 'Text "In the restricted context of:"
   ':$$: 'ShowType r
-  ) => UI t m r a
+      ) => UI t m r a where
+  ui' = error "impossible"
 
 ui :: forall r t m a. (MonadWidget t m, UI t m r a)
    => a -> Restrict r m (Return t m a)
@@ -87,14 +87,7 @@ ui_ = void . ui
 --------------------------------------------------------------------------------
 -- Button instances
 
-instance t ~ t' => UI t' m Buttons (Conditional t) where
-  type Return t' m (Conditional t) = ()
-  ui' (Conditional ConditionalConfig {..})
-    = reRestrict $ elWithAnim' "div" config blank
-    where
-      config = def
-        & elConfigClasses |~ "or"
-        & elConfigAttributes .~ fmap (maybe mempty ("data-text" =:)) _dataText
+-- Buttons
 
 instance (m' ~ m, t' ~ t) => UI t' m' None (Buttons t m a) where
   type Return t' m' (Buttons t m a) = a
@@ -107,20 +100,84 @@ instance (m' ~ m, t' ~ t) => UI t' m' None (Buttons t m a) where
         { _classes = buttonsConfigClasses config
         }
 
-instance t' ~ t => UI t' m Buttons (Button t) where ui' = unRestrict . ui'
+instance (m' ~ m, t' ~ t) => UI t' m' Buttons (Button t m)
+  where ui' = unRestrict . ui'
+instance (m' ~ m, t' ~ t) => UI t' m' Buttons (DivButton t m)
+  where ui' = unRestrict . ui'
+instance (m' ~ m, t' ~ t) => UI t' m' Buttons (LabeledButton t m)
+  where ui' = unRestrict . ui'
+instance t ~ t' => UI t' m Buttons (Conditional t) where
+  type Return t' m (Conditional t) = ()
+  ui' (Conditional ConditionalConfig {..})
+    = reRestrict $ elWithAnim' "div" config blank
+    where
+      config = def
+        & elConfigClasses |~ "or"
+        & elConfigAttributes .~ fmap (maybe mempty ("data-text" =:)) _dataText
 
-instance t' ~ t => UI t' m None (Button t) where
-  type Return t' m (Button t) = Event t ()
+-- Button
 
-  ui' (Button label config@ButtonConfig {..}) = do
-    (e, _) <- reRestrict $ elWithAnim' (if _realButton then "button" else "div") attrs $ do
---      runRenderWhen ui' _icon
-      activeText label
+instance (m' ~ m, t' ~ t) => UI t' m' None (Button t m) where
+  type Return t' m' (Button t m) = Event t ()
+
+  ui' (Button config@ButtonConfig {..} content) = do
+    (e, _) <- reRestrict $ elWithAnim' "button" elConfig $ case _animated of
+      Just (AnimatedButton _ hiddenContent) -> do
+        reRestrict $ divClass "visible content" $ reRestrict content
+        reRestrict $ divClass "hidden content" $ reRestrict hiddenContent
+      Nothing -> reRestrict content
     return (e, domEvent Click e)
     where
-      attrs = _config <> def
+      elConfig = _config <> def
         { _classes = buttonConfigClasses config
         }
+
+instance t' ~ t => UI t' m Button (Icon t)
+  where ui' = unRestrict . ui'
+instance (m' ~ m, t' ~ t) => UI t' m' Button (Icons t m a)
+  where ui' = unRestrict . ui'
+
+-- DivButton
+
+instance (m ~ m', t' ~ t) => UI t' m' None (DivButton t m) where
+  type Return t' m' (DivButton t m) = Event t ()
+
+  ui' (DivButton config@ButtonConfig {..} content) = do
+    (e, _) <- reRestrict $ elWithAnim' "div" elConfig $ case _animated of
+      Just (AnimatedButton _ hiddenContent) -> do
+        reRestrict $ divClass "visible content" $ reRestrict content
+        reRestrict $ divClass "hidden content" $ reRestrict hiddenContent
+      Nothing -> reRestrict content
+    return (e, domEvent Click e)
+    where
+      elConfig = _config <> def
+        { _classes = buttonConfigClasses config
+        }
+
+instance t' ~ t => UI t' m DivButton (Icon t)
+  where ui' = unRestrict . ui'
+instance (m' ~ m, t' ~ t) => UI t' m' DivButton (Icons t m a)
+  where ui' = unRestrict . ui'
+
+-- LabeledButton
+
+instance (m ~ m', t' ~ t) => UI t' m' None (LabeledButton t m) where
+  -- TODO: return events for children?
+  type Return t' m' (LabeledButton t m) = Event t ()
+
+  ui' (LabeledButton config@LabeledButtonConfig{..} content) = do
+    (e, _) <- reRestrict $ elWithAnim' "div" elConfig $ reRestrict content
+    return (e, domEvent Click e)
+    where
+      elConfig = _config <> def
+        { _classes = labeledButtonConfigClasses config }
+
+instance (m' ~ m, t' ~ t) => UI t' m' LabeledButton (Button t m)
+  where ui' = unRestrict . ui'
+instance (m' ~ m, t' ~ t) => UI t' m' LabeledButton (DivButton t m)
+  where ui' = unRestrict . ui'
+instance (m ~ m', t ~ t') => UI t' m' LabeledButton (Label t m a)
+  where ui' = unRestrict . ui'
 
 --------------------------------------------------------------------------------
 -- Checkbox instances
@@ -255,6 +312,11 @@ instance (m ~ m', t ~ t') => UI t' m' None (ContentDivider t m a) where
         { _classes = addClass "horizontal" <$> dividerConfigClasses config
         }
 
+instance (m ~ m', t ~ t') => UI t' m' ContentDivider (PageHeader t m a) where
+  ui' = unRestrict . ui'
+instance (m ~ m', t ~ t') => UI t' m' ContentDivider (Header t m a) where
+  ui' = unRestrict . ui'
+
 --------------------------------------------------------------------------------
 -- Flag instances
 
@@ -271,26 +333,25 @@ instance t ~ t' => UI t' m Inline (Flag t) where ui' = unRestrict . ui'
 --------------------------------------------------------------------------------
 -- Header instances
 
-instance (m ~ m', t ~ t') => UI t' m' Header (Content t m a) where
-  type Return t' m' (Content t m a) = a
-  ui' (Content _config widget) = do
-    reRestrict $ elWithAnim' "div" elConfig $ reRestrict widget
-    where elConfig = _config <> def { _classes = "content" }
-
 instance (m ~ m', t ~ t') => UI t' m' None (PageHeader t m a) where
   type Return t' m' (PageHeader t m a) = a
   ui' (PageHeader size config@HeaderConfig {..} widget) = do
-    reRestrict $ elWithAnim' (headerSizeEl size) elConfig $ reRestrict widget
+    reRestrict $ elWithAnim' (headerSizeEl size) elConfig $ case _image of
+      Nothing -> case _icon of
+        Nothing -> reRestrict widget
+        Just i -> ui_ i >> divClass "content" (reRestrict widget)
+      Just i -> ui_ i >> divClass "content" (reRestrict widget)
     where
       elConfig = _config <> def { _classes = headerConfigClasses config }
-      classes = headerConfigClasses config
 
-instance (m ~ m', t ~ t') => UI t' m' Divider (PageHeader t m a) where ui' = unRestrict . ui'
-
-instance (m ~ m', t ~ t') => UI t' m' None (ContentHeader t m a) where
-  type Return t' m' (ContentHeader t m a) = a
-  ui' (ContentHeader config@HeaderConfig {..} widget) = do
-    reRestrict $ elWithAnim' "div" elConfig $ reRestrict widget
+instance (m ~ m', t ~ t') => UI t' m' None (Header t m a) where
+  type Return t' m' (Header t m a) = a
+  ui' (Header config@HeaderConfig {..} widget) = do
+    reRestrict $ elWithAnim' "div" elConfig $ case _image of
+      Nothing -> case _icon of
+        Nothing -> reRestrict widget
+        Just i -> ui_ i >> divClass "content" (reRestrict widget)
+      Just i -> ui_ i >> divClass "content" (reRestrict widget)
     where
       msize = (fmap . fmap) headerSizeText _size
       addSize = maybe id addClass <$> msize
@@ -298,9 +359,18 @@ instance (m ~ m', t ~ t') => UI t' m' None (ContentHeader t m a) where
         { _classes = addSize <*> headerConfigClasses config
         }
 
-instance (m ~ m', t ~ t') => UI t' m' Divider (ContentHeader t m a) where ui' = unRestrict . ui'
+instance (t ~ t', m ~ m') => UI t' m' Header (Anchor t m a)
+  where ui' = unRestrict . ui'
+instance (m ~ m', t ~ t') => UI t' m' Header (Label t m a)
+  where ui' = unRestrict . ui'
+instance (m' ~ m, t' ~ t) => UI t' m' Header (Icons t m a)
+  where ui' = unRestrict . ui'
+instance t' ~ t => UI t' m Header (Icon t)
+  where ui' = unRestrict . ui'
+instance t ~ t' => UI t' m Header (Image t)
+  where ui' = unRestrict . ui'
 
-instance m ~ m' => UI t m' HeaderContent (SubHeader m a) where
+instance m ~ m' => UI t m' Header (SubHeader m a) where
   type Return t m' (SubHeader m a) = a
   ui' (SubHeader content) = do
     reRestrict $ elWithAnim' "div" elConfig $ reRestrict content
@@ -321,17 +391,17 @@ instance t' ~ t => UI t' m None (Icon t) where
         , _attrs = maybe mempty ("title" =:) <$> _title
         }
 
-  ui' (Icons icons config@IconsConfig {..})
-    = reRestrict $ elWithAnim' "i" elConfig $ traverse_ (ui_ @None) icons
+instance (m' ~ m, t' ~ t) => UI t' m' None (Icons t m a) where
+  type Return t' m' (Icons t m a) = a
+
+  ui' (Icons config@IconsConfig {..} icons)
+    = reRestrict $ elWithAnim' "i" elConfig $ reRestrict icons
       where
         elConfig = _config <> def
           { _classes = iconsConfigClasss config
           }
 
-instance t' ~ t => UI t' m Inline (Icon t) where ui' = unRestrict . ui'
-instance t' ~ t => UI t' m Label (Icon t) where ui' = unRestrict . ui'
-instance t' ~ t => UI t' m Header (Icon t) where ui' = unRestrict . ui'
-instance t' ~ t => UI t' m HeaderContent (Icon t) where ui' = unRestrict . ui'
+instance t' ~ t => UI t' m Icons (Icon t) where ui' = unRestrict . ui'
 
 --------------------------------------------------------------------------------
 -- Input instances
@@ -371,9 +441,10 @@ instance (m ~ m', t ~ t') => UI t' m' None (Label t m a) where
         }
       elType = if _link then "a" else "div"
 
-instance (m ~ m', t ~ t') => UI t' m' Inline (Label t m a) where ui' = unRestrict . ui'
-instance (m ~ m', t ~ t') => UI t' m' Image (Label t m a) where ui' = unRestrict . ui'
-instance (m ~ m', t ~ t') => UI t' m' ContentImage (Label t m a) where ui' = unRestrict . ui'
+instance t' ~ t => UI t' m Label (Icon t)
+  where ui' = unRestrict . ui'
+instance (m' ~ m, t' ~ t) => UI t' m' Label (Icons t m a) where
+  ui' = unRestrict . ui'
 
 --------------------------------------------------------------------------------
 -- Image instances
@@ -389,7 +460,9 @@ instance t ~ t' => UI t' m None (Image t) where
         }
       mkAttrs s t = "src" =: s <> maybe mempty ("title" =:) t
 
-instance t ~ t' => UI t' m Header (Image t) where ui' = unRestrict . ui'
+-- | Force images to appear inline in inline context
+instance (m ~ m', t ~ t') => UI t' m' Image (Label t m a)
+  where ui' = unRestrict . ui'
 
 -- | Images in labels *must* be some form of spaced if they are not an 'Avatar',
 -- or they will cause a line break. Default to spacing both sides allowing user
@@ -405,7 +478,7 @@ instance (m ~ m', t ~ t') => UI t' m' None (ContentImage t m a) where
   ui' (ContentImage src config@ImageConfig {..} content)
     = elWithAnim' "div" elConfig $ do
       a <- reRestrict content
-      elWithAnim' "img" imgConfig blank
+      void $ elWithAnim "img" imgConfig blank
       return a
     where
       elConfig = _config <> def
@@ -413,7 +486,8 @@ instance (m ~ m', t ~ t') => UI t' m' None (ContentImage t m a) where
       imgConfig = def { _attrs = mkAttrs <$> src <*> _title }
       mkAttrs s t = "src" =: s <> maybe mempty ("title" =:) t
 
-instance (m ~ m', t ~ t') => UI t' m' Header (ContentImage t m a) where ui' = unRestrict . ui'
+instance (m ~ m', t ~ t') => UI t' m' ContentImage (Label t m a)
+  where ui' = unRestrict . ui'
 
 --------------------------------------------------------------------------------
 -- Menu instances
@@ -430,9 +504,9 @@ instance ( t ~ t', m ~ m', Ord v
     Restrict $ tellEvent $ (First value) <$ domEvent Click e
     return (e, ())
       where
-        (elType, attrs') = itemElAttrs config { _link = reLink _link }
-        reLink NoLink = StyleLink
-        reLink a = a
+--        (_, _) = itemElAttrs config { _link = reLink _link }
+--        reLink NoLink = StyleLink
+--        reLink a = a
         elConfig isSelected = _config <> def
           { _classes = addClassMaybe <$> boolClass "active" isSelected
                                      <*> menuItemConfigClasses config
@@ -452,38 +526,35 @@ instance (Ord v, t ~ t', m ~ m') => UI t' m' None (Menu t m v a) where
 --------------------------------------------------------------------------------
 -- Message instances
 
-instance (t ~ t', m ~ m') => UI t' m' None (Message t m a b) where
-  type Return t' m' (Message t m a b) = (Maybe a, Maybe b)
-  ui' (Message config@MessageConfig{..}) = do
+instance (t ~ t', m ~ m') => UI t' m' None (Message t m a) where
+  type Return t' m' (Message t m a) = a
+  ui' (Message config@MessageConfig{..} content) = do
 
-    let dismissIcon = domEvent Click . fst <$> unRestrict (ui' $ Icon "close" def)
+    let contentDismissIcon = do
 
-    let content = do
-          dismissed <- if _dismissable then dismissIcon else return never
-          header <- traverse (divClass "header" . reRestrict) _header
-          message <- traverse (reRestrict . mapRestrict (el "p")) _message
-          return (header, message, dismissed)
+          evt <- case _dismissable of
+            Nothing -> return never
+            Just t -> fmap ((t <$) . domEvent Click . fst) $
+              unRestrict $ ui' $ Icon "close" def
+          result <- content
+          return (result, evt)
 
     rec
-      hidden <- holdDyn False $ leftmost
-        [ True <$ dismissed
-        , _setHidden ]
 
-      (divEl, (header, message, dismissed)) <-
-        reRestrict $ elWithAnim' "div" (attrs hidden) $ reRestrict content
---          case _icon of
---            Nothing -> (,) Nothing <$> reRestrict content
---            Just icon -> do
---              i <- unRestrict $ ui' icon
---              c <- divClass "content" `mapRestrict` reRestrict content
---              return (Just i, c)
+      let elConfig = (_config <>) $ def
+            & elConfigClasses .~ messageConfigClasses config
+            & elConfigTransition . event ?~ closeEvent
 
-    return (divEl, (header, message))
+      (divEl, (result, closeEvent)) <-
+        reRestrict $ elWithAnim' "div" elConfig $ case _icon of
+          Just i -> ui_ i >> divClass "content" (reRestrict contentDismissIcon)
+          Nothing -> reRestrict contentDismissIcon
 
-    where
-      attrs hidden = _config <> def
-        { _classes = addClassMaybe <$> (boolClass "hidden" $ Dynamic hidden) <*> messageConfigClasses config
-        }
+    return (divEl, result)
+
+instance (m ~ m', t ~ t') => UI t' m' Message (Header t m a) where
+  ui' (Header config widget)
+    = unRestrict $ ui' $ Header (config & component .~ True) widget
 
 -- TODO FIXME For removal:
 
@@ -494,15 +565,26 @@ instance m ~ m' => UI t m' None (Paragraph m a) where
 
 instance (t ~ t', m ~ m') => UI t' m' None (Anchor t m a) where
   type Return t' m' (Anchor t m a) = AnchorResult t a
-  ui' (Anchor contents config@AnchorConfig{..}) = do
+  ui' (Anchor contents AnchorConfig{..}) = do
     (e, a) <- reRestrict $ elWithAnim' "a" elConfig $ reRestrict contents
     return (e, AnchorResult (domEvent Click e) a)
       where
         elConfig = _config
           & elConfigAttributes %~ (\a -> (maybe id (M.insert "href") <$> _href) <*> a)
-
 instance (t ~ t', m ~ m') => UI t' m' Inline (Anchor t m a) where
   ui' = unRestrict . ui'
+instance (t ~ t', m ~ m') => UI t' m' Message (Anchor t m a) where
+  ui' = unRestrict . ui'
+
+instance t' ~ t => UI t' m Inline (Icon t)
+  where ui' = unRestrict . ui'
+instance (m' ~ m, t' ~ t) => UI t' m' Inline (Icons t m a)
+  where ui' = unRestrict . ui'
+instance t ~ t' => UI t' m Inline (Image t)
+  where ui' (Image url conf)
+          = unRestrict $ ui' $ Image url $ conf & inline |~ True
+instance (m ~ m', t ~ t') => UI t' m' Inline (Label t m a)
+  where ui' = unRestrict . ui'
 
 --------------------------------------------------------------------------------
 -- Segment instances

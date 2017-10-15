@@ -13,8 +13,8 @@
 
 module Example.Section.Message where
 
-import GHC.Tuple -- TH requires this for (,)
 import Control.Lens
+import Data.Foldable (for_)
 import Data.Semigroup ((<>))
 import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
@@ -29,155 +29,139 @@ messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collecti
   hscode $(printDefinition id stripParens ''MessageConfig)
   hscode $(printDefinition oneline id ''MessageType)
 
-  ui $ PageHeader H3 def $ ui $ Content def $ text "Examples"
+  ui $ PageHeader H3 def $ text "Examples"
 
-  exampleCard "Message" "A basic message" $ [mkExample|
-  ui $ Message $ def
-    & header ?~ text "Changes in Service"
-    & message ?~ text "We just updated our privacy policy here to better service our customers. We recommend reviewing the changes."
+  ui $ Example "Message" (def
+    & subtitle ?~ text "A basic message")
+    [example|
+  ui $ Message def $ do
+    ui $ Header def $ text "Changes in Service"
+    paragraph $ text "We just updated our privacy policy here to better service our customers. We recommend reviewing the changes."
   |]
 
-  ui $ Message $ def
-    & message ?~ ( do
-        ui_ $ Icon "warning sign" def
-        text "The list message implementation is not complete." )
-    & messageType |?~ WarningMessage
-
-  exampleCard "List Message" "A message with a list" $ [mkExample|
-  ui $ Message $ def
-    & header ?~ text "New Site Features"
-    & message ?~ ( elClass "ul" "list" `mapRestrict` do
+  ui $ Example "List Message" (def
+    & inbetween ?~ ( ui_ $ Message (def & messageType |?~ WarningMessage) $ do
+        paragraph $ do
+          ui_ $ Icon "warning sign" def
+          text "The list message implementation is not complete." )
+    & subtitle ?~ text "A message with a list")
+    [example|
+  ui $ Message def $ do
+    ui $ Header def $ text "New Site Features"
+    unRestrict $ elClass "ul" "list" `mapRestrict` do
       el "li" `mapRestrict` text "You can now have cover images on blog pages"
-      el "li" `mapRestrict` text "Drafts will now auto-save while writing")
+      el "li" `mapRestrict` text "Drafts will now auto-save while writing"
   |]
 
--- FIXME
-  exampleCard "Icon Message" "A message can contain an icon" $ [mkExample|
-  ui $ Message $ def
---    & icon ?~ Icon "inbox" def
-    & header ?~ text "Have you heard about our mailing list?"
-    & message ?~ text "Get the best news in your e-mail every day."
-  ui $ Message $ def
---    & icon ?~ Icon "notched circle loading" def
-    & header ?~ text "Just one second"
-    & message ?~ text "We're fetching that content for you."
+  ui $ Example "Icon Message" (def
+    & subtitle ?~ text "A message can contain an icon")
+    [example|
+  ui $ Message (def & icon ?~ Icon "inbox" def) $ do
+    ui $ Header def $ text "Have you heard about our mailing list?"
+    paragraph $ text "Get the best news in your e-mail every day."
+  ui $ Message (def & icon ?~ Icon "notched circle loading" def) $ do
+    ui $ Header def $ text "Just one second"
+    paragraph $ text "We're fetching that content for you."
   |]
 
-  exampleCard "Hidable Block" "A message can be hidden" $ [mkExample|
-  hideEvent <- ui $ Button "Hide" $ def
-    & attached |?~ Horizontally LeftAttached
-  showEvent <- ui $ Button "Show" $ def
-    & attached |?~ Horizontally RightAttached
-  ui $ Message $ def
-    & setHidden .~ leftmost [True <$ hideEvent, False <$ showEvent]
-    & message ?~ text "This message is controlled by the buttons above."
-  |]
-
-  exampleCardReset "Dismissable Block" "A message that the user can choose to hide" $ [mkExample|
+  ui $ Example "Dismissable Message" (def
+    & subtitle ?~ text "A message that the user can choose to hide")
+    [resetExample|
   \resetEvent -> do
-    ui $ Message $ def
-      & dismissable .~ True
-      & setHidden .~ (False <$ resetEvent)
-      & header ?~ text "Welcome back!"
-      & message ?~ text "This is a special notification which you can dismiss if you're bored with it."
+    let config = def
+          & dismissable ?~ Transition Fade (def & duration .~ 0.2)
+          & transition . event ?~
+            (Transition Instant (def & direction ?~ In) <$ resetEvent)
+    ui $ Message config $ do
+      ui $ Header def $ text "Welcome back!"
+      paragraph $ text "This is a special notification which you can dismiss if you're bored with it. The dismissable setting uses the given transition to hide the message when the user clicks on the close icon."
   |]
 
-  exampleCard "Floating" "A message can float above content that it is related to" $ [mkExample|
-  ui $ Message $ def
-    & floating |~ True
-    & message ?~ text "Way to go!"
+  ui $ Example "Floating" (def
+    & subtitle ?~ text "A message can float above the page")
+    [example|
+  ui $ Message (def & floating |~ True) $ do
+    paragraph $ text "Way to go!"
   |]
 
-  exampleCard "Compact" "A message can only take up the width of its content" $ [mkExample|
-  ui $ Message $ def
-    & compact |~ True
-    & message ?~ text "Get all the best inventions in your e-mail every day. Sign up now!"
+  ui $ Example "Compact" (def
+    & subtitle ?~ text "A message can only take up the width of its content")
+    [example|
+  ui $ Message (def & compact |~ True) $ do
+    paragraph $ text "Get all the best inventions in your e-mail every day. Sign up now!"
   |]
 
-  exampleCard "Attached" "A message can be formatted to attach itself to other content" $ [mkExample|
-  ui $ Message $ def
-    & attached |?~ TopAttached
-    & header ?~ text "Welcome to our site!"
-    & message ?~ text "Fill out the form below to sign-up for a new account"
+  ui $ Example "Attached" (def
+    & subtitle ?~ text "A message can be formatted to attach itself to other content")
+    [example|
+  ui $ Message (def & attached |?~ TopAttached) $ do
+    ui $ Header def $ text "Welcome to our site!"
+    paragraph $ text "Fill out the form below to sign-up for a new account"
+
   ui $ Segment (def & attached |?~ Attached) $ text "Content"
-  ui $ Message $ def
-    & attached |?~ BottomAttached
-    & messageType |?~ WarningMessage
-    & message ?~ ( do
+
+  ui $ Message (def & attached |?~ BottomAttached & messageType |?~ WarningMessage) $ do
+    paragraph $ do
       ui $ Icon "help" def
       text "Already signed up? "
       ui $ Anchor (text "Login here") def
-      text " instead." )
+      text " instead."
   |]
 
-  exampleCardReset "Warning" "A message may be formatted to display warning messages" $ [mkExample|
-  \resetEvent -> do
-    ui $ Message $ def
-      & dismissable .~ True
-      & setHidden .~ (False <$ resetEvent)
-      & messageType |?~ WarningMessage
-      & header ?~ text "You must register before you can do that!"
-      & message ?~ text "Visit our registration page, then try again"
+  ui $ Example "Warning" (def
+    & subtitle ?~ text "A message may be formatted to display warning messages")
+    [example|
+  ui $ Message (def & messageType |?~ WarningMessage) $ do
+    ui $ Header def $ text "You must register before you can do that!"
+    paragraph $ text "Visit our registration page, then try again"
   |]
 
-  exampleCardReset "Info" "A message may be formatted to display information" $ [mkExample|
-  \resetEvent -> do
-    ui $ Message $ def
-      & dismissable .~ True
-      & setHidden .~ (False <$ resetEvent)
-      & messageType |?~ InfoMessage
-      & header ?~ text "Was this what you wanted?"
-      & message ?~ text "It's good to see you again."
+  ui $ Example "Info" (def
+    & subtitle ?~ text "A message may be formatted to display information")
+    [example|
+  ui $ Message (def & messageType |?~ InfoMessage) $ do
+    ui $ Header def $ text "Was this what you wanted?"
+    paragraph $ text "It's good to see you again."
   |]
 
-  exampleCardReset "Positive / Success" "A message may be formatted to display a positive message" $ [mkExample|
-  \resetEvent -> do
-    ui $ Message $ def
-      & dismissable .~ True
-      & setHidden .~ (False <$ resetEvent)
-      & messageType |?~ PositiveMessage
-      & header ?~ text "You are eligible for a reward"
-      & message ?~ (do
-        text "Go to your "
-        el "b" `mapRestrict` text "special offers"
-        text " page to see now." )
-    ui $ Message $ def
-      & dismissable .~ True
-      & setHidden .~ (False <$ resetEvent)
-      & messageType |?~ SuccessMessage
-      & header ?~ text "Your user registration was successful."
-      & message ?~ text "You may now log-in with the username you have chosen"
+  ui $ Example "Positive / Success" (def
+    & subtitle ?~ text "A message may be formatted to display a positive message")
+    [example|
+  ui $ Message (def & messageType |?~ MessageType Positive) $ do
+    ui $ Header def $ text "You are eligible for a reward"
+    paragraph $ do
+      text "Go to your "
+      el "b" `mapRestrict` text "special offers"
+      text " page to see now."
+
+  ui $ Message (def & messageType |?~ MessageType Success) $ do
+    ui $ Header def $ text "Your user registration was successful."
+    paragraph $ text "You may now log-in with the username you have chosen"
   |]
 
-  exampleCardReset "Negative / Error" "A message may be formatted to display a negative message" $ [mkExample|
-  \resetEvent -> do
-    ui $ Message $ def
-      & dismissable .~ True
-      & setHidden .~ (False <$ resetEvent)
-      & messageType |?~ NegativeMessage
-      & header ?~ text "I'm sorry Dave, I'm afraid I can't do that."
-      & message ?~ text "I think you know what the problem is just as well as I do."
-    ui $ Message $ def
-      & dismissable .~ True
-      & setHidden .~ (False <$ resetEvent)
-      & messageType |?~ ErrorMessage
-      & header ?~ text "There were some errors with your submission"
-      & message ?~ text "You need to select your home country."
+  ui $ Example "Negative / Error" (def
+    & subtitle ?~ text "A message may be formatted to display a negative message")
+    [example|
+  ui $ Message (def & positive |?~ Negative) $ do
+    ui $ Header def $ text "I'm sorry Dave, I'm afraid I can't do that."
+    paragraph $ text "I think you know what the problem is just as well as I do."
+
+  ui $ Message (def & positive |?~ Error) $ do
+    ui $ Header def $ text "There were some errors with your submission"
+    paragraph $ text "You need to select your home country."
   |]
 
-  exampleCard "Colored" "A message can be formatted to be different colors" $ [mkExample|
-  let putMessage c = Message $ def
-        & color |?~ c
-        & message ?~ (text $ Static $ tshow c)
-  traverse (ui . putMessage) [Red .. Black]
+  ui $ Example "Colored" (def
+    & subtitle ?~ text "A message can be formatted to be different colors")
+    [example|
+  for_ [minBound .. maxBound] $ \c -> ui_ $ Message (def & color |?~ c) $ do
+    paragraph $ text $ Static $ tshow c
   |]
 
-  exampleCard "Size" "A message can have different sizes" $ [mkExample|
-  let putMessage s = Message $ def
-        & size |?~ s
-        & message ?~ (text $ Static $ "This is a " <> T.toLower (tshow s) <> " message.")
-  traverse (ui . putMessage) [Mini .. Massive]
+  ui_ $ Example "Size" (def
+    & subtitle ?~ text "A message can have different sizes")
+    [example|
+  for_ [minBound .. maxBound] $ \s -> ui_ $ Message (def & size |?~ s) $ do
+    paragraph $ text $ Static $ "This is a " <> T.toLower (tshow s) <> " message."
   |]
-
-  return ()
 

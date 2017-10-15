@@ -44,7 +44,7 @@ mkDerivation rec {
   postInstall = stdenv.lib.optionalString ghcjs (''
     mkdir $out/dist;
     mkdir $out/dist/js;
-    cp -r ${semantic-reflex}/share/*/*/lib/dist/* $out/dist;
+    cp -r ${semantic-reflex}/share/*/*/data/static/* $out/dist;
   '' + (if runCC then (''
     echo Running closure compiler...;
   '' + builtins.replaceStrings ["\n"] [" "] ''

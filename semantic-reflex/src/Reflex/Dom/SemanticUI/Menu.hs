@@ -19,25 +19,15 @@
 module Reflex.Dom.SemanticUI.Menu where
 
 import Control.Monad.Reader
-import Control.Monad.Ref
-import Data.Kind (Type)
-import           Control.Monad (void)
-import           Data.Default (Default (def))
-import           Data.Map (Map)
-import qualified Data.Map as M
-import           Data.Maybe (catMaybes)
-import           Data.Semigroup
-import           Data.Text (Text)
-import qualified Data.Text as T
+import Data.Default (Default (def))
+import Data.Semigroup
+import Data.Text (Text)
 import Data.These
-import           Reflex
-import           Reflex.Dom.Core hiding (Dropdown(..), DropdownConfig(..), MenuLink, value, Select)
+import Reflex
+import Reflex.Dom.Core
 import Data.Align
 
-import Reflex.Dom.SemanticUI.Icon
-import Reflex.Dom.SemanticUI.Label
 import Reflex.Dom.SemanticUI.Common
-import Reflex.Dom.SemanticUI.Dropdown
 import Reflex.Dom.SemanticUI.Transition
 
 data MenuConfig t a = MenuConfig

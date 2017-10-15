@@ -9,13 +9,15 @@
 
 module Example.Section.RadioGroup where
 
+{-
 import Control.Lens
 import Control.Monad ((<=<), void, when, join)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Example.QQ
+-}
 import Reflex.Dom.SemanticUI
 
-import Example.QQ
 import Example.Common
 
 radioGroups :: forall t m. MonadWidget t m => Section m

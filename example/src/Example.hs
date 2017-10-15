@@ -12,32 +12,29 @@
 
 {-# OPTIONS_GHC -Wno-name-shadowing -Wno-unused-do-bind #-}
 
-module Example (example) where
+module Example where
 
-import GHC.Tuple
 import Control.Lens
-import Control.Monad ((<=<), void, when, forM_, join, replicateM_, guard)
+import Control.Monad (void)
+import Data.Foldable (for_)
 import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
 import Language.Javascript.JSaddle hiding ((!!))
 
-import Example.StateEnum
-import Example.CountryEnum
 import Example.QQ
 import Example.Common
 
+import Example.Section.Buttons (buttons)
 import Example.Section.Checkbox (checkboxes)
 import Example.Section.Divider (dividers)
-import Example.Section.Dropdown (dropdowns)
 import Example.Section.Flag (flags)
 import Example.Section.Header
 import Example.Section.Icon (icons)
 import Example.Section.Label (labels)
 import Example.Section.Menu (menu)
 import Example.Section.Message (messages)
-import Example.Section.RadioGroup (radioGroups)
 import Example.Section.Transition (transitions)
 
 data Favourite
@@ -82,9 +79,9 @@ putSections sections = do
     & elConfigClasses |~ "ui container") $ do
 
     -- Menu
-    (stickyEl, _) <- divClass "ui dividing right rail" $ do
+    (_, _) <- divClass "ui dividing right rail" $ do
       elAttr' "div" ("class" =: "ui sticky") `mapRestrict` do
-        ui $ PageHeader H4 def $ ui $ Content def $ text "Components"
+        ui $ PageHeader H4 def $ text "Components"
         --divClass "ui vertical following fluid accordion text menu" $ do
 
         let conf = def
@@ -107,7 +104,7 @@ putSections sections = do
     divClass "context" $ do
 
       divClass "intro" $ do
-        ui $ PageHeader H2 def $ ui $ Content def $ text "Introduction"
+        ui $ PageHeader H2 def $ text "Introduction"
         ui $ Paragraph $ do
           text "This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the "
           ui $ Anchor (text "reflex-dom-semui") $ def
@@ -115,7 +112,7 @@ putSections sections = do
           text " library."
         ui $ Paragraph $ text "This page serves to provide an example of the library and components in use. Examples are shown along with the code that generated them."
 
-        ui $ PageHeader H3 def $ ui $ Content def $ text "Overview"
+        ui $ PageHeader H3 def $ text "Overview"
         ui $ Paragraph $ text "The library exposes components in the form of data types. The convention is to have a record with all parts required to specify a component, with the last being a config type that contains the optional or unnecessary parts. All of the component types have overloaded field lenses so they can be modified concisely."
         ui $ Paragraph $ do
           text "Components can be rendered using the function "
@@ -128,12 +125,12 @@ putSections sections = do
         hscode $(printDefinition oneline id '(|?~))
         hscode $(printDefinition oneline id '(|~))
 
-      forM_ sections $ \(LinkedSection heading subHeading child) -> do
+      for_ sections $ \(LinkedSection heading subHeading child) -> do
         let hConf = def
               & dividing |~ True
               & style |~ Style ("margin-top" =: "3em")
               & attributes |~ ("id" =: toId heading)
-        ui $ PageHeader H2 hConf $ ui $ Content def $ do
+        ui $ PageHeader H2 hConf $ do
           text $ Static heading
           ui $ SubHeader subHeading
         child
@@ -157,26 +154,23 @@ putSections sections = do
       = MenuItem (toId heading) heading def $ renderItems rest
       -}
 
-example :: JSM ()
-example = catchJS $ mainWidget $ runRestricted $ do
+main :: JSM ()
+main = catchJS $ mainWidget $ runRestricted $ do
 
   ui $ Segment (def & attributes |~ ("id" =: "masthead") & vertical |~ True) $ do
 
     divClass "ui container" $ do
       let semanticLogo = Image "https://semantic-ui.com/images/logo.png" $ def
             & shape |?~ Rounded
-      ui $ PageHeader H1 def $ do
-        ui semanticLogo
-        ui $ Content def $ do
-          text "Semantic UI for Reflex Dom"
-          ui $ SubHeader $ text "Documentation and examples"
-      ui $ Button "Hackage" $ def & disabled |~ True
-      ui $ Button "GitHub" $ def
---        & icon .~ AlwaysRender (Icon "github" def)
-        & color |?~ Teal
-        & attributes |~ ("href" =: "https://github.com/tomsmalley/reflex-dom-semui")
+      ui $ PageHeader H1 (def & image ?~ semanticLogo) $ do
+        text "Semantic UI for Reflex Dom"
+        ui $ SubHeader $ text "Documentation and examples"
+      ui $ Button (def & disabled |~ True) $ text "Hackage"
+      -- FIXME needs to be <a>
+      ui $ Button (def & color |?~ Teal & attributes |~ ("href" =: "https://github.com/tomsmalley/reflex-dom-semui")) $ do
+        ui $ Icon "github" def
+        text "GitHub"
 
       return ()
 
-  --putSections [ transitions, checkboxes, dropdowns, flags, headers, icons, labels, menu, messages, radioGroups ]
-  putSections [ checkboxes, dividers, flags, headers, icons, labels, menu, messages, transitions ]
+  putSections [ buttons, checkboxes, dividers, flags, headers, icons, labels, menu, messages, transitions ]

@@ -9,8 +9,6 @@
 module Reflex.Dom.SemanticUI.Divider where
 
 import Data.Default
-import Data.Monoid
-import Data.Text (Text)
 import Reflex.Dom.Core
 
 import Reflex.Dom.SemanticUI.Common
@@ -25,7 +23,7 @@ data Divider t = Divider
 -- https://github.com/Semantic-Org/Semantic-UI/issues/4342
 data ContentDivider t m a = ContentDivider
   { _config :: DividerConfig t
-  , _content :: Restrict Divider m a
+  , _content :: Restrict ContentDivider m a
   }
 
 data DividerConfig t = DividerConfig

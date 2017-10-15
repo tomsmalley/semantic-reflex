@@ -16,11 +16,7 @@
 module Reflex.Dom.SemanticUI.Container where
 
 import Data.Default
-import Data.Maybe
-import Data.Semigroup
-import Data.Text (Text)
-import qualified Data.Text as T
-import Reflex.Dom.Core hiding (fromJSString)
+import Reflex.Dom.Core
 
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition

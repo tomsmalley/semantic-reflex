@@ -24,13 +24,9 @@ module Reflex.Dom.SemanticUI.Transition
   , ActiveElConfig (..)
   , elWithAnim
   , elWithAnim'
-  , HasTransition (..)
   , elConfigTransition
-  , HasAttributes (..)
   , elConfigAttributes
-  , HasStyle (..)
   , elConfigStyle
-  , HasClasses (..)
   , elConfigClasses
   , divClass
   , SetValue' (..)
@@ -38,20 +34,13 @@ module Reflex.Dom.SemanticUI.Transition
 
 import Control.Concurrent
 import qualified Control.Concurrent.Thread.Delay as Concurrent
-import Control.Lens ((%~), Lens')
-import Control.Monad ((<=<), void)
-import Control.Monad.Trans (MonadIO, liftIO)
+import Control.Lens (Lens')
+import Control.Monad (void)
+import Control.Monad.Trans (liftIO)
 import Data.Default (Default(..))
-import Data.Functor.Misc (WrapArg(..))
-import Data.Maybe (isJust, isNothing)
-import Data.Proxy (Proxy(..))
 import Data.Semigroup
-import qualified Data.Set as S
 import Data.Map (Map)
 import Data.Text (Text)
-import qualified GHCJS.DOM.Types as DOM
-import qualified GHCJS.DOM.HTMLInputElement as Input
-import Language.Javascript.JSaddle (liftJSM)
 import Reflex
 import Reflex.Dom.Core hiding (Drop, HasAttributes, divClass)
 
@@ -122,13 +111,6 @@ instance ToClassText Direction where
   toClassText In = "in"
   toClassText Out = "out"
 
-flipDirection :: Direction -> Direction
-flipDirection In = Out
-flipDirection Out = In
-
-class HasAddClass a where
-  addClass :: a -> a
-
 data TransitionConfig = TransitionConfig
   { _duration :: NominalDiffTime
   , _direction :: Maybe Direction
@@ -197,14 +179,15 @@ runTransition initHidden transitionRequest = do
   let timer (when, _, t) after
         | after < when = addUTCTime (getDuration t + 0.1) when
         | otherwise = addUTCTime (getDuration t + 0.1) after
-  now <- liftIO getCurrentTime
-  scheduleAfter <- foldDyn timer now reqTime
+  scheduleAfter <- do
+    currentTime <- liftIO getCurrentTime
+    foldDyn timer currentTime reqTime
 
   -- Queue the requests using the last value of scheduleAfter
   queue <- performEventAsync $ ffor (attach (current scheduleAfter) reqTime) $
     \(after, (_, d, t)) cb -> liftIO $ void $ forkIO $ do
-      now <- getCurrentTime
-      Concurrent.delay $ ceiling $ 1000000 * after `diffUTCTime` now
+      currentTime <- getCurrentTime
+      Concurrent.delay $ ceiling $ 1000000 * after `diffUTCTime` currentTime
       cb (d, t)
 
   -- Delay the queue events by their duration, to signal when the transitions
@@ -262,10 +245,18 @@ data SetValue' t a b = SetValue
   , _event :: Maybe (Event t b)
   }
 
+instance Reflex t => Semigroup (SetValue' t a b) where
+  SetValue a mEvt1 <> SetValue _ mEvt2 = SetValue a (mCombined mEvt1 mEvt2)
+    where
+      mCombined Nothing Nothing = Nothing
+      mCombined (Just e1) (Just e2) = Just $ leftmost [e1, e2]
+      mCombined (Just e1) Nothing = Just e1
+      mCombined Nothing (Just e2) = Just e2
+
 -- | Left biased
 instance Reflex t => Semigroup (ActiveElConfig t) where
   ActiveElConfig a b c d <> ActiveElConfig a' b' c' d'
-    = ActiveElConfig (a <> a') (b <> b') (c <> c') d
+    = ActiveElConfig (a <> a') (b <> b') (c <> c') (d <> d')
 
 instance Reflex t => Monoid (ActiveElConfig t) where
   mempty = def
@@ -280,63 +271,36 @@ elWithAnim' _element ActiveElConfig {..} child = do
   transAttrs <- Restrict $ traverse (runTransition $ _initial _transition) $ _event _transition
   case transAttrs of
     Nothing -> let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
-                   mkAttrs classes style attrs
-                    = classAttr classes <> styleAttr style <> attrs
+                   mkAttrs c s attrs
+                    = classAttr c <> styleAttr s <> attrs
                 in elActiveAttr' _element activeAttrs child
-    Just (AnimationAttrs mClasses mStyle)  -> do
-      let activeAttrs = mkAttrs <$> _classes <*> Dynamic mClasses
-                                <*> _style <*> Dynamic mStyle
+    Just (AnimationAttrs mDynClasses mDynStyle)  -> do
+      let activeAttrs = mkAttrs <$> _classes <*> Dynamic mDynClasses
+                                <*> _style <*> Dynamic mDynStyle
                                 <*> _attrs
-          mkAttrs classes mClasses style mStyle attrs
-            = classAttr (maybe classes (<> classes) mClasses)
-             <> styleAttr (maybe style (<> style) mStyle)
+          mkAttrs c mClasses s mStyle attrs
+            = classAttr (maybe c (<> c) mClasses)
+             <> styleAttr (maybe s (<> s) mStyle)
              <> attrs
       elActiveAttr' _element activeAttrs child
 
 divClass :: MonadWidget t m
          => Active t Classes -> Restrict None m a -> Restrict None m a
-divClass classes = elWithAnim "div" (def & elConfigClasses .~ classes)
-
--- | Delay an Event's occurrences by a given amount in seconds.
-delaySelf :: (PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))
-      => Event t NominalDiffTime -> m (Event t NominalDiffTime)
-delaySelf e = performEventAsync $ ffor e $ \dt cb ->
-  liftIO $ void $ forkIO $ do
-    Concurrent.delay $ ceiling $ dt * 1000000
-    cb dt
-
-delaySnd :: (PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))
-         => Event t (a, NominalDiffTime) -> m (Event t a)
-delaySnd e = performEventAsync $ ffor e $ \(a, dt) cb ->
-  liftIO $ void $ forkIO $ do
-    Concurrent.delay $ ceiling $ dt * 1000000
-    cb a
+divClass c = elWithAnim "div" (def & elConfigClasses .~ c)
 
 -- Lenses
-
-class HasTransition t a where
-  transition :: Lens' a (SetValue' t Bool Transition)
 
 elConfigTransition :: Lens' (ActiveElConfig t) (SetValue' t Bool Transition)
 elConfigTransition f (ActiveElConfig c s at t)
   = fmap (\t' -> ActiveElConfig c s at t') $ f t
 
-class HasAttributes t a where
-  attributes :: Lens' a (Active t (Map Text Text))
-
 elConfigAttributes :: Lens' (ActiveElConfig t) (Active t (Map Text Text))
 elConfigAttributes f (ActiveElConfig c s at t)
   = fmap (\at' -> ActiveElConfig c s at' t) $ f at
 
-class HasStyle t a where
-  style :: Lens' a (Active t Style)
-
 elConfigStyle :: Lens' (ActiveElConfig t) (Active t Style)
 elConfigStyle f (ActiveElConfig c s at t)
   = fmap (\s' -> ActiveElConfig c s' at t) $ f s
-
-class HasClasses t a where
-  classes :: Lens' a (Active t Classes)
 
 elConfigClasses :: Lens' (ActiveElConfig t) (Active t Classes)
 elConfigClasses f (ActiveElConfig c s at t)

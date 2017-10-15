@@ -46,26 +46,32 @@
   }
 }
 
-#main.container > div > .card {
-  margin-top: 4em;
+.example > .ui.segment.flex {
+  transition: padding 0.2s ease, margin 0.2s ease;
+}
+.example > .ui.segment.flex:not(.padded) {
+  margin-top: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.example > .ui.segment.flex.widget:not(.padded) {
+  padding-top: 0;
+}
+.example > .ui.segment.basic:not(:nth-last-child(2)) {
+  margin-bottom: 0;
+}
+.ui.segment.vertical.example {
+  margin-bottom: 2em;
+  max-width: 100%;
 }
 
-
-.example {
-  margin: 2em 0;
-}
-.ui.grid .example {
-  margin: 0;
-}
-.example .ui.popup {
-  min-width: auto;
-}
 .haskell pre {
   color: #bbbbbb;
   font-family: "Monaco","Menlo","Ubuntu Mono","Consolas","source-code-pro",monospace;
   font-size: 12px;
   overflow: auto;
   padding: 0;
+  margin: 0;
 }
 
 code.inline, code.inline pre {

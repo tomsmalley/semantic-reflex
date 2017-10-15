@@ -8,7 +8,6 @@ import Control.Monad (replicateM)
 import Data.Char (toLower)
 import Language.Haskell.TH
 import Language.Haskell.TH.Datatype
-import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Class
 
 -- | Make top level function declarations for the given semantic component type.
@@ -52,8 +51,8 @@ makeFunctions name = do
       fieldNames <- replicateM (length $ constructorFields info) (newName "x")
 
       -- Makes the function body, applies the constructor name to the fields
-      let exp [field] = appE (conE $ constructorName info) (varE field)
-          exp (field : fields) = appE (exp fields) (varE field)
+      let mkExp [field] = appE (conE $ constructorName info) (varE field)
+          mkExp (field : fields) = appE (mkExp fields) (varE field)
 
       -- Make the top level function declaration using 'postfix' to modify the
       -- function name. We only have a single clause of all fieldNames and a
@@ -62,7 +61,7 @@ makeFunctions name = do
       -- typed the same as the data constructor.
       let run postfix func = funD (mkName $ funcNameBase ++ postfix)
             [clause (varP <$> fieldNames)
-                    (normalB $ appE (varE func) (exp $ reverse fieldNames))
+                    (normalB $ appE (varE func) (mkExp $ reverse fieldNames))
               [] ]
 
       -- Generate all variants

@@ -10,240 +10,218 @@
 module Example.Section.Header where
 
 import Control.Lens
-import Control.Monad ((<=<), void, when, join)
-import Data.Text (Text)
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
 
 import Example.QQ
 import Example.Common
 
+succMaybe :: forall a. (Eq a, Bounded a, Enum a) => a -> Maybe a
+succMaybe a
+  | a == (maxBound :: a) = Nothing
+  | otherwise = Just $ succ a
+
+predMaybe :: forall a. (Eq a, Bounded a, Enum a) => a -> Maybe a
+predMaybe a
+  | a == (minBound :: a) = Nothing
+  | otherwise = Just $ pred a
+
 headers :: MonadWidget t m => Section m
-headers = LinkedSection "Header" blank $ do
+headers = LinkedSection "Header" (simpleLink "https://semantic-ui.com/elements/header.html") $ do
 
-  hscode $ $(printDefinition id stripParens ''Header)
-  hscode $ $(printDefinition id stripParens ''HeaderConfig)
+  hscode $(printDefinition id stripParens ''Header)
+  hscode $(printDefinition id stripParens ''HeaderConfig)
 
-  divClass "ui equal width stackable grid" $ do
+  ui $ Example "Page Headers" (def
+    & subtitle ?~ text "Headers may be oriented to give the hierarchy of a section in the context of the page"
+    & inbetween ?~ (ui_ $ Message (def & messageType |?~ InfoMessage) $ do
+      paragraph $ text "Page headings are sized using 'rem' and are not affected by surrounding content size."))
+    [example|
+  ui $ PageHeader H1 def $ text "First Header"
+  ui $ PageHeader H2 def $ text "Second Header"
+  ui $ PageHeader H3 def $ text "Third Header"
+  ui $ PageHeader H4 def $ text "Fourth Header"
+  ui $ PageHeader H5 def $ text "Fifth Header"
+  |]
 
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Page Headers" "" [mkExample|
-        ui $ PageHeader H1 def $ ui $ Content def $ text "First Header"
-        ui $ PageHeader H2 def $ ui $ Content def $ text "Second Header"
-        ui $ PageHeader H3 def $ ui $ Content def $ text "Third Header"
-        ui $ PageHeader H4 def $ ui $ Content def $ text "Fourth Header"
-        ui $ PageHeader H5 def $ ui $ Content def $ text "Fifth Header"
-        |]
+  ui $ Example "Content Headers" (def
+    & subtitle ?~ text "Headers may be oriented to give the importance of a section in the context of the content that surrounds it"
+    & inbetween ?~ (ui_ $ Message (def & messageType |?~ InfoMessage) $ do
+      paragraph $ text "Content headings are sized using 'em' and are based on the font-size of their container."))
+    [resetExample|
+  \resetEvent -> do
+    dSize <- ui $ Buttons def $ do
+      plus <- ui $ Button (def & icon |~ True) $ ui $ Icon "plus" def
+      minus <- ui $ Button (def & icon |~ True) $ ui $ Icon "minus" def
+      foldDyn (\f a -> fromMaybe a $ f a) Medium $
+        leftmost [ succMaybe <$ plus, predMaybe <$ minus, const (Just Medium) <$ resetEvent ]
 
-      divClass "column" $ do
-        exampleCard "Content Headers" "" [mkExample|
-        ui $ ContentHeader (def & size |?~ H1) $ ui $ Content def $ text "First Header"
-        ui $ ContentHeader (def & size |?~ H2) $ ui $ Content def $ text "Second Header"
-        ui $ ContentHeader (def & size |?~ H3) $ ui $ Content def $ text "Third Header"
-        ui $ ContentHeader (def & size |?~ H4) $ ui $ Content def $ text "Fourth Header"
-        ui $ ContentHeader (def & size |?~ H5) $ ui $ Content def $ text "Fifth Header"
-        |]
+    ui $ Segment (def & size .~ Dynamic (Just <$> dSize)) $ do
+      ui $ Header (def & size |?~ H1) $ text "First Header"
+      ui $ Header (def & size |?~ H2) $ text "Second Header"
+      ui $ Header (def & size |?~ H3) $ text "Third Header"
+      ui $ Header (def & size |?~ H4) $ text "Fourth Header"
+      ui $ Header (def & size |?~ H5) $ text "Fifth Header"
+  |]
 
-{-
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Icon Headers" "A header can be formatted to emphasize an icon"
-          [mkExample|
-        ui $ Header H2 (text "Account Settings") $ def
-          & subHeader ?~ ui (Text "Manage your account settings and set e-mail preferences.")
-          & icon .~ AlwaysRender (Icon "settings" def)
-          & iconHeader |~ True
-          & aligned |?~ CenterAligned
+  ui $ Example "Icon Headers" (def
+    & subtitle ?~ text "A header can be formatted to emphasise an icon")
+    [example|
+  ui $ PageHeader H2 (def
+    & icon ?~ Icon "settings" def
+    & iconHeader |~ True
+    & aligned |?~ CenterAligned) $ do
+    text "Account Settings"
+    ui $ SubHeader $ text "Manage your account settings and set e-mail preferences."
 
-        ui $ Header H2 (text "Friends") $ def
-          & icon .~ AlwaysRender (Icon "users" $ def & circular |~ True)
-          & iconHeader |~ True
-          & aligned |?~ CenterAligned
-        |]
--}
+  ui $ Header (def
+    & iconHeader |~ True
+    & icon ?~ Icon "users" (def & circular |~ True & inverted |~ True)
+    & aligned |?~ CenterAligned) $ do
+    text "Friends"
+  |]
 
+  ui $ Example "Sub Headers" (def
+    & subtitle ?~ text "A header may be formatted to label smaller or de-emphasised content")
+    [example|
+  divClass "ui horizontal list" $ do
+    divClass "item" $ do
+      ui $ Image "images/animals/bat.png" $ def
+        & size |?~ Mini
+        & shape |?~ Circular
+      divClass "content" $ do
+        ui $ Header (def & sub |~ True) $ text "Benjamin"
+        text "Bat"
 
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Sub Headers" "A header may be formatted to label smaller or de-emphasized content." [mkExample|
-        ui $ PageHeader H2 (def & sub |~ True) $ ui $ Content def $ text "Price"
-        el "span" `mapRestrict` text "£10.99"
-        |]
+    divClass "item" $ do
+      ui $ Image "images/animals/horse.png" $ def
+        & size |?~ Mini
+        & shape |?~ Circular
+      divClass "content" $ do
+        ui $ Header (def & sub |~ True) $ text "Harriet"
+        text "Horse"
 
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Sub Headers" "A header may be formatted to label smaller or de-emphasized content." [mkExample|
-        divClass "ui horizontal list" $ do
-          divClass "item" $ do
-            ui $ Image "images/animals/bat.png" $ def
-              & size |?~ Mini
-              & shape |?~ Circular
-            divClass "content" $ do
-              ui $ ContentHeader (def & sub |~ True) $ ui $ Content def $ text "Benjamin"
-              text "Bat"
+    divClass "item" $ do
+      ui $ Image "images/animals/monkey.png" $ def
+        & size |?~ Mini
+        & shape |?~ Circular
+      divClass "content" $ do
+        ui $ Header (def & sub |~ True) $ text "Molly"
+        text "Monkey"
+  |]
 
-          divClass "item" $ do
-            ui $ Image "images/animals/horse.png" $ def
-              & size |?~ Mini
-              & shape |?~ Circular
-            divClass "content" $ do
-              ui $ ContentHeader (def & sub |~ True) $ ui $ Content def $ text "Harriet"
-              text "Horse"
+  ui $ Example "Image" (def
+    & subtitle ?~ text "A header may contain an image before the content")
+    [example|
+  let url = "images/animals/penguin.png"
+  ui $ Header (def & image ?~ Image url (def & shape |?~ Circular)) $ do
+    text "Penelope"
+    ui $ SubHeader $ text "Penguin"
+  |]
 
-          divClass "item" $ do
-            ui $ Image "images/animals/monkey.png" $ def
-              & size |?~ Mini
-              & shape |?~ Circular
-            divClass "content" $ do
-              ui $ ContentHeader (def & sub |~ True) $ ui $ Content def $ text "Molly"
-              text "Monkey"
-        |]
+  ui $ Example "Icon" (def
+    & subtitle ?~ text "A header may contain an icon before the content")
+    [example|
+  ui $ PageHeader H2 (def & icon ?~ Icon "plug" def) $ text "Uptime Guarantee"
 
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Image" "A header may contain an image before the content"
-          [mkExample|
-        let url = "images/animals/penguin.png"
-        ui $ ContentHeader def $ do
-          ui $ Image url $ def & shape |?~ Circular
-          ui $ Content def $ do
-            text "Penelope"
-            ui $ SubHeader $ text "Penguin"
-        |]
+  ui $ PageHeader H2 (def & icon ?~ Icon "settings" def) $ do
+    text "Account Settings"
+    ui $ SubHeader $ text "Manage your preferences"
+  |]
 
-{-
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Image" "Desired behaviour: suck up the first image or icon and ignore the rest, placing *other* valid elements into the content div. Allow image to be placed anywhere in the do block."
-          [mkExample|
-        let url = "images/animals/penguin.png"
-        ui $ ContentHeader def $ do
-          text "Penelope"
-          ui $ Image url $ def & shape |~ Circular
-          ui $ Icon "error" def
-        |]
-      -}
+  ui $ Example "Icon" (def
+    & subtitle ?~ text "A header may contain an icon inside the content")
+    [example|
+  ui_ $ PageHeader H2 def $ do
+    text "Add calendar event"
+    ui $ Icon "add to calendar" $ def
+      & link |~ True & color |?~ Teal
+      & style |~ Style ("margin-left" =: "0.5em")
+  |]
 
-      divClass "column" $ do
-        exampleCard "Icon" "A header may contain an icon before the content"
-          [mkExample|
-        ui $ PageHeader H2 def $ do
-          ui $ Icon "plug" def
-          ui $ Content def $ text "Uptime Guarantee"
+  ui $ Example "Subheader" (def
+    & subtitle ?~ text "A header may contain a subheader")
+    [example|
+  ui $ PageHeader H1 def $ do
+    text "First Header"
+    ui $ SubHeader $ text "Sub Header"
+  ui $ PageHeader H2 def $ do
+    text "Second Header"
+    ui $ SubHeader $ text "Sub Header"
+  ui $ PageHeader H3 def $ do
+    text "Third Header"
+    ui $ SubHeader $ text "Sub Header"
+  ui $ PageHeader H4 def $ do
+    text "Fourth Header"
+    ui $ SubHeader $ text "Sub Header"
+  ui $ PageHeader H5 def $ do
+    text "Fifth Header"
+    ui $ SubHeader $ text "Sub Header"
+  |]
 
-        ui $ PageHeader H2 def $ do
-          ui $ Icon "settings" def
-          ui $ Content def $ do
-            text "Account Settings"
-            ui $ SubHeader $ text "Manage your preferences"
-        |]
+  ui $ Example "Disabled" (def
+    & subtitle ?~ text "A header may show that it is inactive")
+    [example|
+  ui $ Header (def & disabled |~ True) $ text "Disabled Header"
+  |]
 
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Icon" "A header may contain an icon inside the content" [mkExample|
-        ui_ $ PageHeader H2 def $ ui $ Content def $ do
-          text "Add calendar event"
-          ui $ Icon "add to calendar" $ def
-            & link |~ True & color |?~ Teal
-            & style |~ Style ("margin-left" =: "0.5em")
-        |]
+  ui $ Example "Block" (def
+    & subtitle ?~ text "A header can be formatted to appear inside a content block")
+    [example|
+  ui $ PageHeader H3 (def & block |~ True) $ text "Block Header"
+  |]
 
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Subheader" "Headers may contain subheaders"
-          [mkExample|
-        ui $ PageHeader H1 def $ ui $ Content def $ do
-          text "First Header"
-          ui $ SubHeader $ text "Sub Header"
-        ui $ PageHeader H2 def $ ui $ Content def $ do
-          text "Second Header"
-          ui $ SubHeader $ text "Sub Header"
-        ui $ PageHeader H3 def $ ui $ Content def $ do
-          text "Third Header"
-          ui $ SubHeader $ text "Sub Header"
-        ui $ PageHeader H4 def $ ui $ Content def $ do
-          text "Fourth Header"
-          ui $ SubHeader $ text "Sub Header"
-        ui $ PageHeader H5 def $ ui $ Content def $ do
-          text "Fifth Header"
-          ui $ SubHeader $ text "Sub Header"
-        |]
+  ui $ Example "Dividing" (def
+    & subtitle ?~ text "A header can be formatted to divide itself from the content below it")
+    [example|
+  ui $ Paragraph $ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam at diam mauris. Cras quis purus fringilla, maximus ex volutpat, tristique velit. In in pulvinar tellus, a ultrices erat. Quisque sit amet gravida lectus, vel viverra mauris."
+  ui $ PageHeader H3 (def & dividing |~ True) $ text "Dividing Header"
+  ui $ Paragraph $ text "Nam diam neque, euismod nec maximus ut, lacinia egestas ex. Etiam condimentum finibus venenatis. Sed commodo lobortis dolor nec molestie. Maecenas commodo metus diam, nec accumsan est consectetur quis. Nunc sed est nunc. Duis turpis ipsum, vulputate non mi placerat, vehicula dignissim est. Integer venenatis tortor nec massa dapibus, sed laoreet eros lacinia."
+  |]
 
-      divClass "column" $ do
-        divClass "ui grid" $ do
-          divClass "row" $ do
-            divClass "column" $ do
-              exampleCard "Disabled" "A header can show that it is inactive"
-                [mkExample|
-              ui $ ContentHeader (def & disabled |~ True) $ ui $ Content def $ text "Disabled Header"
-              |]
+  ui $ Example "Attached" (def
+    & subtitle ?~ text "A header can be attached to other content such as a segment")
+    [example|
+  ui $ Header (def & attached |?~ TopAttached) $ text "Top Attached"
+  ui $ Segment (def & attached |?~ Attached) $ ui $ Paragraph $ text "Nullam tincidunt, elit et placerat convallis, lacus erat convallis turpis, id tincidunt eros leo ac felis. Nam tincidunt eget ligula vel cursus. Nam eu vehicula lacus. Sed quis tellus nec massa semper condimentum sit amet non libero."
+  ui $ Header (def & attached |?~ Attached) $ text "Attached"
+  ui $ Segment (def & attached |?~ Attached) $ ui $ Paragraph $ text "Aliquam tincidunt libero nec turpis porta consectetur. Nam eget ex auctor, sagittis diam at, pharetra leo. Phasellus venenatis iaculis sem id posuere."
+  ui $ Header (def & attached |?~ BottomAttached) $ text "Bottom Attached"
+  |]
 
-          divClass "row" $ do
-            divClass "column" $ do
-              exampleCard "Block" "A header can be formatted to appear inside a content block"
-                [mkExample|
-              ui $ PageHeader H3 (def & block |~ True) $ ui $ Content def $ text "Block Header"
-              |]
+  ui $ Example "Floating" (def
+    & subtitle ?~ text "A header can sit to the left or right of other content")
+    [example|
+  ui $ Header (def & floated |?~ LeftFloated) $
+    text "Go Back"
+  ui $ Header (def & floated |?~ RightFloated) $
+    text "Go Forward"
+  |]
 
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Dividing" "A header can be formatted to divide itself from the content below it"
-          [mkExample|
-        ui $ Paragraph $ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam at diam mauris. Cras quis purus fringilla, maximus ex volutpat, tristique velit. In in pulvinar tellus, a ultrices erat. Quisque sit amet gravida lectus, vel viverra mauris."
-        ui $ PageHeader H3 (def & dividing |~ True) $ ui $ Content def $ text "Dividing Header"
-        ui $ Paragraph $ text "Nam diam neque, euismod nec maximus ut, lacinia egestas ex. Etiam condimentum finibus venenatis. Sed commodo lobortis dolor nec molestie. Maecenas commodo metus diam, nec accumsan est consectetur quis. Nunc sed est nunc. Duis turpis ipsum, vulputate non mi placerat, vehicula dignissim est. Integer venenatis tortor nec massa dapibus, sed laoreet eros lacinia."
-        |]
+  ui $ Example "Text Alignment" (def
+    & subtitle ?~ text "A header can have its text aligned to a side")
+    [example|
+  ui $ Header (def & aligned |?~ RightAligned) $ text "Right"
+  ui $ Header (def & aligned |?~ LeftAligned) $ text "Left"
+  ui $ Header (def & aligned |?~ Justified) $
+    text "This should take up the full width even if only one line"
+  ui $ Header (def & aligned |?~ CenterAligned) $ text "Center"
+  |]
 
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Attached" "A header can be attached to other content, like a segment"
-          [mkExample|
-        ui $ ContentHeader (def & attached |?~ TopAttached) $ ui $ Content def $ text "Top Attached"
-        ui $ Segment (def & attached |?~ Attached) $ ui $ Paragraph $ text "Nullam tincidunt, elit et placerat convallis, lacus erat convallis turpis, id tincidunt eros leo ac felis. Nam tincidunt eget ligula vel cursus. Nam eu vehicula lacus. Sed quis tellus nec massa semper condimentum sit amet non libero."
-        ui $ ContentHeader (def & attached |?~ Attached) $ ui $ Content def $ text "Attached"
-        ui $ Segment (def & attached |?~ Attached) $ ui $ Paragraph $ text "Aliquam tincidunt libero nec turpis porta consectetur. Nam eget ex auctor, sagittis diam at, pharetra leo. Phasellus venenatis iaculis sem id posuere."
-        ui $ ContentHeader (def & attached |?~ BottomAttached) $ ui $ Content def $ text "Bottom Attached"
-        |]
+  ui $ Example "Colored" (def
+    & subtitle ?~ text "A header can be formatted with different colors")
+    [example|
+  let makeHeader c = Header (def & color |?~ c) $
+        text $ Static $ T.pack $ show c
+  mapM_ (ui_ . makeHeader) [Red .. Grey]
+  |]
 
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Floating" "A header can sit to the left or right of other content"
-          [mkExample|
-        ui $ Segment (def & clearing |~ True) $ do
-          ui $ ContentHeader (def & floated |?~ LeftFloated) $
-            ui $ Content def $ text "Go Back"
-          ui $ ContentHeader (def & floated |?~ RightFloated) $
-            ui $ Content def $ text "Go Forward"
-        |]
-
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Text Alignment" "A header can have its text aligned to a side"
-          [mkExample|
-        ui $ Segment def $ do
-          ui $ ContentHeader (def & aligned |?~ RightAligned) $ ui $ Content def $ text "Right"
-          ui $ ContentHeader (def & aligned |?~ LeftAligned) $ ui $ Content def $ text "Left"
-          ui $ ContentHeader (def & aligned |?~ Justified) $
-            ui $ Content def $ text "This should take up the full width even if only one line"
-          ui $ ContentHeader (def & aligned |?~ CenterAligned) $ ui $ Content def $ text "Center"
-        |]
-
-    divClass "row" $ do
-      divClass "column" $ do
-        exampleCard "Colored" "A header can be formatted with different colors"
-          [mkExample|
-        ui $ Segment def $ do
-          let makeHeader c = ContentHeader (def & color |?~ c) $
-                ui $ Content def $ text $ Static $ T.pack $ show c
-          mapM_ (ui_ . makeHeader) [Red .. Grey]
-        |]
-
-      divClass "column" $ do
-        exampleCard "Inverted" "A header can have its colors inverted for contrast"
-          [mkExample|
-        ui $ Segment (def & inverted |~ True) $ do
-          let makeHeader c = ContentHeader (def & color |?~ c & inverted |~ True) $
-                ui $ Content def $ text $ Static $ T.pack $ show c
-          mapM_ (ui_ . makeHeader) [Red .. Grey]
-        |]
+  ui $ Example "Inverted" (def
+    & subtitle ?~ text "A header can have its colors inverted for contrast")
+    [example|
+  ui $ Segment (def & inverted |~ True) $ do
+    let makeHeader c = Header (def & color |?~ c & inverted |~ True) $
+          text $ Static $ T.pack $ show c
+    mapM_ (ui_ . makeHeader) [Red .. Grey]
+  |]

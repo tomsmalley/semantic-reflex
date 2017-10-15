@@ -9,13 +9,11 @@
 module Reflex.Dom.SemanticUI.Input where
 
 import Data.Default
-import Data.Monoid
 import Data.Text (Text)
-import Reflex.Dom.Core hiding (Input, fromJSString)
+import Reflex.Dom.Core hiding (Input)
 
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
-import Reflex.Dom.SemanticUI.Icon
 
 data Input t = Input
   { _config :: InputConfig t

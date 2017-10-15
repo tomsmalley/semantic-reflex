@@ -10,12 +10,16 @@ module Reflex.Dom.SemanticUI.Lenses where
 
 import Control.Lens.TH
 import Control.Lens
+
+import Data.Map (Map)
+import Data.Text (Text)
+
+import Reflex.Dom.SemanticUI.Common (Active, Style, Classes)
+
 import Reflex.Dom.SemanticUI.Button
 import Reflex.Dom.SemanticUI.Checkbox
 import Reflex.Dom.SemanticUI.Divider
-import Reflex.Dom.SemanticUI.Dropdown
 import Reflex.Dom.SemanticUI.Header
-import Reflex.Dom.SemanticUI.RadioGroup
 import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Input
 import Reflex.Dom.SemanticUI.Image
@@ -27,7 +31,9 @@ import Reflex.Dom.SemanticUI.Segment
 import Reflex.Dom.SemanticUI.Transition
 
 $(makeFieldsNoPrefix ''Button)
+$(makeFieldsNoPrefix ''AnimatedButton)
 $(makeFieldsNoPrefix ''ButtonConfig)
+$(makeFieldsNoPrefix ''LabeledButtonConfig)
 $(makeFieldsNoPrefix ''ButtonsConfig)
 $(makeFieldsNoPrefix ''ConditionalConfig)
 
@@ -77,6 +83,18 @@ $(makeFieldsNoPrefix ''TransitionConfig)
 $(makeFieldsNoPrefix ''AnimationConfig)
 -- $(makeFieldsNoPrefix ''ActiveElConfig)
 -- $(makeFieldsNoPrefix ''Animation)
+
+class HasTransition t a where
+  transition :: Lens' a (SetValue' t Bool Transition)
+
+class HasAttributes t a where
+  attributes :: Lens' a (Active t (Map Text Text))
+
+class HasStyle t a where
+  style :: Lens' a (Active t Style)
+
+class HasClasses t a where
+  classes :: Lens' a (Active t Classes)
 
 instance HasConfig a (ActiveElConfig t) => HasAttributes t a where
   attributes = config . elConfigAttributes

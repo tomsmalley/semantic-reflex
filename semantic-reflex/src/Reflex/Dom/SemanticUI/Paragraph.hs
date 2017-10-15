@@ -11,26 +11,19 @@
 
 module Reflex.Dom.SemanticUI.Paragraph where
 
-import Control.Lens
-import Data.Default (Default (def))
-import Data.Map (Map)
-import qualified Data.Map as M
-import Data.Maybe (catMaybes)
-import Data.Semigroup ((<>))
-import Data.String
+import Data.Default
 import Data.Text (Text)
-import qualified Data.Text as T
 import Reflex
-import Reflex.Dom.Core hiding
-  ( checkbox, Checkbox (..), checkbox_value, checkbox_change
-  , CheckboxConfig (..), checkboxConfig_attributes, checkboxConfig_setValue
-  )
+import Reflex.Dom.Core
 
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition hiding (divClass)
+
+import Reflex.Dom.SemanticUI.Button (Button)
 import Reflex.Dom.SemanticUI.Label (Label)
-import Reflex.Dom.SemanticUI.Divider (Divider)
-import Reflex.Dom.SemanticUI.Header (HeaderContent)
+import Reflex.Dom.SemanticUI.Divider (ContentDivider)
+import Reflex.Dom.SemanticUI.Header (Header)
+import Reflex.Dom.SemanticUI.Message (Message)
 
 data Paragraph m a = Paragraph (Restrict Inline m a)
 
@@ -41,9 +34,17 @@ class PlainText (r :: k) t m where
 
 instance PlainText None t m
 instance PlainText Inline t m
-instance PlainText HeaderContent t m
-instance PlainText Divider t m
+instance PlainText Header t m
+instance PlainText ContentDivider t m
 instance PlainText Label t m
+instance PlainText Button t m
+
+class HasParagraph (r :: k) t m where
+  paragraph :: MonadWidget t m => Restrict Inline m a -> Restrict r m a
+  paragraph m = reRestrict $ elWithAnim "p" def m
+
+instance HasParagraph None t m
+instance HasParagraph Message t m
 
 data Anchor t m a = Anchor (Restrict Inline m a) (AnchorConfig t)
 data AnchorConfig t = AnchorConfig

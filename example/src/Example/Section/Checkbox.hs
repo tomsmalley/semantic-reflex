@@ -12,9 +12,7 @@
 
 module Example.Section.Checkbox where
 
-import GHC.Tuple -- TH requires this for (,)
 import Control.Lens
-import Data.Semigroup ((<>))
 import Reflex.Dom.SemanticUI
 
 import Example.QQ
@@ -23,11 +21,9 @@ import Example.Common
 checkboxes :: forall t m. MonadWidget t m => Section m
 checkboxes = LinkedSection "Checkbox" (simpleLink "https://semantic-ui.com/modules/checkbox.html") $ do
 
-  ui $ Message $ def
-    & messageType |?~ InfoMessage
-    & message ?~ (do
-      ui $ Icon "announcement" def
-      text "The implementation of the Checkbox module does not depend on the Semantic UI or jQuery Javascript libraries.")
+  ui $ Message (def & messageType |?~ InfoMessage) $ paragraph $ do
+    ui $ Icon "announcement" def
+    text "The implementation of the Checkbox module does not depend on the Semantic UI or jQuery Javascript libraries."
 
   ui $ Paragraph $ text "Checkboxes consist of a label and a configuration."
 
@@ -43,89 +39,104 @@ checkboxes = LinkedSection "Checkbox" (simpleLink "https://semantic-ui.com/modul
 
   hscode $(printDefinition id stripParens ''CheckboxResult)
 
-  ui $ PageHeader H3 def $ ui $ Content def $ text "Examples"
+  ui $ PageHeader H3 def $ text "Examples"
 
-  divClass "ui two column stackable grid" $ do
-    divClass "row" $ do
+  ui $ Example "Checkbox" (def
+    & dynamic ?~ dynCode
+    & subtitle ?~ text "Standard checkbox styles")
+    [resetExample|
+  \resetEvent -> do
+    normal <- ui $ Checkbox "Normal checkbox" $ def
+      & setValue .~ (False <$ resetEvent)
 
-      divClass "column" $ do
-        exampleCardDyn dynCode "Checkbox" "Standard checkbox styles" $ [mkExample|
-        \resetEvent -> do
-          normal <- ui $ Segment (def & compact |~ True)
-            $ ui $ Checkbox "Normal checkbox"
-            $ def & setValue .~ (False <$ resetEvent)
-          toggle <- ui $ Segment (def & compact |~ True)
-            $ ui $ Checkbox "Toggle checkbox (checked by default)"
-            $ def & altType |?~ Toggle
-                  & setValue .~ (True <$ resetEvent)
-                  & initialValue .~ True
-          slider <- ui $ Segment (def & compact |~ True)
-            $ ui $ Checkbox "Slider checkbox"
-            $ def & altType |?~ Slider
-                  & setValue .~ (False <$ resetEvent)
-          return $ traverse (view value) [normal, toggle, slider]
-        |]
+    ui $ Divider $ def & hidden |~ True
 
-      divClass "column" $ do
-        exampleCardDyn dynCode "Disabled checkbox" "Checkboxes can be enabled or disabled" [mkExample|
-        \resetEvent -> do
-          enable <- ui $ Button "Enable" $ def
-            & attached |?~ Horizontally LeftAttached
-          disable <- ui $ Button "Disable" $ def
-            & attached |?~ Horizontally RightAttached
-          enabled <- holdDyn False $ leftmost [True <$ enable, False <$ disable, False <$ resetEvent]
-          normal <- ui $ Segment def
-            $ ui $ Checkbox "Initially disabled"
-            $ def & setValue .~ (False <$ resetEvent)
-                  & disabled .~ Dynamic (fmap not enabled)
-          toggle <- ui $ Segment def
-            $ ui $ Checkbox "Initially disabled (checked by default)"
-            $ def & altType |?~ Toggle
-                  & setValue .~ (True <$ resetEvent)
-                  & initialValue .~ True
-                  & disabled .~ Dynamic (fmap not enabled)
-          return $ traverse (view value) [normal, toggle]
-        |]
+    toggle <- ui $ Checkbox "Toggle checkbox (checked by default)" $ def
+      & altType |?~ Toggle
+      & setValue .~ (True <$ resetEvent)
+      & initialValue .~ True
 
-    divClass "row" $ do
+    ui $ Divider $ def & hidden |~ True
 
-      divClass "column" $ do
-        exampleCardDyn dynShowCode "Checkbox states" "Checkboxes can be indeterminate" [mkExample|
-        \resetEvent -> do
-          indeterminateButton <- ui $ Button "Indeterminate" $ def
-            & attached |?~ Horizontally LeftAttached
-          determinateButton <- ui $ Button "Determinate" $ def
-            & attached |?~ Horizontally RightAttached
-          ui $ Segment (def & compact |~ True)
-            $ ui $ Checkbox "Indeterminate"
-            $ def & setValue .~ (True <$ resetEvent)
-                  & setIndeterminate .~ leftmost
-                      [ True <$ indeterminateButton
-                      , False <$ determinateButton
-                      , True <$ resetEvent ]
-                  & initialIndeterminate .~ True
-                  & initialValue .~ True
-        |]
+    slider <- ui $ Checkbox "Slider checkbox" $ def
+      & altType |?~ Slider
+      & setValue .~ (False <$ resetEvent)
 
-      divClass "column" $ do
-        exampleCardDyn dynCode "Fitted checkbox" "A fitted checkbox does not leave padding for a label" [mkExample|
-        \resetEvent -> do
-          normal <- ui $ Segment (def & compact |~ True)
-            $ ui $ Checkbox "" $ def
-              & fitted |~ True
-              & setValue .~ (False <$ resetEvent)
-          slider <- ui $ Segment (def & compact |~ True)
-            $ ui $ Checkbox "" $ def
-              & fitted |~ True
-              & altType |?~ Toggle
-              & setValue .~ (False <$ resetEvent)
-          toggle <- ui $ Segment (def & compact |~ True)
-            $ ui $ Checkbox "" $ def
-              & fitted |~ True
-              & altType |?~ Slider
-              & setValue .~ (False <$ resetEvent)
-          return $ traverse (view value) [normal, slider, toggle]
-        |]
+    return $ traverse (view value) [normal, toggle, slider]
+  |]
 
-    return ()
+  ui $ Example "Disabled" (def
+    & dynamic ?~ dynCode
+    & subtitle ?~ text "Checkboxes can be enabled or disabled")
+    [resetExample|
+  \resetEvent -> do
+    enabled <- ui $ Buttons def $ do
+      enable <- ui $ Button def $ text "Enable"
+      disable <- ui $ Button def $ text "Disable"
+      holdDyn False $ leftmost
+        [ True <$ enable, False <$ disable, False <$ resetEvent ]
+
+    ui $ Divider $ def & hidden |~ True
+
+    normal <- ui $ Checkbox "Initially disabled" $ def
+      & setValue .~ (False <$ resetEvent)
+      & disabled .~ Dynamic (fmap not enabled)
+
+    ui $ Divider $ def & hidden |~ True
+
+    toggle <- ui $ Checkbox "Initially disabled (checked by default)" $ def
+      & altType |?~ Toggle
+      & setValue .~ (True <$ resetEvent)
+      & initialValue .~ True
+      & disabled .~ Dynamic (fmap not enabled)
+
+    return $ traverse (view value) [normal, toggle]
+  |]
+
+  ui $ Example "Indeterminate" (def
+    & dynamic ?~ dynShowCode
+    & subtitle ?~ text "Checkboxes can be indeterminate")
+    [resetExample|
+  \resetEvent -> do
+    eIndeterminate <- ui $ Buttons def $ do
+      enable <- ui $ Button def $ text "Indeterminate"
+      disable <- ui $ Button def $ text "Determinate"
+      return $ leftmost
+        [ True <$ enable, False <$ disable, True <$ resetEvent ]
+
+    ui $ Divider $ def & hidden |~ True
+
+    ui $ Checkbox "Indeterminate" $ def
+      & setValue .~ (True <$ resetEvent)
+      & setIndeterminate .~ eIndeterminate
+      & initialIndeterminate .~ True
+      & initialValue .~ True
+  |]
+
+  ui $ Example "Fitted" (def
+    & dynamic ?~ dynCode
+    & subtitle ?~ text "A fitted checkbox does not leave padding for a label")
+    [resetExample|
+  \resetEvent -> do
+    normal <- ui $ Segment (def & compact |~ True)
+      $ ui $ Checkbox "" $ def
+        & fitted |~ True
+        & setValue .~ (False <$ resetEvent)
+
+    slider <- ui $ Segment (def & compact |~ True)
+      $ ui $ Checkbox "" $ def
+        & fitted |~ True
+        & altType |?~ Toggle
+        & setValue .~ (False <$ resetEvent)
+
+    toggle <- ui $ Segment (def & compact |~ True)
+      $ ui $ Checkbox "" $ def
+        & fitted |~ True
+        & altType |?~ Slider
+        & setValue .~ (False <$ resetEvent)
+
+    return $ traverse (view value) [normal, slider, toggle]
+  |]
+
+  return ()
 

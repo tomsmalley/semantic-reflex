@@ -14,24 +14,11 @@
 -- https://semantic-ui.com/collections/segments.html
 module Reflex.Dom.SemanticUI.Segment where
 
-import Control.Lens ((%~))
-import Control.Monad ((<=<))
-import Data.Default (Default(..))
-import Data.Functor.Misc (WrapArg(..))
-import Data.Maybe (isJust)
-import Data.Proxy (Proxy(..))
-import Data.Semigroup ((<>))
-import Data.Text (Text)
-import qualified GHCJS.DOM.Types as DOM
-import qualified GHCJS.DOM.HTMLInputElement as Input
-import Language.Javascript.JSaddle (liftJSM)
+import Data.Default
 import Reflex
-import Reflex.Dom.Core hiding (segment, Segment, SegmentConfig)
 
 import Reflex.Dom.SemanticUI.Common
-import Reflex.Dom.SemanticUI.Icon
-import Reflex.Dom.SemanticUI.Transition hiding (divClass)
-import Reflex.Dom.SemanticUI.Header
+import Reflex.Dom.SemanticUI.Transition
 
 data Stacked = Stacked | TallStacked | Piled
   deriving (Eq, Show)
@@ -40,14 +27,6 @@ instance ToClassText Stacked where
   toClassText Stacked = "stacked"
   toClassText TallStacked = "tall stacked"
   toClassText Piled = "piled"
-
-data Emphasis = Primary | Secondary | Tertiary
-  deriving (Eq, Show)
-
-instance ToClassText Emphasis where
-  toClassText Primary = ""
-  toClassText Secondary = "secondary"
-  toClassText Tertiary = "tertiary"
 
 data SegmentConfig t = SegmentConfig
   { _raised :: Active t Bool

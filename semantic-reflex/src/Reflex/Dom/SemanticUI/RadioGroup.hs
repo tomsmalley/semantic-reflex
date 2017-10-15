@@ -18,6 +18,7 @@ module Reflex.Dom.SemanticUI.RadioGroup
   -}
   ) where
 
+{-
 import           Control.Monad (void)
 import           Control.Monad.Trans
 import           Control.Lens ((^.))
@@ -39,7 +40,6 @@ import Reflex.Dom.SemanticUI.Checkbox (CheckboxType (..))
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
-{-
 --------------------------------------------------------------------------------
 -- Radio Item
 

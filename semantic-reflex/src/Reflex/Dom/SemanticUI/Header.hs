@@ -9,30 +9,20 @@
 
 module Reflex.Dom.SemanticUI.Header where
 
-import Data.Foldable (traverse_)
-import Control.Lens
-import Data.Default (Default (def))
-import Data.Map (Map)
-import qualified Data.Map as M
-import Data.Maybe (catMaybes)
-import Data.Semigroup ((<>))
-import Data.String
+import Data.Default
 import Data.Text (Text)
-import qualified Data.Text as T
 import Reflex
-import Reflex.Dom.Core hiding
-  ( checkbox, Checkbox (..), checkbox_value, checkbox_change
-  , CheckboxConfig (..), checkboxConfig_attributes, checkboxConfig_setValue
-  )
 
 import Reflex.Dom.SemanticUI.Common
-import Reflex.Dom.SemanticUI.Divider (Divider)
+import Reflex.Dom.SemanticUI.Icon (Icon)
+import Reflex.Dom.SemanticUI.Image (Image)
 import Reflex.Dom.SemanticUI.Transition hiding (divClass)
-
-data HeaderPreContent
 
 data HeaderConfig t = HeaderConfig
   { _iconHeader   :: Active t Bool
+  , _icon         :: Maybe (Icon t)
+  , _image         :: Maybe (Image t)
+
   , _dividing     :: Active t Bool
   , _sub          :: Active t Bool
   , _disabled     :: Active t Bool
@@ -53,6 +43,9 @@ data HeaderConfig t = HeaderConfig
 instance Default (HeaderConfig t) where
   def = HeaderConfig
     { _iconHeader = Static False
+    , _icon = Nothing
+    , _image = Nothing
+
     , _dividing = Static False
     , _sub = Static False
     , _disabled = Static False
@@ -65,7 +58,7 @@ instance Default (HeaderConfig t) where
     , _color = Static Nothing
     , _attached = Static Nothing
 
-    , _component = True
+    , _component = False
     , _item = False
     , _config = def
     }
@@ -85,7 +78,7 @@ headerConfigClasses HeaderConfig {..} = activeClasses
   , fmap toClassText <$> _color
   , fmap toClassText <$> _attached
 
-  , boolClass "ui" $ Static _component
+  , boolClass "ui" $ Static $ not _component
   , boolClass "item" $ Static _item
   ]
 
@@ -116,18 +109,10 @@ data PageHeader t m a = PageHeader
   , _content :: Restrict Header m a
   }
 
-data ContentHeader t m a = ContentHeader
+data Header t m a = Header
   { _config :: HeaderConfig t
   , _content :: Restrict Header m a
   }
-
-data Content t m a = Content
-  { _config :: ActiveElConfig t
-  , _content :: Restrict HeaderContent m a
-  }
-
-data HeaderContent
-data Header
 
 data SubHeader m a = SubHeader
   { _content :: Restrict Inline m a

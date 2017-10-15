@@ -24,6 +24,7 @@ library
     , Example.CountryEnum
     , Example.QQ
     , Example.Common
+    , Example.Section.Buttons
     , Example.Section.Checkbox
     , Example.Section.Divider
     , Example.Section.Dropdown
@@ -39,6 +40,7 @@ library
   build-depends:
       base            >= 4.8 && < 4.10
     , bytestring
+    , data-default
     , file-embed      >= 0.0.10 && < 0.1
     --, ghcjs-dom
     , jsaddle         >= 0.8.0.0 && < 0.10

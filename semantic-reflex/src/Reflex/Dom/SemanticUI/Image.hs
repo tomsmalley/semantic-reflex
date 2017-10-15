@@ -9,23 +9,11 @@
 
 module Reflex.Dom.SemanticUI.Image where
 
-import           Data.Default (Default (def))
-import Data.Map (Map)
-import qualified Data.Map as M
-import           Data.Maybe (catMaybes)
-import           Data.Semigroup ((<>))
-import qualified Data.Set as S
-import           Data.Text (Text)
-import qualified Data.Text as T
-import Data.Traversable (sequenceA)
-import           Reflex
-import           Reflex.Dom.Core hiding
-  ( checkbox, Checkbox (..), checkbox_value, checkbox_change
-  , CheckboxConfig (..), checkboxConfig_attributes, checkboxConfig_setValue
-  )
+import Data.Default
+import Data.Text (Text)
+import Reflex
 
 import Reflex.Dom.SemanticUI.Common
-import Reflex.Dom.SemanticUI.Header (Header)
 import Reflex.Dom.SemanticUI.Transition
 
 data ImageShape = Rounded | Circular | Avatar deriving (Eq, Show)
@@ -49,6 +37,7 @@ data ImageConfig t = ImageConfig
   , _component :: Bool
   , _title :: Active t (Maybe Text)
   , _spaced :: Active t (Maybe Spaced)
+  , _inline :: Active t Bool
   , _config :: ActiveElConfig t
   }
 
@@ -60,6 +49,7 @@ instance Reflex t => Default (ImageConfig t) where
     , _component = False
     , _title = Static Nothing
     , _spaced = Static Nothing
+    , _inline = Static False
     , _config = def
     }
 
@@ -70,6 +60,7 @@ imageConfigClasses ImageConfig {..} = activeClasses
   , fmap toClassText <$> _shape
   , fmap toClassText <$> _floated
   , fmap toClassText <$> _spaced
+  , boolClass "inline" _inline
   ]
 
 data Image t = Image

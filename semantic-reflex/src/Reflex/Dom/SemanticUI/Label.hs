@@ -17,8 +17,7 @@
 module Reflex.Dom.SemanticUI.Label where
 
 import Data.Default
-import Data.Maybe (catMaybes, fromMaybe)
-import Data.Semigroup ((<>))
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.Core hiding (fromJSString, divClass)
@@ -26,8 +25,6 @@ import Reflex.Dom.Core hiding (fromJSString, divClass)
 import Reflex.Dom.SemanticUI.Common
 
 import Reflex.Dom.SemanticUI.Transition
-import Reflex.Dom.SemanticUI.Header
-import Reflex.Dom.SemanticUI.Image
 
 data Ribbon
   = LeftRibbon
@@ -38,12 +35,12 @@ instance ToClassText Ribbon where
   toClassText LeftRibbon = "ribbon"
   toClassText RightRibbon = "right ribbon"
 
-data Corner
+data TopCorner
   = LeftCorner
   | RightCorner
   deriving (Eq, Show)
 
-instance ToClassText Corner where
+instance ToClassText TopCorner where
   toClassText LeftCorner = "left corner"
   toClassText RightCorner = "right corner"
 
@@ -82,7 +79,7 @@ data LabelConfig t = LabelConfig
   , _color :: Active t (Maybe Color)
   , _pointing :: Active t (Maybe Pointing)
   , _ribbon :: Active t (Maybe Ribbon)
-  , _corner :: Active t (Maybe Corner)
+  , _corner :: Active t (Maybe TopCorner)
   , _image :: Active t Bool
   , _hidden :: Active t Bool
   , _basic :: Active t Bool
