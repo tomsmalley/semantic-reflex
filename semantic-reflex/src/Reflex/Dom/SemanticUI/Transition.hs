@@ -16,6 +16,7 @@ module Reflex.Dom.SemanticUI.Transition
   (
   -- * Transition
     Transition (..)
+  , TransConfig (..)
   , TransitionType (..)
   , TransitionConfig (..)
   , AnimationType (..)
@@ -36,16 +37,17 @@ import Control.Concurrent
 import qualified Control.Concurrent.Thread.Delay as Concurrent
 import Control.Lens (Lens')
 import Control.Monad (void)
-import Control.Monad.Trans (liftIO)
+import Control.Monad.Trans (liftIO, lift)
 import Data.Default (Default(..))
 import Data.Semigroup
 import Data.Map (Map)
 import Data.Text (Text)
 import Reflex
-import Reflex.Dom.Core hiding (Drop, HasAttributes, divClass)
+import Reflex.Dom.Core hiding (Drop, HasAttributes, divClass, elAttr')
 
 import Data.Time
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 
 data TransitionType
@@ -114,14 +116,12 @@ instance ToClassText Direction where
 data TransitionConfig = TransitionConfig
   { _duration :: NominalDiffTime
   , _direction :: Maybe Direction
-  , _forceVisible :: Bool
   }
 
 instance Default TransitionConfig where
   def = TransitionConfig
     { _duration = 0.75
     , _direction = Nothing
-    , _forceVisible = False
     }
 
 data AnimationConfig = AnimationConfig
@@ -153,10 +153,11 @@ data AnimationAttrs t = AnimationAttrs
 
 runTransition
   :: MonadWidget t m
-  => Bool                 -- ^ Element is hidden initially?
-  -> Event t Transition   -- ^ Transition events
+  => TransConfig t
+--  => Bool                 -- ^ Element is hidden initially?
+--  -> Event t Transition   -- ^ Transition events
   -> m (AnimationAttrs t)
-runTransition initHidden transitionRequest = do
+runTransition (TransConfig transitionRequest initHidden forceVisible extraClasses) = do
 
   let flipDir Nothing In = Out
       flipDir Nothing Out = In
@@ -193,17 +194,17 @@ runTransition initHidden transitionRequest = do
   -- Delay the queue events by their duration, to signal when the transitions
   -- have ended
   finish <- performEventAsync $ ffor queue $ \(d, t) cb -> case t of
-    Transition Instant TransitionConfig{..} -> liftIO $ cb (d, _forceVisible)
+    Transition Instant TransitionConfig{..} -> liftIO $ cb d
     Transition _ TransitionConfig{..} -> liftIO $ void $ forkIO $ do
       Concurrent.delay $ ceiling $ _duration * 1000000
-      cb (d, _forceVisible)
+      cb d
     Animation _ AnimationConfig{..} -> liftIO $ void $ forkIO $ do
       Concurrent.delay $ ceiling $ _duration * 1000000
-      cb (In, False)
+      cb In
 
-  mClasses <- holdDyn (mkTransEndClasses (initDirection, False)) $ leftmost
+  mClasses <- holdDyn (mkTransEndClasses extraClasses forceVisible initDirection) $ leftmost
     [ mkTransClasses <$> queue
-    , mkTransEndClasses <$> finish ]
+    , mkTransEndClasses extraClasses forceVisible <$> finish ]
   mStyle <- holdDyn Nothing $ leftmost
     [ mkTransStyle . snd <$> queue
     , Nothing <$ finish ]
@@ -215,10 +216,11 @@ mkTransClasses (d, Transition t _)
 mkTransClasses (_, Animation t _)
   = Just $ Classes ["animating", "transition", toClassText t]
 
-mkTransEndClasses :: (Direction, Bool) -> Maybe Classes
-mkTransEndClasses (Out, _) = Just $ Classes ["transition", "hidden"]
-mkTransEndClasses (In, True) = Just $ Classes ["transition", "visible"]
-mkTransEndClasses (In, False) = Nothing
+mkTransEndClasses :: (Bool -> Maybe Classes) -> Bool -> Direction
+                  -> Maybe Classes
+mkTransEndClasses f _ Out = f False <> (Just $ Classes ["transition", "hidden"])
+mkTransEndClasses f True In = f True <> (Just $ Classes ["transition", "visible"])
+mkTransEndClasses f False In = f True
 
 mkTransStyle :: Transition -> Maybe Style
 mkTransStyle t = Just $ Style $ "animation-duration" =: tshow (getDuration t)
@@ -229,16 +231,35 @@ data ActiveElConfig t = ActiveElConfig
   { _classes :: Active t Classes
   , _style :: Active t Style
   , _attrs :: Active t (Map Text Text)
-  , _transition :: SetValue' t Bool Transition
+  , _transition :: Maybe (TransConfig t)
   }
 
-instance Default (ActiveElConfig t) where
+instance Reflex t => Default (ActiveElConfig t) where
   def = ActiveElConfig
-    { _classes = Static mempty
-    , _style = Static mempty
-    , _attrs = Static mempty
-    , _transition = SetValue False Nothing
+    { _classes = pure mempty
+    , _style = pure mempty
+    , _attrs = pure mempty
+    , _transition = Nothing
     }
+
+data TransConfig t = TransConfig
+  { _event :: Event t Transition
+  , _initial :: Bool
+  , _forceVisible :: Bool
+  , _extraClasses :: Bool -> Maybe Classes
+  }
+
+instance Reflex t => Default (TransConfig t) where
+  def = TransConfig
+    { _event = never
+    , _initial = False
+    , _forceVisible = False
+    , _extraClasses = const Nothing
+    }
+
+instance Reflex t => Semigroup (TransConfig t) where
+  TransConfig e1 i v f1 <> TransConfig e2 _ _ f2 = TransConfig (leftmost [e1, e2]) i v (f1 <> f2)
+
 
 data SetValue' t a b = SetValue
   { _initial :: a
@@ -262,35 +283,43 @@ instance Reflex t => Monoid (ActiveElConfig t) where
   mempty = def
   mappend = (<>)
 
-elWithAnim :: MonadWidget t m => Text -> ActiveElConfig t -> Restrict r m a -> Restrict None m a
+elWithAnim :: MonadWidget t m => Text -> ActiveElConfig t -> Component r m a -> Component None m a
 elWithAnim elType conf = fmap snd . elWithAnim' elType conf
 
-elWithAnim' :: MonadWidget t m => Text -> ActiveElConfig t -> Restrict r m a
-            -> Restrict None m (Element EventResult (DomBuilderSpace m) t, a)
-elWithAnim' _element ActiveElConfig {..} child = do
-  transAttrs <- Restrict $ traverse (runTransition $ _initial _transition) $ _event _transition
+elWithAnim'
+  :: MonadWidget t m
+  => Text
+  -> ActiveElConfig t
+  -> Component r m a
+  -> Component None m (Element EventResult (DomBuilderSpace m) t, a)
+elWithAnim' _element ActiveElConfig {..} (Component child) = Component $ do
+  transAttrs <- traverse runTransition _transition
   case transAttrs of
-    Nothing -> let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
-                   mkAttrs c s attrs
-                    = classAttr c <> styleAttr s <> attrs
-                in elActiveAttr' _element activeAttrs child
-    Just (AnimationAttrs mDynClasses mDynStyle)  -> do
+    Nothing -> do
+      let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
+          mkAttrs c s attrs = classAttr c <> styleAttr s <> attrs
+      elActiveAttr' _element activeAttrs child
+
+    Just (AnimationAttrs mDynClasses mDynStyle) -> do
+
       let activeAttrs = mkAttrs <$> _classes <*> Dynamic mDynClasses
-                                <*> _style <*> Dynamic mDynStyle
-                                <*> _attrs
+                              <*> _style <*> Dynamic mDynStyle
+                              <*> _attrs
+
           mkAttrs c mClasses s mStyle attrs
             = classAttr (maybe c (<> c) mClasses)
-             <> styleAttr (maybe s (<> s) mStyle)
-             <> attrs
+            <> styleAttr (maybe s (<> s) mStyle)
+            <> attrs
+
       elActiveAttr' _element activeAttrs child
 
 divClass :: MonadWidget t m
-         => Active t Classes -> Restrict None m a -> Restrict None m a
+         => Active t Classes -> Component None m a -> Component None m a
 divClass c = elWithAnim "div" (def & elConfigClasses .~ c)
 
 -- Lenses
 
-elConfigTransition :: Lens' (ActiveElConfig t) (SetValue' t Bool Transition)
+elConfigTransition :: Lens' (ActiveElConfig t) (Maybe (TransConfig t))
 elConfigTransition f (ActiveElConfig c s at t)
   = fmap (\t' -> ActiveElConfig c s at t') $ f t
 

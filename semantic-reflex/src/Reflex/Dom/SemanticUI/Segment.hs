@@ -17,6 +17,7 @@ module Reflex.Dom.SemanticUI.Segment where
 import Data.Default
 import Reflex
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -104,9 +105,8 @@ segmentConfigClasses SegmentConfig {..} = activeClasses
   , fmap toClassText <$> _size
   ]
 
--- | Segment UI Element. The minimum useful segment only needs a label and a
--- default configuration.
+-- | Segment UI Element.
 data Segment t m a = Segment
   { _config :: SegmentConfig t
-  , _content :: Restrict None m a
+  , _content :: Component None m a
   }

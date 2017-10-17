@@ -23,7 +23,7 @@ import Reflex.Dom.SemanticUI
 
 import Example.QQ
 
-data Section m = LinkedSection Text (Restrict Inline m ()) (Restrict None m ())
+data Section t m = LinkedSection Text (Component Inline m ()) (Component None m ())
 
 removableWidget :: MonadWidget t m => Event t () -> m (Event t ()) -> m ()
 removableWidget restore widget = do
@@ -33,15 +33,15 @@ removableWidget restore widget = do
         ]
   return ()
 
-dynShowCode :: (MonadWidget t m, DynShow t a) => a -> Restrict r m ()
+dynShowCode :: (MonadWidget t m, DynShow t a) => a -> Component r m ()
 dynShowCode a = do
   a' <- dynShow a
-  Restrict $ void $ dyn $ runRestricted . hscode <$> a'
+  Component $ void $ dyn $ runComponent . hscode <$> a'
 
-dynCode :: (MonadWidget t m, Show a) => Dynamic t a -> Restrict r m ()
-dynCode d = Restrict $ void $ dyn $ runRestricted . hscode . show <$> d
+dynCode :: (MonadWidget t m, Show a) => Dynamic t a -> Component r m ()
+dynCode d = Component $ void $ dyn $ runComponent . hscode . show <$> d
 
-simpleLink :: MonadWidget t m => Text -> Restrict Inline m ()
+simpleLink :: MonadWidget t m => Text -> Component Inline m ()
 simpleLink url = ui_ $ Anchor (text $ Static url) $ def
   & href |?~ url
 
@@ -49,21 +49,21 @@ orElse :: a -> a -> Bool -> a
 orElse a _ True = a
 orElse _ b False = b
 
-data ExampleConf m a = ExampleConf
-  { _subtitle :: Maybe (Restrict Inline m ())
-  , _inbetween :: Maybe (Restrict None m ())
-  , _dynamic :: Maybe (a -> Restrict None m ())
+data ExampleConf t m a = ExampleConf
+  { _subtitle :: Maybe (Component Inline m ())
+  , _inbetween :: Maybe (Component None m ())
+  , _dynamic :: Maybe (a -> Component None m ())
   }
 $(makeLenses ''ExampleConf)
 
-instance Applicative m => Default (ExampleConf m a) where
+instance Applicative m => Default (ExampleConf t m a) where
   def = ExampleConf
     { _subtitle = Nothing
     , _inbetween = Nothing
     , _dynamic = Nothing
     }
 
-upstreamIssue :: MonadWidget t m => Int -> Text -> Restrict None m ()
+upstreamIssue :: MonadWidget t m => Int -> Text -> Component None m ()
 upstreamIssue issue msg = ui_ $ Message def $ paragraph $ do
   ui $ Icon "warning sign" def
   text $ Static msg
@@ -76,8 +76,8 @@ upstreamIssue issue msg = ui_ $ Message def $ paragraph $ do
 
 data Example t m a = Example
   { _name :: Text
-  , _config :: ExampleConf m a
-  , _codeWidget :: (String, Either (Restrict None m a) (Event t () -> Restrict None m a))
+  , _config :: ExampleConf t m a
+  , _codeWidget :: (String, Either (Component None m a) (Event t () -> Component None m a))
   }
 
 instance (t' ~ t, m' ~ m) => UI t' m' None (Example t m a) where
@@ -126,8 +126,9 @@ instance (t' ~ t, m' ~ m) => UI t' m' None (Example t m a) where
 
     -- Code segment
     let codeConfig evt = def
-          & transition . event ?~ fmap mkTransition evt
-          & transition . initial .~ True & attached |?~ BottomAttached
+          & transition ?~ (def & event .~ fmap mkTransition evt
+                               & initial .~ True)
+          & attached |?~ BottomAttached
         mkTransition t = Transition Instant $ def
           & direction ?~ bool Out In t
 

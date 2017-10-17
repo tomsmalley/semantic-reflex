@@ -24,7 +24,7 @@ import Example.CountryEnum
 import Reflex.Dom.SemanticUI
 import Example.Common
 
-dropdowns :: MonadWidget t m => Section m
+dropdowns :: MonadWidget t m => Section t m
 dropdowns = LinkedSection "Dropdown" blank $ do
   text "Not implemented"
 

@@ -13,6 +13,7 @@ import Data.Default
 import Data.Text (Text)
 import Reflex
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -71,6 +72,6 @@ data Image t = Image
 data ContentImage t m a = ContentImage
   { _src :: Active t Text
   , _config :: ImageConfig t
-  , _content :: Restrict Image m a
+  , _content :: Component Image m a
   }
 

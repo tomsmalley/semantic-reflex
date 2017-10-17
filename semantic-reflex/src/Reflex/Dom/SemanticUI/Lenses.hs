@@ -14,10 +14,12 @@ import Control.Lens
 import Data.Map (Map)
 import Data.Text (Text)
 
-import Reflex.Dom.SemanticUI.Common (Active, Style, Classes)
+import Reflex.Dom.Active
+import Reflex.Dom.SemanticUI.Common (Style, Classes)
 
 import Reflex.Dom.SemanticUI.Button
 import Reflex.Dom.SemanticUI.Checkbox
+import Reflex.Dom.SemanticUI.Dimmer
 import Reflex.Dom.SemanticUI.Divider
 import Reflex.Dom.SemanticUI.Header
 import Reflex.Dom.SemanticUI.Icon
@@ -60,6 +62,8 @@ $(makeFieldsNoPrefix ''RadioGroupConfig)
 $(makeFieldsNoPrefix ''MenuConfig)
 $(makeFieldsNoPrefix ''MenuItemConfig)
 
+$(makeFieldsNoPrefix ''DimmerConfig)
+
 $(makeFieldsNoPrefix ''DividerConfig)
 
 $(makeFieldsNoPrefix ''LabelConfig)
@@ -79,13 +83,14 @@ $(makeFieldsNoPrefix ''MessageConfig)
 
 $(makeFieldsNoPrefix ''SetValue')
 $(makeFieldsNoPrefix ''TransitionConfig)
+$(makeFieldsNoPrefix ''TransConfig)
 -- $(makeFieldsNoPrefix ''Transition)
 $(makeFieldsNoPrefix ''AnimationConfig)
 -- $(makeFieldsNoPrefix ''ActiveElConfig)
 -- $(makeFieldsNoPrefix ''Animation)
 
 class HasTransition t a where
-  transition :: Lens' a (SetValue' t Bool Transition)
+  transition :: Lens' a (Maybe (TransConfig t))
 
 class HasAttributes t a where
   attributes :: Lens' a (Active t (Map Text Text))

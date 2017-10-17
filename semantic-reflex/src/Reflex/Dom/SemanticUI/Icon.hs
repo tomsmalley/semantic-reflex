@@ -22,6 +22,7 @@ import Data.Default
 import Data.Text (Text)
 import Reflex.Dom.Core hiding (fromJSString)
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -31,7 +32,7 @@ data FlagConfig t = FlagConfig
   { _config :: ActiveElConfig t
   }
 
-instance Default (FlagConfig t) where
+instance Reflex t => Default (FlagConfig t) where
   def = FlagConfig def
 
 data Icon t = Icon (Active t Text) (IconConfig t)
@@ -111,16 +112,16 @@ iconConfigClasses IconConfig {..} = activeClasses
   , fmap toClassText <$> _corner
   ]
 
-data Icons t m a = Icons (IconsConfig t) (Restrict Icons m a)
+data Icons t m a = Icons (IconsConfig t) (Component Icons m a)
 
 data IconsConfig t = IconsConfig
   { _size :: Active t (Maybe Size)
   , _config :: ActiveElConfig t
   }
 
-instance Default (IconsConfig t) where
+instance Reflex t => Default (IconsConfig t) where
   def = IconsConfig
-    { _size = Static Nothing
+    { _size = pure Nothing
     , _config = def
     }
 

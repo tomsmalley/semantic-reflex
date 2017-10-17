@@ -43,7 +43,9 @@ import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Language.Javascript.JSaddle hiding (Success)
-import Reflex.Dom.Core hiding (Link, Error)
+import Reflex.Dom.Core hiding (Link, Error, elAttr', DynamicWriterT)
+
+import Reflex.Dom.Active
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
@@ -95,62 +97,28 @@ imap f = go 0
 
 ------------------------------------------------------------------------------
 
-newtype Restrict r m a = Restrict { runRestricted :: m a }
-  deriving (Functor, Applicative, Monad, MonadFix, MonadSample t, MonadHold t, TriggerEvent t, MonadIO, PostBuild t, MonadReader r', MonadWriter w)
+newtype Component r m a = Component
+  { runComponent :: m a }
+  deriving (Functor, Applicative, Monad, MonadFix, MonadSample t, MonadHold t, TriggerEvent t, MonadIO, PostBuild t, MonadReader r')
 
 #ifndef ghcjs_HOST_OS
-deriving instance MonadJSM m => MonadJSM (Restrict r m)
+deriving instance MonadJSM m => MonadJSM (Component r m)
 #endif
 
-instance PerformEvent t m => PerformEvent t (Restrict None m) where
-  type Performable (Restrict None m) = Performable m
-  performEvent = Restrict . performEvent
-  performEvent_ = Restrict . performEvent_
+instance PerformEvent t m => PerformEvent t (Component None m) where
+  type Performable (Component None m) = Performable m
+  performEvent = Component . performEvent
+  performEvent_ = Component . performEvent_
 
-reRestrict :: Restrict r' m a -> Restrict r m a
-reRestrict (Restrict m) = Restrict m
+reComponent :: Component r' m a -> Component r m a
+reComponent (Component m) = Component m
 
-unRestrict :: Restrict None m a -> Restrict r m a
-unRestrict (Restrict m) = Restrict m
+unComponent :: Component None m a -> Component r m a
+unComponent (Component m) = Component m
 
-mapRestrict :: (m a -> m b) -> Restrict r m a -> Restrict r m b
-mapRestrict f (Restrict m) = Restrict $ f m
-
--- WriterT Orphans
-
-{-
-instance (Monoid w, HasDocument m) => HasDocument (WriterT w m) where
-instance (Monoid w, HasJSContext m) => HasJSContext (WriterT w m) where
-  type JSContextPhantom (WriterT w m) = JSContextPhantom m
-  askJSContext = lift askJSContext
-
-instance (Monoid w, TriggerEvent t m) => TriggerEvent t (WriterT w m) where
-  newTriggerEvent = lift newTriggerEvent
-  newTriggerEventWithOnComplete = lift newTriggerEventWithOnComplete
-  newEventWithLazyTriggerWithOnComplete
-    = lift . newEventWithLazyTriggerWithOnComplete
-
-instance (Monoid w, PostBuild t m) => PostBuild t (WriterT w m) where
-  getPostBuild = lift getPostBuild
-
-instance (Monoid w, PerformEvent t m) => PerformEvent t (WriterT w m) where
-  type Performable (WriterT w m) = Performable m
-  performEvent = lift . performEvent
-  performEvent_ = lift . performEvent_
-
-instance (Monoid w, MonadAdjust t m) => MonadAdjust t (WriterT w m) where
-
-instance (Monoid w, DomBuilder t m) => DomBuilder t (WriterT w m) where
-  type DomBuilderSpace (WriterT w m) = DomBuilderSpace m
-  element tag cfg writerT = do
-    (el, (a, new)) <- lift $ element tag cfg $ runWriterT writerT
-    tell new
-    return (el, a)
-  selectElement cfg writerT = do
-    (el, (a, new)) <- lift $ selectElement cfg $ runWriterT writerT
-    tell new
-    return (el, a)
--}
+mapComponent :: forall r t m a b. Monad m
+             => (m a -> m b) -> Component r m a -> Component r m b
+mapComponent f = Component . f . runComponent
 
 --
 
@@ -190,62 +158,19 @@ justWhen :: Bool -> a -> Maybe a
 justWhen True = Just
 justWhen False = const Nothing
 
-data Active t a
-  = Static !a
-  | Dynamic !(Dynamic t a)
-
-active :: (a -> b) -> (Dynamic t a -> b) -> Active t a -> b
-active f _ (Static a) = f a
-active _ f (Dynamic a) = f a
-
-instance Reflex t => Functor (Active t) where
-  fmap f (Static a)  = Static  $ f a
-  fmap f (Dynamic a) = Dynamic $ fmap f a
-
-instance Reflex t => Applicative (Active t) where
-  pure = Static
-  Static f  <*> Static a  = Static  $ f a
-  Static f  <*> Dynamic a = Dynamic $ f <$> a
-  Dynamic f <*> Static a  = Dynamic $ fmap ($ a) f
-  Dynamic f <*> Dynamic a = Dynamic $ f <*> a
-
-instance IsString a => IsString (Active t a) where
-  fromString = Static . fromString
-
-instance (Reflex t, Semigroup a) => Semigroup (Active t a) where
-  Static a  <> Static b  = Static  $ a <> b
-  Static a  <> Dynamic b = Dynamic $ fmap (a <>) b
-  Dynamic a <> Static b  = Dynamic $ fmap (<> b) a
-  Dynamic a <> Dynamic b = Dynamic $ zipDynWith (<>) a b
-
-instance (Reflex t, Monoid a, Semigroup a) => Monoid (Active t a) where
-  mempty = Static mempty
-  mappend = (<>)
-
-elActiveAttr'
-  :: (PostBuild t m, DomBuilder t m)
-  => Text -> Active t (Map Text Text) -> Restrict r m a
-  -> Restrict None m (Element EventResult (DomBuilderSpace m) t, a)
-elActiveAttr' elType (Static attrs) = Restrict . elAttr' elType attrs . runRestricted
-elActiveAttr' elType (Dynamic attrs) = Restrict . elDynAttr' elType attrs . runRestricted
-
-elActiveAttr
-  :: (PostBuild t m, DomBuilder t m)
-  => Text -> Active t (Map Text Text) -> Restrict r m a -> Restrict None m a
-elActiveAttr t a = fmap snd . elActiveAttr' t a
-
-activeText :: (PostBuild t m, DomBuilder t m) => Active t Text -> Restrict None m ()
-activeText (Static t) = Restrict $ text t
-activeText (Dynamic t) = Restrict $ dynText t
+activeText :: (PostBuild t m, DomBuilder t m, MonadHold t m, MonadFix m)
+           => Active t Text -> Component None m ()
+activeText (Static t) = Component $ text t
+activeText (Dynamic t) = Component $ dynText t
 
 activeMaybe :: (PostBuild t m, DomBuilder t m) => (a -> m ()) -> Active t (Maybe a) -> m ()
 activeMaybe f (Static ma) = maybe blank f ma
 activeMaybe f (Dynamic dma) = void $ dyn $ maybe blank f <$> dma
 
 {-
-runActive :: (Restriction r a, MonadWidget t m, UI t m a)
-          => Active t a -> Restrict r m ()
-runActive (Dynamic a) = Restrict $ void $ dyn $ runRestricted . ui_ <$> a
+runActive :: (Componention r a, MonadWidget t m, UI t m a)
+          => Active t a -> Component r m ()
+runActive (Dynamic a) = Component $ void $ dyn $ runComponent . ui_ <$> a
 runActive (Static a) = ui_ a
 -}
 
@@ -313,69 +238,16 @@ styleText (Style m)
 addStyle :: Text -> Text -> Style -> Style
 addStyle name v (Style m) = Style $ M.insert name v m
 
-staticText :: DomBuilder t m => Text -> Restrict Inline m ()
-staticText t = Restrict $ text t
+staticText :: (DomBuilder t m, MonadHold t m, MonadFix m) => Text -> Component Inline m ()
+staticText t = Component $ text t
 
-widgetHold' :: (MonadHold t m, DomBuilder t m) => Restrict r m a -> Event t (Restrict r m a) -> Restrict r m (Dynamic t a)
-widgetHold' (Restrict m) evt = Restrict $ widgetHold m $ fmap runRestricted evt
+widgetHold' :: (MonadHold t m, DomBuilder t m, MonadFix m) => Component r m a -> Event t (Component r m a) -> Component r m (Dynamic t a)
+widgetHold' (Component m) evt = Component $ widgetHold m $ fmap runComponent evt
 
 --type Attrs = Attrs $ Map Text Text
 
 data Inline
 data None
-
-{-
-instance Reflex t => IsString (Dynamic t Text) where
-  fromString = pure . fromString
--}
-
-{-
-ui :: forall r t m a. (Restriction r a, MonadWidget t m, UI t m a)
-   => a -> Restrict r m (Return t m a)
-ui = fmap snd . ui'
-
-ui_ :: forall r t m a. (Restriction r a, MonadWidget t m, UI t m a)
-    => a -> Restrict r m ()
-ui_ = void . ui
-
--}
-
-{-
-part_ :: (Restriction r a, MonadWidget t m, Part t m a)
-      => a -> Restrict r m ()
-part_ = void . part
-
-part :: (Restriction r a, MonadWidget t m, Part t m a)
-     => a -> Restrict r m (Return t m a)
-part = fmap snd . part'
-class ToItem a where
-  toItem :: a -> a
-
-class (ToPart a, UI t m a) => Part t m a where
-  part' :: (Restriction r a, MonadWidget t m)
-        => a -> Restrict r m (El t, Return t m a)
-  part' = ui' . toPart
-
-instance (ToPart a, UI t m a) => Part t m a where
--}
-
-{-
-instance UI t m Text where
-  type Return t m Text = ()
-  ui' = el' "" . text
-
-class ToPart a where
-  toPart :: a -> a
-
----------
-
-class ToInline a where
-  toInline :: a -> a
-
--}
---class (ToInline a, UI t m a) => InlineContent t m a where
---  putInline' :: MonadWidget t m => a -> m (El t, Return t m a)
---  putInline' = ui' . toInline
 
 ---------
 

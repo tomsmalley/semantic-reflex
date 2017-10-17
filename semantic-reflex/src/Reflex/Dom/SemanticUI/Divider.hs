@@ -11,6 +11,7 @@ module Reflex.Dom.SemanticUI.Divider where
 import Data.Default
 import Reflex.Dom.Core
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -23,7 +24,7 @@ data Divider t = Divider
 -- https://github.com/Semantic-Org/Semantic-UI/issues/4342
 data ContentDivider t m a = ContentDivider
   { _config :: DividerConfig t
-  , _content :: Restrict ContentDivider m a
+  , _content :: Component ContentDivider m a
   }
 
 data DividerConfig t = DividerConfig
@@ -35,13 +36,13 @@ data DividerConfig t = DividerConfig
   , _config :: ActiveElConfig t
   }
 
-instance Default (DividerConfig t) where
+instance Reflex t => Default (DividerConfig t) where
   def = DividerConfig
-    { _inverted = Static False
-    , _fitted = Static False
-    , _hidden = Static False
-    , _section = Static False
-    , _clearing = Static False
+    { _inverted = pure False
+    , _fitted = pure False
+    , _hidden = pure False
+    , _section = pure False
+    , _clearing = pure False
     , _config = def
     }
 

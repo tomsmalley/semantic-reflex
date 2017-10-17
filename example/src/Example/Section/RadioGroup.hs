@@ -20,7 +20,7 @@ import Reflex.Dom.SemanticUI
 
 import Example.Common
 
-radioGroups :: forall t m. MonadWidget t m => Section m
+radioGroups :: forall t m. MonadWidget t m => Section t m
 radioGroups = LinkedSection "Radio Group" blank $ do
 
   {-

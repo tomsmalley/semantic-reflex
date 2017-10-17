@@ -12,6 +12,7 @@ import Data.Default
 import Data.Text (Text)
 import Reflex.Dom.Core hiding (Input)
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -27,12 +28,12 @@ data InputConfig t = InputConfig
   , _config :: ActiveElConfig t
   }
 
-instance Default (InputConfig t) where
+instance Reflex t => Default (InputConfig t) where
   def = InputConfig
-    { _disabled = Static False
+    { _disabled = pure False
 --    , _icon = NeverRender
-    , _placeholder = Static Nothing
-    , _fluid = Static False
+    , _placeholder = pure Nothing
+    , _fluid = pure False
     , _config = def
     }
 

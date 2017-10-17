@@ -15,7 +15,7 @@ import Reflex.Dom.SemanticUI
 import Example.QQ
 import Example.Common
 
-dividers :: forall t m. MonadWidget t m => Section m
+dividers :: forall t m. MonadWidget t m => Section t m
 dividers = LinkedSection "Divider" (text "A divider visually segments content into groups") $ do
 
   upstreamIssue 4342 "Vertical dividers are not exposed here due to them being broken upstream."
@@ -29,9 +29,9 @@ dividers = LinkedSection "Divider" (text "A divider visually segments content in
   ui_ $ Example "Divider" (def
     & subtitle ?~ text "A standard divider")
     [example|
-  ui_ $ Paragraph $ text "Donec tristique velit ut lacus facilisis, id interdum elit eleifend. Nulla id vulputate ipsum. Nunc efficitur ex at tempus pulvinar. Morbi gravida viverra gravida. Sed dapibus, nulla vitae sodales faucibus, sem massa mollis lacus, et lobortis dui ex sit amet ante. Praesent auctor gravida elit. Curabitur sit amet sollicitudin nisl."
+  paragraph $ text "Donec tristique velit ut lacus facilisis, id interdum elit eleifend. Nulla id vulputate ipsum. Nunc efficitur ex at tempus pulvinar. Morbi gravida viverra gravida. Sed dapibus, nulla vitae sodales faucibus, sem massa mollis lacus, et lobortis dui ex sit amet ante. Praesent auctor gravida elit. Curabitur sit amet sollicitudin nisl."
   ui_ $ Divider def
-  ui_ $ Paragraph $ text "Maecenas hendrerit nisl at metus vestibulum, sit amet ultrices mauris iaculis. Duis tincidunt nibh eu est tincidunt semper. Nullam eu purus id dui efficitur sagittis vel quis libero. Etiam mollis diam quis tortor tincidunt, non interdum libero tincidunt. Nunc posuere elit id sem tempor, non lacinia metus lobortis. Proin lacinia."
+  paragraph $ text "Maecenas hendrerit nisl at metus vestibulum, sit amet ultrices mauris iaculis. Duis tincidunt nibh eu est tincidunt semper. Nullam eu purus id dui efficitur sagittis vel quis libero. Etiam mollis diam quis tortor tincidunt, non interdum libero tincidunt. Nunc posuere elit id sem tempor, non lacinia metus lobortis. Proin lacinia."
   |]
 
   ui_ $ Example "Content Divider" (def
@@ -48,16 +48,16 @@ dividers = LinkedSection "Divider" (text "A divider visually segments content in
     [example|
   ui_ $ ContentDivider def $
     ui_ $ PageHeader H4 (def & icon ?~ Icon "tag" def) $ text "Description"
-  ui_ $ Paragraph $ text "Quisque ac efficitur dolor. Vestibulum ut elit id eros congue dapibus. Pellentesque sollicitudin a erat bibendum placerat. Curabitur in tellus sollicitudin, dapibus eros sit amet, eleifend risus. Vestibulum tempor erat a tellus gravida venenatis. Nulla auctor metus quis leo posuere, eget dignissim leo condimentum. In hac habitasse platea dictumst. Donec."
+  paragraph $ text "Quisque ac efficitur dolor. Vestibulum ut elit id eros congue dapibus. Pellentesque sollicitudin a erat bibendum placerat. Curabitur in tellus sollicitudin, dapibus eros sit amet, eleifend risus. Vestibulum tempor erat a tellus gravida venenatis. Nulla auctor metus quis leo posuere, eget dignissim leo condimentum. In hac habitasse platea dictumst. Donec."
   |]
 
   ui_ $ Example "Inverted" (def
     & subtitle ?~ text "A divider can have its colors inverted")
     [example|
   ui_ $ Segment (def & inverted |~ True) $ do
-    ui_ $ Paragraph $ text "Vestibulum orci nisl, ultrices at consequat commodo, pretium venenatis risus. Vivamus imperdiet massa sed posuere scelerisque. Duis egestas felis sed est fringilla, eget tempor nibh vestibulum. Fusce tempus enim non dolor ultrices fringilla. Pellentesque sagittis consectetur ante eu condimentum."
+    paragraph $ text "Vestibulum orci nisl, ultrices at consequat commodo, pretium venenatis risus. Vivamus imperdiet massa sed posuere scelerisque. Duis egestas felis sed est fringilla, eget tempor nibh vestibulum. Fusce tempus enim non dolor ultrices fringilla. Pellentesque sagittis consectetur ante eu condimentum."
     ui_ $ Divider $ def & inverted |~ True
-    ui_ $ Paragraph $ text "Nulla lacinia velit sapien, nec maximus turpis ornare a. Donec libero sapien, dignissim a tortor sed, iaculis feugiat libero. Donec dignissim sapien eget eros malesuada, vitae blandit leo sodales. Donec ante felis, porta at lectus vitae, condimentum lobortis libero. Donec a pretium massa. Vivamus eget malesuada leo, quis consequat metus."
+    paragraph $ text "Nulla lacinia velit sapien, nec maximus turpis ornare a. Donec libero sapien, dignissim a tortor sed, iaculis feugiat libero. Donec dignissim sapien eget eros malesuada, vitae blandit leo sodales. Donec ante felis, porta at lectus vitae, condimentum lobortis libero. Donec a pretium massa. Vivamus eget malesuada leo, quis consequat metus."
     ui_ $ ContentDivider (def & inverted |~ True) $ text "Horizontal"
   |]
 
@@ -82,10 +82,10 @@ dividers = LinkedSection "Divider" (text "A divider visually segments content in
     & subtitle ?~ text "A divider can have greater margins for dividing sections")
     [example|
   ui_ $ Header def $ text "Section One"
-  ui_ $ Paragraph $ text "Nam ac sapien rutrum, tempor purus vel, porttitor neque. Aliquam molestie tellus in sem laoreet bibendum. In accumsan metus a diam consectetur, ut sagittis libero dapibus. Duis at elementum urna. Proin rhoncus odio eget sem auctor pharetra. Donec sit amet lobortis ante. Etiam placerat nibh at blandit euismod. Maecenas at ex quam."
+  paragraph $ text "Nam ac sapien rutrum, tempor purus vel, porttitor neque. Aliquam molestie tellus in sem laoreet bibendum. In accumsan metus a diam consectetur, ut sagittis libero dapibus. Duis at elementum urna. Proin rhoncus odio eget sem auctor pharetra. Donec sit amet lobortis ante. Etiam placerat nibh at blandit euismod. Maecenas at ex quam."
   ui_ $ Divider $ def & section |~ True
   ui_ $ Header def $ text "Section Two"
-  ui_ $ Paragraph $ text "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Donec semper ut tellus nec tincidunt. Curabitur in turpis pulvinar dui sodales placerat quis pulvinar felis. Integer auctor velit quis nunc placerat dignissim."
+  paragraph $ text "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Donec semper ut tellus nec tincidunt. Curabitur in turpis pulvinar dui sodales placerat quis pulvinar felis. Integer auctor velit quis nunc placerat dignissim."
   |]
 
   ui_ $ Example "Clearing" (def
@@ -93,5 +93,5 @@ dividers = LinkedSection "Divider" (text "A divider visually segments content in
     [example|
   ui_ $ Header (def & floated |?~ RightFloated) $ text "Floated Content"
   ui_ $ Divider $ def & clearing |~ True
-  ui_ $ Paragraph $ text "Phasellus aliquet, orci vitae tempor gravida, magna felis aliquam sapien, sit amet feugiat mi lorem at risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos."
+  paragraph $ text "Phasellus aliquet, orci vitae tempor gravida, magna felis aliquam sapien, sit amet feugiat mi lorem at risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos."
   |]

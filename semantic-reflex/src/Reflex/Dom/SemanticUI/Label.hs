@@ -22,6 +22,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.Core hiding (fromJSString, divClass)
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 
 import Reflex.Dom.SemanticUI.Transition
@@ -49,7 +50,7 @@ instance ToClassText TopCorner where
 
 data Label t m a = Label
   { _config :: LabelConfig t
-  , _content :: Restrict Label m a
+  , _content :: Component Label m a
   }
 
 -- | If a label is attached, it *must* be vertically attached in some way. There

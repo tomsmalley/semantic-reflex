@@ -18,23 +18,23 @@ import Reflex.Dom.SemanticUI
 import Example.QQ
 import Example.Common
 
-checkboxes :: forall t m. MonadWidget t m => Section m
+checkboxes :: forall t m. MonadWidget t m => Section t m
 checkboxes = LinkedSection "Checkbox" (simpleLink "https://semantic-ui.com/modules/checkbox.html") $ do
 
   ui $ Message (def & messageType |?~ InfoMessage) $ paragraph $ do
     ui $ Icon "announcement" def
     text "The implementation of the Checkbox module does not depend on the Semantic UI or jQuery Javascript libraries."
 
-  ui $ Paragraph $ text "Checkboxes consist of a label and a configuration."
+  paragraph $ text "Checkboxes consist of a label and a configuration."
 
   hscode $(printDefinition id stripParens ''Checkbox)
 
-  ui $ Paragraph $ text "The configuration allows you to set the value, indeterminate state, Semantic UI checkbox type, fitted property, and disabled state. The value and indeterminate states are separated into 'initial' and 'set' in order to disconnect them from the resultant dynamic values."
+  paragraph $ text "The configuration allows you to set the value, indeterminate state, Semantic UI checkbox type, fitted property, and disabled state. The value and indeterminate states are separated into 'initial' and 'set' in order to disconnect them from the resultant dynamic values."
 
   hscode $(printDefinition id stripParens ''CheckboxConfig)
   hscode $(printDefinition oneline id ''CheckboxType)
 
-  ui $ Paragraph $ do
+  paragraph $ do
     text "Running the checkbox gives access to the dynamic value, the change event (only changes caused by the user), the current indeterminate state and whether the checkbox has focus."
 
   hscode $(printDefinition id stripParens ''CheckboxResult)

@@ -3,10 +3,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Reflex.Dom.SemanticUI
-  ( module Reflex.Dom.SemanticUI.Button
+  ( module Reflex.Dom.Active
+  , module Reflex.Dom.SemanticUI.Button
   , module Reflex.Dom.SemanticUI.Checkbox
   , module Reflex.Dom.SemanticUI.Class
   , module Reflex.Dom.SemanticUI.Common
+  , module Reflex.Dom.SemanticUI.Dimmer
   , module Reflex.Dom.SemanticUI.Divider
   , module Reflex.Dom.SemanticUI.Icon
   , module Reflex.Dom.SemanticUI.Image
@@ -25,10 +27,12 @@ module Reflex.Dom.SemanticUI
   ) where
 
 import Data.ByteString
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Button
 import Reflex.Dom.SemanticUI.Checkbox
 import Reflex.Dom.SemanticUI.Class
-import Reflex.Dom.SemanticUI.Common (tshow, Color (..), Size (..), Floated(..), jQuery, consoleLog, consoleTime, consoleTimeEnd, catchJS, Active (..), (|~), (|?~), HorizontalAttached (..), VerticalAttached (..), ExclusiveAttached(..), Aligned(..), zipActiveWith, DynShow(..), Classes(..), Style(..), Width(..), mapRestrict, Restrict(..), None, activeText, Inline, staticText, widgetHold', Emphasis(..), countWithLast, Positive(..), Social(..), ToClassText(..), unRestrict, reRestrict, addClass)
+import Reflex.Dom.SemanticUI.Common (tshow, Color (..), Size (..), Floated(..), jQuery, consoleLog, consoleTime, consoleTimeEnd, catchJS, (|~), (|?~), HorizontalAttached (..), VerticalAttached (..), ExclusiveAttached(..), Aligned(..), zipActiveWith, DynShow(..), Classes(..), Style(..), Width(..), mapComponent, Component(..), None, activeText, Inline, staticText, widgetHold', Emphasis(..), countWithLast, Positive(..), Social(..), ToClassText(..), unComponent, reComponent, addClass, runComponent)
+import Reflex.Dom.SemanticUI.Dimmer
 import Reflex.Dom.SemanticUI.Divider
 import Reflex.Dom.SemanticUI.Header
 import Reflex.Dom.SemanticUI.Icon
@@ -48,6 +52,7 @@ import Reflex.Dom.Core hiding
   , Dropdown (..), DropdownConfig (..), dropdown_change, dropdown_value, Select
   , link, Link, Input, Drop
   , divClass, text, tag, Error
+  , elAttr, elAttr'
   )
 import Language.Javascript.JSaddle (JSM)
 

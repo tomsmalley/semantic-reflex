@@ -22,7 +22,7 @@ import Reflex.Dom.SemanticUI
 import Example.QQ
 import Example.Common
 
-messages :: forall t m. MonadWidget t m => Section m
+messages :: forall t m. MonadWidget t m => Section t m
 messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collections/message.html") $ do
 
   hscode $(printDefinition id stripParens ''Message)
@@ -48,9 +48,9 @@ messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collecti
     [example|
   ui $ Message def $ do
     ui $ Header def $ text "New Site Features"
-    unRestrict $ elClass "ul" "list" `mapRestrict` do
-      el "li" `mapRestrict` text "You can now have cover images on blog pages"
-      el "li" `mapRestrict` text "Drafts will now auto-save while writing"
+    unComponent $ elClass "ul" "list" `mapComponent` do
+      el "li" `mapComponent` text "You can now have cover images on blog pages"
+      el "li" `mapComponent` text "Drafts will now auto-save while writing"
   |]
 
   ui $ Example "Icon Message" (def
@@ -70,8 +70,7 @@ messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collecti
   \resetEvent -> do
     let config = def
           & dismissable ?~ Transition Fade (def & duration .~ 0.2)
-          & transition . event ?~
-            (Transition Instant (def & direction ?~ In) <$ resetEvent)
+          & transition ?~ (def & event .~ (Transition Instant (def & direction ?~ In) <$ resetEvent))
     ui $ Message config $ do
       ui $ Header def $ text "Welcome back!"
       paragraph $ text "This is a special notification which you can dismiss if you're bored with it. The dismissable setting uses the given transition to hide the message when the user clicks on the close icon."
@@ -131,7 +130,7 @@ messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collecti
     ui $ Header def $ text "You are eligible for a reward"
     paragraph $ do
       text "Go to your "
-      el "b" `mapRestrict` text "special offers"
+      el "b" `mapComponent` text "special offers"
       text " page to see now."
 
   ui $ Message (def & messageType |?~ MessageType Success) $ do

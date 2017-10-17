@@ -27,6 +27,7 @@ import Reflex
 import Reflex.Dom.Core
 import Data.Align
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -97,7 +98,7 @@ data MenuItemConfig t = MenuItemConfig
   , _config :: ActiveElConfig t
   }
 
-instance Default (MenuItemConfig t) where
+instance Reflex t => Default (MenuItemConfig t) where
   def = MenuItemConfig
     { _color = Nothing
     , _link = NoLink
@@ -112,7 +113,7 @@ menuItemConfigClasses MenuItemConfig {..} = activeClasses
   , boolClass "link" $ Static $ _link == StyleLink
   ]
 
-data MenuItem t m v = forall b. MenuItem v (MenuItemConfig t) (Restrict Inline m b)
+data MenuItem t m v = forall b. MenuItem v (MenuItemConfig t) (Component Inline m b)
 
 itemElAttrs :: Reflex t => MenuItemConfig t -> (Text, ActiveElConfig t)
 itemElAttrs conf@MenuItemConfig{..} = case _link of
@@ -124,12 +125,12 @@ itemElAttrs conf@MenuItemConfig{..} = case _link of
 
 data Menu t m v b = Menu
   { _config :: MenuConfig t (Maybe v)
-  , _items :: MonadWidget t m => Restrict Menu (ReaderT (Demux t (Maybe v))
+  , _items :: MonadWidget t m => Component Menu (ReaderT (Demux t (Maybe v))
                                                (EventWriterT t (First v) m)) b
   }
 
 --data MenuDef t m a = MenuDef
---  { _items :: [Restrict MenuM m a]
+--  { _items :: [Component MenuM m a]
 --  , _config :: MenuConfig t a
 --  }
 

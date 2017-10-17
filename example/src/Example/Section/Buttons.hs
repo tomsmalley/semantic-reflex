@@ -19,10 +19,10 @@ import Reflex.Dom.SemanticUI
 import Example.QQ
 import Example.Common
 
-buttons :: forall t m. MonadWidget t m => Section m
+buttons :: forall t m. MonadWidget t m => Section t m
 buttons = LinkedSection "Button" (text "") $ do
 
-  ui_ $ Paragraph $ text ""
+  paragraph $ text ""
 
   hscode $(printDefinition id stripParens ''Button)
   hscode $(printDefinition id stripParens ''DivButton)

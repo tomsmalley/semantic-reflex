@@ -27,7 +27,7 @@ predMaybe a
   | a == (minBound :: a) = Nothing
   | otherwise = Just $ pred a
 
-headers :: MonadWidget t m => Section m
+headers :: MonadWidget t m => Section t m
 headers = LinkedSection "Header" (simpleLink "https://semantic-ui.com/elements/header.html") $ do
 
   hscode $(printDefinition id stripParens ''Header)
@@ -175,18 +175,18 @@ headers = LinkedSection "Header" (simpleLink "https://semantic-ui.com/elements/h
   ui $ Example "Dividing" (def
     & subtitle ?~ text "A header can be formatted to divide itself from the content below it")
     [example|
-  ui $ Paragraph $ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam at diam mauris. Cras quis purus fringilla, maximus ex volutpat, tristique velit. In in pulvinar tellus, a ultrices erat. Quisque sit amet gravida lectus, vel viverra mauris."
+  paragraph $ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam at diam mauris. Cras quis purus fringilla, maximus ex volutpat, tristique velit. In in pulvinar tellus, a ultrices erat. Quisque sit amet gravida lectus, vel viverra mauris."
   ui $ PageHeader H3 (def & dividing |~ True) $ text "Dividing Header"
-  ui $ Paragraph $ text "Nam diam neque, euismod nec maximus ut, lacinia egestas ex. Etiam condimentum finibus venenatis. Sed commodo lobortis dolor nec molestie. Maecenas commodo metus diam, nec accumsan est consectetur quis. Nunc sed est nunc. Duis turpis ipsum, vulputate non mi placerat, vehicula dignissim est. Integer venenatis tortor nec massa dapibus, sed laoreet eros lacinia."
+  paragraph $ text "Nam diam neque, euismod nec maximus ut, lacinia egestas ex. Etiam condimentum finibus venenatis. Sed commodo lobortis dolor nec molestie. Maecenas commodo metus diam, nec accumsan est consectetur quis. Nunc sed est nunc. Duis turpis ipsum, vulputate non mi placerat, vehicula dignissim est. Integer venenatis tortor nec massa dapibus, sed laoreet eros lacinia."
   |]
 
   ui $ Example "Attached" (def
     & subtitle ?~ text "A header can be attached to other content such as a segment")
     [example|
   ui $ Header (def & attached |?~ TopAttached) $ text "Top Attached"
-  ui $ Segment (def & attached |?~ Attached) $ ui $ Paragraph $ text "Nullam tincidunt, elit et placerat convallis, lacus erat convallis turpis, id tincidunt eros leo ac felis. Nam tincidunt eget ligula vel cursus. Nam eu vehicula lacus. Sed quis tellus nec massa semper condimentum sit amet non libero."
+  ui $ Segment (def & attached |?~ Attached) $ paragraph $ text "Nullam tincidunt, elit et placerat convallis, lacus erat convallis turpis, id tincidunt eros leo ac felis. Nam tincidunt eget ligula vel cursus. Nam eu vehicula lacus. Sed quis tellus nec massa semper condimentum sit amet non libero."
   ui $ Header (def & attached |?~ Attached) $ text "Attached"
-  ui $ Segment (def & attached |?~ Attached) $ ui $ Paragraph $ text "Aliquam tincidunt libero nec turpis porta consectetur. Nam eget ex auctor, sagittis diam at, pharetra leo. Phasellus venenatis iaculis sem id posuere."
+  ui $ Segment (def & attached |?~ Attached) $ paragraph $ text "Aliquam tincidunt libero nec turpis porta consectetur. Nam eget ex auctor, sagittis diam at, pharetra leo. Phasellus venenatis iaculis sem id posuere."
   ui $ Header (def & attached |?~ BottomAttached) $ text "Bottom Attached"
   |]
 

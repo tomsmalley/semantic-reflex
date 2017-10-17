@@ -17,7 +17,7 @@ import Reflex.Dom.SemanticUI
 import Example.QQ
 import Example.Common
 
-labels :: forall t m. MonadWidget t m => Section m
+labels :: forall t m. MonadWidget t m => Section t m
 labels = LinkedSection "Label" blank $ do
 
   hscode $ $(printDefinition id stripParens ''Label)
@@ -132,27 +132,27 @@ labels = LinkedSection "Label" blank $ do
   divClass "ui_ two column grid" $ do
     divClass "column" $ ui_ $ Segment def $ do
       ui_ $ Label (def & attached |?~ (def & vertically .~ TopAttached)) $ text "HTML"
-      ui_ $ Paragraph $ text "Hypertext Markup Language"
+      paragraph $ text "Hypertext Markup Language"
     divClass "column" $ ui_ $ Segment def $ do
       ui_ $ Label (def & attached |?~ (def & vertically .~ BottomAttached)) $ text "CSS"
-      ui_ $ Paragraph $ text "Cascading Style Sheets"
+      paragraph $ text "Cascading Style Sheets"
   divClass "ui_ four column grid" $ do
     divClass "column" $ do
       ui_ $ Segment def $ do
         ui_ $ Label (def & attached |?~ (def & horizontally ?~ LeftAttached)) $ text "Top Left"
-        ui_ $ Paragraph $ text "Top Left Attached"
+        paragraph $ text "Top Left Attached"
     divClass "column" $ do
       ui_ $ Segment def $ do
         ui_ $ Label (def & attached |?~ LabelAttached TopAttached (Just RightAttached)) $ text "Top Right"
-        ui_ $ Paragraph $ text "Top Right Attached"
+        paragraph $ text "Top Right Attached"
     divClass "column" $ do
       ui_ $ Segment def $ do
         ui_ $ Label (def & attached |?~ LabelAttached BottomAttached (Just LeftAttached)) $ text "Bottom Left"
-        ui_ $ Paragraph $ text "Bottom Left Attached"
+        paragraph $ text "Bottom Left Attached"
     divClass "column" $ do
       ui_ $ Segment def $ do
         ui_ $ Label (def & attached |?~ LabelAttached BottomAttached (Just RightAttached)) $ text "Bottom Right"
-        ui_ $ Paragraph $ text "Bottom Right Attached"
+        paragraph $ text "Bottom Right Attached"
   |]
 
   ui_ $ Example "Horizontal" (def
@@ -215,10 +215,10 @@ labels = LinkedSection "Label" blank $ do
           rec let conf = def
                     & color |~ mColor
                     & image |~ True
-                    & transition . event ?~ leftmost
+                    & transition ?~ (def & event .~ (leftmost
                     [ Transition Instant (def & direction ?~ In) <$ resetEvent
                     , Transition Scale (def & direction ?~ Out) <$ eClose
-                    ]
+                    ]))
 
               eClose <- ui_ $ Label conf $ do
                 ui_ $ Image (pure $ src animal) def
@@ -242,10 +242,10 @@ labels = LinkedSection "Label" blank $ do
           rec let conf = def
                     & color |~ mColor
                     & image |~ True
-                    & transition . event ?~ leftmost
+                    & transition ?~ (def & event .~ (leftmost
                     [ Transition Instant (def & direction ?~ In) <$ resetEvent
                     , Transition Scale (def & direction ?~ Out) <$ eClose
-                    ]
+                    ]))
 
               eClose <- ui $ Label conf $ do
                 ui_ $ Image (pure $ src animal) def

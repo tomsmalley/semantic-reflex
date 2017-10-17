@@ -18,10 +18,10 @@ import Example.QQ
 import Example.Common
 import Example.CountryEnum
 
-flags :: MonadWidget t m => Section m
+flags :: MonadWidget t m => Section t m
 flags = LinkedSection "Flag" (text "A flag is used to represent a political state") $ do
 
-  ui_ $ Paragraph $ do
+  paragraph $ do
     text "For available flag types, see "
     ui_ $ Anchor (text "the Semantic UI docs") $ def
       & href |?~ "https://semantic-ui.com/elements/flag.html"

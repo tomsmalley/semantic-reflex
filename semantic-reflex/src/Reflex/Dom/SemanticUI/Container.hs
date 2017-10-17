@@ -18,12 +18,13 @@ module Reflex.Dom.SemanticUI.Container where
 import Data.Default
 import Reflex.Dom.Core
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data Container t m a = Container
   { _config :: ContainerConfig t
-  , _contents :: Restrict None m a
+  , _contents :: Component None m a
   }
 
 data ContainerConfig t = ContainerConfig
@@ -31,9 +32,9 @@ data ContainerConfig t = ContainerConfig
   , _config :: ActiveElConfig t
   }
 
-instance Default (ContainerConfig t) where
+instance Reflex t => Default (ContainerConfig t) where
   def = ContainerConfig
-    { _size = Static Nothing
+    { _size = pure Nothing
     , _config = def
     }
 

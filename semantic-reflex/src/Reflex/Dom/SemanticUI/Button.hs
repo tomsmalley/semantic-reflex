@@ -22,6 +22,7 @@ import Data.Semigroup hiding (First)
 import Data.Text (Text)
 import Reflex
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -29,12 +30,12 @@ data Conditional t = Conditional (ConditionalConfig t)
 data ConditionalConfig t = ConditionalConfig
   { _dataText :: Active t (Maybe Text)
   }
-instance Default (ConditionalConfig t) where
+instance Reflex t => Default (ConditionalConfig t) where
   def = ConditionalConfig
-    { _dataText = Static Nothing
+    { _dataText = pure Nothing
     }
 
-data Buttons t m a = Buttons (ButtonsConfig t) (Restrict Buttons m a)
+data Buttons t m a = Buttons (ButtonsConfig t) (Component Buttons m a)
 
 data ButtonsConfig t = ButtonsConfig
   { _color :: Active t (Maybe Color)
@@ -50,18 +51,18 @@ data ButtonsConfig t = ButtonsConfig
   , _config :: ActiveElConfig t
   }
 
-instance Default (ButtonsConfig t) where
+instance Reflex t => Default (ButtonsConfig t) where
   def = ButtonsConfig
-    { _color = Static Nothing
-    , _size = Static Nothing
-    , _basic = Static False
-    , _icon = Static False
-    , _labeledIcon = Static False
-    , _vertical = Static False
-    , _compact = Static False
-    , _attached = Static Nothing
-    , _width = Static Nothing
-    , _floated = Static Nothing
+    { _color = pure Nothing
+    , _size = pure Nothing
+    , _basic = pure False
+    , _icon = pure False
+    , _labeledIcon = pure False
+    , _vertical = pure False
+    , _compact = pure False
+    , _attached = pure Nothing
+    , _width = pure Nothing
+    , _floated = pure Nothing
     , _config = def
     }
 
@@ -83,17 +84,17 @@ buttonsConfigClasses ButtonsConfig {..} = activeClasses
 
 data Button t m = Button
   { _config :: ButtonConfig t m
-  , _content :: Restrict Button m ()
+  , _content :: Component Button m ()
   }
 
 data DivButton t m = DivButton
   { _config :: ButtonConfig t m
-  , _content :: Restrict Button m ()
+  , _content :: Component Button m ()
   }
 
 data LabeledButton t m = LabeledButton
   { _config :: LabeledButtonConfig t
-  , _content :: Restrict LabeledButton m ()
+  , _content :: Component LabeledButton m ()
   }
 
 data Labeled = LeftLabeled | RightLabeled
@@ -107,9 +108,9 @@ data LabeledButtonConfig t = LabeledButtonConfig
   , _config :: ActiveElConfig t
   }
 
-instance Default (LabeledButtonConfig t) where
+instance Reflex t => Default (LabeledButtonConfig t) where
   def = LabeledButtonConfig
-    { _labeled = Static RightLabeled
+    { _labeled = pure RightLabeled
     , _config = def
     }
 
@@ -129,10 +130,10 @@ instance ToClassText AnimatedButtonType where
 
 data AnimatedButton t m = AnimatedButton
   { _animatedType :: Active t AnimatedButtonType
-  , _content :: Restrict Button m ()
+  , _content :: Component Button m ()
   }
 
-instance Applicative m => Default (AnimatedButton t m) where
+instance Monad m => Default (AnimatedButton t m) where
   def = AnimatedButton
     { _animatedType = Static Animated
     , _content = pure ()
@@ -159,25 +160,25 @@ data ButtonConfig t m = ButtonConfig
   , _config :: ActiveElConfig t
   }
 
-instance Applicative m => Default (ButtonConfig t m) where
+instance Reflex t => Default (ButtonConfig t m) where
   def = ButtonConfig
-    { _color = Static Nothing
-    , _size = Static Nothing
-    , _emphasis = Static Nothing
-    , _positive = Static Nothing
-    , _social = Static Nothing
-    , _floated = Static Nothing
-    , _disabled = Static False
-    , _compact = Static False
-    , _basic = Static False
-    , _icon = Static False
-    , _inverted = Static False
-    , _loading = Static False
-    , _fluid = Static False
-    , _circular = Static False
-    , _labeledIcon = Static Nothing
+    { _color = pure Nothing
+    , _size = pure Nothing
+    , _emphasis = pure Nothing
+    , _positive = pure Nothing
+    , _social = pure Nothing
+    , _floated = pure Nothing
+    , _disabled = pure False
+    , _compact = pure False
+    , _basic = pure False
+    , _icon = pure False
+    , _inverted = pure False
+    , _loading = pure False
+    , _fluid = pure False
+    , _circular = pure False
+    , _labeledIcon = pure Nothing
 --    , _icon = NeverRender
-    , _attached = Static Nothing
+    , _attached = pure Nothing
     , _animated = Nothing
     , _config = def
     }

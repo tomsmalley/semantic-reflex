@@ -32,10 +32,10 @@ animalUrl :: Text -> Active t Text
 animalUrl a = Static $ "images/animals/" <> a <> ".png"
 
 mkButtons :: MonadWidget t m => [TransitionType]
-          -> Restrict None m (Event t Transition)
+          -> Component None m (Event t Transition)
 mkButtons [] = return never
 mkButtons (transType:[]) = do
-  evt <- reRestrict $ mkButton transType
+  evt <- reComponent $ mkButton transType
   ui $ Divider $ def & hidden |~ True
   return evt
 mkButtons types = do
@@ -45,20 +45,20 @@ mkButtons types = do
   where buttonsConfig = def & width |?~ toEnum (length types) & size |?~ Small
 
 mkButton :: MonadWidget t m => TransitionType
-         -> Restrict Buttons m (Event t Transition)
+         -> Component Buttons m (Event t Transition)
 mkButton t = do
   run <- ui $ Button (def & fluid |~ True) $ do
     text $ Static $ T.pack $ spaceBeforeUpper $ show t
   return $ Transition t def <$ run
 
-transitions :: forall t m. MonadWidget t m => Section m
+transitions :: forall t m. MonadWidget t m => Section t m
 transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/modules/transition.html") $ do
 
   ui $ Message (def & messageType |?~ InfoMessage) $ paragraph $ do
     ui $ Icon "announcement" def
     text "The implementation of the Transition module does not depend on the Semantic UI or jQuery Javascript libraries."
 
-  ui $ Paragraph $ text "Any of the components in this library are capable of Semantic UI transitions. The difference between animations and transitions is more clear cut, with different data constructors for each:"
+  paragraph $ text "Any of the components in this library are capable of Semantic UI transitions. The difference between animations and transitions is more clear cut, with different data constructors for each:"
 
   hscode $(printDefinition id stripParens ''Transition)
   hscode $(printDefinition oneline stripParens ''TransitionType)
@@ -67,9 +67,9 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   hscode $(printDefinition oneline stripParens ''AnimationType)
   hscode $(printDefinition id stripParens ''AnimationConfig)
 
-  ui $ Paragraph $ text "If the direction of a transition event is not specified, the transition will flip the current state of the element. Animation events will cause hidden elements to be shown, and they will remain shown after the animation finishes."
+  paragraph $ text "If the direction of a transition event is not specified, the transition will flip the current state of the element. Animation events will cause hidden elements to be shown, and they will remain shown after the animation finishes."
 
-  ui $ Paragraph $ text "Animation or Transition events are placed into a queue which allows time for each transition to finish. The animation or transition speeds are specified in seconds using the duration config fields."
+  paragraph $ text "Animation or Transition events are placed into a queue which allows time for each transition to finish. The animation or transition speeds are specified in seconds using the duration config fields."
 
   ui $ PageHeader H3 def $ text "Examples"
 
@@ -82,7 +82,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         ui $ Image (animalUrl animal) $ def
           & size |?~ Small
           & shape |?~ Rounded
-          & transition . event ?~ (Animation anim def <$ run)
+          & transition ?~ (def & event .~ (Animation anim def <$ run))
 
   divClass "ui six column vertically padded grid" $
     traverse_ img $ zip [Jiggle .. Bounce]
@@ -107,7 +107,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Image (animalUrl "crocodile") $ def
     & size |?~ Small
     & shape |?~ Rounded
-    & transition . event ?~ eTransition
+    & transition ?~ (def & event .~ eTransition)
   |]
 
   ui $ Example "Scale" (def
@@ -117,7 +117,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Image (animalUrl "gorilla") $ def
     & size |?~ Small
     & shape |?~ Rounded
-    & transition . event ?~ evt
+    & transition ?~ (def & event .~ evt)
   |]
 
   ui $ Example "Fade" (def
@@ -127,7 +127,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Image (animalUrl "cow") $ def
     & size |?~ Small
     & shape |?~ Rounded
-    & transition . event ?~ evt
+    & transition ?~ (def & event .~ evt)
   |]
 
   ui $ Example "Flip" (def
@@ -137,7 +137,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Image (animalUrl "panda") $ def
     & size |?~ Small
     & shape |?~ Rounded
-    & transition . event ?~ evt
+    & transition ?~ (def & event .~ evt)
   |]
 
   ui $ Example "Drop" (def
@@ -147,7 +147,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Image (animalUrl "turtle") $ def
     & size |?~ Small
     & shape |?~ Rounded
-    & transition . event ?~ evt
+    & transition ?~ (def & event .~ evt)
   |]
 
   ui $ Example "Fly" (def
@@ -157,7 +157,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Image (animalUrl "bird") $ def
     & size |?~ Small
     & shape |?~ Rounded
-    & transition . event ?~ evt
+    & transition ?~ (def & event .~ evt)
   |]
 
   ui $ Example "Swing" (def
@@ -167,7 +167,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Image (animalUrl "monkey") $ def
     & size |?~ Small
     & shape |?~ Rounded
-    & transition . event ?~ evt
+    & transition ?~ (def & event .~ evt)
   |]
 
   ui $ Example "Browse" (def
@@ -177,7 +177,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Image (animalUrl "frog") $ def
     & size |?~ Small
     & shape |?~ Rounded
-    & transition . event ?~ evt
+    & transition ?~ (def & event .~ evt)
   |]
 
   ui $ Example "Slide" (def
@@ -187,5 +187,5 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Image (animalUrl "wolf") $ def
     & size |?~ Small
     & shape |?~ Rounded
-    & transition . event ?~ evt
+    & transition ?~ (def & event .~ evt)
   |]

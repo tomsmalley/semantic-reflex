@@ -15,6 +15,7 @@ module Reflex.Dom.SemanticUI.Message where
 import Data.Default
 import Reflex
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Icon (Icon)
 import Reflex.Dom.SemanticUI.Transition (Transition, ActiveElConfig)
@@ -88,5 +89,5 @@ messageConfigClasses MessageConfig {..} = activeClasses
 -- default configuration.
 data Message t m a = Message
   { _config :: MessageConfig t
-  , _content :: Restrict Message m a
+  , _content :: Component Message m a
   }

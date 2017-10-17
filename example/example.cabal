@@ -12,7 +12,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 extra-source-files:
-  styling.css
+  resources/styling.css
 
 library
   hs-source-dirs: src
@@ -26,6 +26,7 @@ library
     , Example.Common
     , Example.Section.Buttons
     , Example.Section.Checkbox
+    , Example.Section.Dimmer
     , Example.Section.Divider
     , Example.Section.Dropdown
     , Example.Section.Flag

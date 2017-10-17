@@ -13,6 +13,7 @@ import Data.Default
 import Data.Text (Text)
 import Reflex
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Icon (Icon)
 import Reflex.Dom.SemanticUI.Image (Image)
@@ -40,23 +41,23 @@ data HeaderConfig t = HeaderConfig
   , _config       :: ActiveElConfig t
   }
 
-instance Default (HeaderConfig t) where
+instance Reflex t => Default (HeaderConfig t) where
   def = HeaderConfig
-    { _iconHeader = Static False
+    { _iconHeader = pure False
     , _icon = Nothing
     , _image = Nothing
 
-    , _dividing = Static False
-    , _sub = Static False
-    , _disabled = Static False
-    , _block = Static False
-    , _inverted = Static False
+    , _dividing = pure False
+    , _sub = pure False
+    , _disabled = pure False
+    , _block = pure False
+    , _inverted = pure False
 
-    , _size = Static Nothing
-    , _floated = Static Nothing
-    , _aligned = Static Nothing
-    , _color = Static Nothing
-    , _attached = Static Nothing
+    , _size = pure Nothing
+    , _floated = pure Nothing
+    , _aligned = pure Nothing
+    , _color = pure Nothing
+    , _attached = pure Nothing
 
     , _component = False
     , _item = False
@@ -106,14 +107,14 @@ headerSizeText H5 = "tiny"
 data PageHeader t m a = PageHeader
   { _size :: HeaderSize
   , _config :: HeaderConfig t
-  , _content :: Restrict Header m a
+  , _content :: Component Header m a
   }
 
 data Header t m a = Header
   { _config :: HeaderConfig t
-  , _content :: Restrict Header m a
+  , _content :: Component Header m a
   }
 
-data SubHeader m a = SubHeader
-  { _content :: Restrict Inline m a
+data SubHeader t m a = SubHeader
+  { _content :: Component Inline m a
   }

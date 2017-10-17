@@ -21,6 +21,7 @@ import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex
 
+import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 

@@ -16,7 +16,7 @@ import Reflex.Dom.SemanticUI
 import Example.QQ
 import Example.Common
 
-icons :: MonadWidget t m => Section m
+icons :: MonadWidget t m => Section t m
 icons = LinkedSection "Icon" blank $ do
 
   hscode $ $(printDefinition id stripParens ''Icon)

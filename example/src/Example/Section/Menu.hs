@@ -25,10 +25,10 @@ data Favourite
   | Reflex
   deriving (Eq, Show)
 
-menu :: forall t m. MonadWidget t m => Section m
+menu :: forall t m. MonadWidget t m => Section t m
 menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") $ do
 
-  ui $ Paragraph $ text "In Semantic UI menus are just exposed as styling elements and any active state must be managed by you. Here the state is managed for you."
+  paragraph $ text "In Semantic UI menus are just exposed as styling elements and any active state must be managed by you. Here the state is managed for you."
 
   hscode $(printDefinition id stripParens ''Menu)
 --  hscode $(printDefinition id stripParens ''MenuDef)
@@ -52,9 +52,9 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
     return (search, button)
 -}
 
-    --return () :: Restrict MenuM (MonadMenuT Int t m) ()
+    --return () :: Component MenuM (MonadMenuT Int t m) ()
 
-  Restrict $ display dynVal
+  Component $ display dynVal
   return ()
 
   resetEvent <- ui $ Button def $ text "Reset"
@@ -71,11 +71,10 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
     let mkLabel dCount mColor = Label (labelConfig dCount mColor) (text $ Dynamic $ tshow <$> dCount)
         labelConfig dCount mColor = def
           & color |~ mColor
-          & transition . initial .~ True
-          & transition . event ?~ leftmost
+          & transition ?~ (def & event .~ (leftmost
             [ Animation Jiggle (def & duration .~ 0.4) <$ (ffilter id $ updated $ (> 0) <$> dCount)
             , Transition Fade (def & direction ?~ Out) <$ (ffilter id $ updated $ (<= 0) <$> dCount)
-            ]
+            ]))
 
         conf = def & vertical .~ True
                    & setValue .~ (Just "inbox" <$ resetEvent)
