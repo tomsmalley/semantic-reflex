@@ -127,7 +127,7 @@ instance (t' ~ t, m' ~ m) => UI t' m' None (Example t m a) where
     -- Code segment
     let codeConfig evt = def
           & transition ?~ (def & event .~ fmap mkTransition evt
-                               & initial .~ True)
+                               & initialDirection .~ Out)
           & attached |?~ BottomAttached
         mkTransition t = Transition Instant $ def
           & direction ?~ bool Out In t

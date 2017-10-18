@@ -31,25 +31,34 @@ spaceBeforeUpper (c:cs)
 animalUrl :: Text -> Active t Text
 animalUrl a = Static $ "images/animals/" <> a <> ".png"
 
-mkButtons :: MonadWidget t m => [TransitionType]
-          -> Component None m (Event t Transition)
-mkButtons [] = return never
-mkButtons (transType:[]) = do
-  evt <- reComponent $ mkButton transType
-  ui $ Divider $ def & hidden |~ True
-  return evt
-mkButtons types = do
-  evt <- ui $ Buttons buttonsConfig $ leftmost <$> traverse mkButton types
-  ui $ Divider $ def & hidden |~ True
-  return evt
-  where buttonsConfig = def & width |?~ toEnum (length types) & size |?~ Small
-
 mkButton :: MonadWidget t m => TransitionType
          -> Component Buttons m (Event t Transition)
 mkButton t = do
   run <- ui $ Button (def & fluid |~ True) $ do
     text $ Static $ T.pack $ spaceBeforeUpper $ show t
   return $ Transition t def <$ run
+
+mkImages :: MonadWidget t m => Text -> Event t Transition -> Component None m ()
+mkImages animal evt = do
+  ui $ Divider $ def & hidden |~ True
+  let imgConfig =  def
+        & size |?~ Small & shape |?~ Rounded & inline |~ True
+  ui $ Image (animalUrl animal) $ imgConfig
+    & spaced |?~ RightSpaced
+    & transition ?~ (def & event .~ evt)
+  ui $ Image (animalUrl animal) $ imgConfig
+    & spaced |?~ LeftSpaced
+    & transition ?~ (def & event .~ fmap (\(Transition t c) -> Transition t $ c & cancelling .~ True) evt)
+
+mkButtons :: MonadWidget t m => Text -> [TransitionType] -> Component None m ()
+mkButtons _ [] = return ()
+mkButtons animal (transType:[]) = do
+  evt <- reComponent $ mkButton transType
+  mkImages animal evt
+mkButtons animal types = do
+  evt <- ui $ Buttons buttonsConfig $ leftmost <$> traverse mkButton types
+  mkImages animal evt
+  where buttonsConfig = def & width |?~ toEnum (length types) & size |?~ Small
 
 transitions :: forall t m. MonadWidget t m => Section t m
 transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/modules/transition.html") $ do
@@ -60,12 +69,11 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
 
   paragraph $ text "Any of the components in this library are capable of Semantic UI transitions. The difference between animations and transitions is more clear cut, with different data constructors for each:"
 
-  hscode $(printDefinition id stripParens ''Transition)
   hscode $(printDefinition oneline stripParens ''TransitionType)
-  hscode $(printDefinition id stripParens ''TransitionConfig)
-
   hscode $(printDefinition oneline stripParens ''AnimationType)
-  hscode $(printDefinition id stripParens ''AnimationConfig)
+
+  hscode $(printDefinition id stripParens ''Transition)
+  hscode $(printDefinition id stripParens ''TransitionConfig)
 
   paragraph $ text "If the direction of a transition event is not specified, the transition will flip the current state of the element. Animation events will cause hidden elements to be shown, and they will remain shown after the animation finishes."
 
@@ -83,6 +91,22 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
           & size |?~ Small
           & shape |?~ Rounded
           & transition ?~ (def & event .~ (Animation anim def <$ run))
+
+  divClass "ui six column vertically padded grid" $
+    traverse_ img $ zip [Jiggle .. Bounce]
+      ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]
+  |]
+
+  ui $ Example "Cancelling Animations" (def
+    & subtitle ?~ text "Transitions can cancel override queued transitions")
+    [example|
+  let img (anim, animal) = divClass "center aligned column" $ do
+        run <- ui $ Button (def & style |~ Style ("margin-bottom" =: "1em")) $ do
+          text $ Static $ T.pack $ show anim
+        ui $ Image (animalUrl animal) $ def
+          & size |?~ Small
+          & shape |?~ Rounded
+          & transition ?~ (def & event .~ (Animation anim (def & cancelling .~ True) <$ run))
 
   divClass "ui six column vertically padded grid" $
     traverse_ img $ zip [Jiggle .. Bounce]
@@ -113,79 +137,47 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Example "Scale" (def
     & subtitle ?~ text "An element can scale in or out")
     [example|
-  evt <- mkButtons [Scale]
-  ui $ Image (animalUrl "gorilla") $ def
-    & size |?~ Small
-    & shape |?~ Rounded
-    & transition ?~ (def & event .~ evt)
+  mkButtons "gorilla" [Scale]
   |]
 
   ui $ Example "Fade" (def
     & subtitle ?~ text "An element can fade in or out")
     [example|
-  evt <- mkButtons [Fade, FadeLeft, FadeRight, FadeUp, FadeDown]
-  ui $ Image (animalUrl "cow") $ def
-    & size |?~ Small
-    & shape |?~ Rounded
-    & transition ?~ (def & event .~ evt)
+  mkButtons "cow" [Fade, FadeLeft, FadeRight, FadeUp, FadeDown]
   |]
 
   ui $ Example "Flip" (def
     & subtitle ?~ text "An element can flip in or out")
     [example|
-  evt <- mkButtons [HorizontalFlip, VerticalFlip]
-  ui $ Image (animalUrl "panda") $ def
-    & size |?~ Small
-    & shape |?~ Rounded
-    & transition ?~ (def & event .~ evt)
+  mkButtons "panda" [HorizontalFlip, VerticalFlip]
   |]
 
   ui $ Example "Drop" (def
     & subtitle ?~ text "An element can drop in or out")
     [example|
-  evt <- mkButtons [Drop]
-  ui $ Image (animalUrl "turtle") $ def
-    & size |?~ Small
-    & shape |?~ Rounded
-    & transition ?~ (def & event .~ evt)
+  mkButtons "turtle" [Drop]
   |]
 
   ui $ Example "Fly" (def
     & subtitle ?~ text "An element can fly in or out")
     [example|
-  evt <- mkButtons [FlyLeft, FlyRight, FlyUp, FlyDown]
-  ui $ Image (animalUrl "bird") $ def
-    & size |?~ Small
-    & shape |?~ Rounded
-    & transition ?~ (def & event .~ evt)
+  mkButtons "bird" [FlyLeft, FlyRight, FlyUp, FlyDown]
   |]
 
   ui $ Example "Swing" (def
     & subtitle ?~ text "An element can swing in or out")
     [example|
-  evt <- mkButtons [SwingLeft, SwingRight, SwingUp, SwingDown]
-  ui $ Image (animalUrl "monkey") $ def
-    & size |?~ Small
-    & shape |?~ Rounded
-    & transition ?~ (def & event .~ evt)
+  mkButtons "monkey" [SwingLeft, SwingRight, SwingUp, SwingDown]
   |]
 
   ui $ Example "Browse" (def
     & subtitle ?~ text "An element can browse in or out")
     [example|
-  evt <- mkButtons [Browse, BrowseRight]
-  ui $ Image (animalUrl "frog") $ def
-    & size |?~ Small
-    & shape |?~ Rounded
-    & transition ?~ (def & event .~ evt)
+  mkButtons "frog" [Browse, BrowseRight]
   |]
 
   ui $ Example "Slide" (def
     & subtitle ?~ text "An element can slide in or out")
     [example|
-  evt <- mkButtons [SlideDown, SlideUp, SlideLeft, SlideRight]
-  ui $ Image (animalUrl "wolf") $ def
-    & size |?~ Small
-    & shape |?~ Rounded
-    & transition ?~ (def & event .~ evt)
+  mkButtons "wolf" [SlideDown, SlideUp, SlideLeft, SlideRight]
   |]

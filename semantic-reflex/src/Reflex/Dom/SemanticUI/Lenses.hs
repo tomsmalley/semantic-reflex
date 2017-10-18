@@ -85,7 +85,6 @@ $(makeFieldsNoPrefix ''SetValue')
 $(makeFieldsNoPrefix ''TransitionConfig)
 $(makeFieldsNoPrefix ''TransConfig)
 -- $(makeFieldsNoPrefix ''Transition)
-$(makeFieldsNoPrefix ''AnimationConfig)
 -- $(makeFieldsNoPrefix ''ActiveElConfig)
 -- $(makeFieldsNoPrefix ''Animation)
 

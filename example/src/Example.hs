@@ -17,7 +17,6 @@ module Example where
 
 import Control.Lens
 import Control.Monad (void)
-import Data.Bool (bool)
 import Data.Foldable (for_)
 import Data.Monoid ((<>))
 import Data.Text (Text)

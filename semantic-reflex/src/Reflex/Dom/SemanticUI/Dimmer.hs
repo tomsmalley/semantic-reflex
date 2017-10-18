@@ -17,15 +17,23 @@ module Reflex.Dom.SemanticUI.Dimmer where
 import Data.Default
 import Reflex
 
+import Data.Time (NominalDiffTime)
+
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data DimmerConfig t = DimmerConfig
   { _inverted :: Active t Bool
-  -- ^ Dimmers can be a different size
+  -- ^ Dimmers can be inverted
   , _page :: Bool
   -- ^ Dimmers can dim the whole page
+  , _dimmed :: SetValue' t Direction (Maybe Direction)
+  -- ^ Dimmer state control
+  , _transitionType :: Active t TransitionType
+  -- ^ Type of transition to use
+  , _speed :: Active t NominalDiffTime
+  -- ^ Speed of transition
   , _closeOnClick :: Active t Bool
   -- ^ User can click out of a dimmer
   , _config :: ActiveElConfig t
@@ -36,6 +44,9 @@ instance Reflex t => Default (DimmerConfig t) where
   def = DimmerConfig
     { _inverted = pure False
     , _page = False
+    , _dimmed = SetValue Out Nothing
+    , _transitionType = pure Fade
+    , _speed = pure 0.75
     , _closeOnClick = pure True
     , _config = def
     }

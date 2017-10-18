@@ -28,15 +28,12 @@ dimmers = LinkedSection "Dimmer" (text "A dimmers hides distractions to focus at
     & subtitle ?~ text "A standard dimmer")
     [example|
   evt <- ui $ Button def $ text "Toggle"
-  inv <- toggle False <=< ui $ Button def $ text "Invert"
 
-  ui_ $ Segment (def & inverted .~ Dynamic inv) $ do
+  ui_ $ Segment def $ do
     ui_ $ Header def $ text "Some Content"
     paragraph $ text $ "Suspendisse hendrerit justo id dignissim maximus. Ut maximus eu arcu sit amet egestas. Aenean et dictum felis. Ut rhoncus ipsum non luctus scelerisque. Proin pellentesque sed mauris efficitur aliquet. Duis imperdiet pulvinar rhoncus. Fusce tempor sem aliquet, mattis turpis vitae, rutrum orci. Aliquam in metus volutpat mi commodo dignissim et sed magna."
 
-    let conf = def
-          & transition ?~ (def & event .~ (Transition Fade def <$ evt))
-    ui_ $ Dimmer conf $ do
+    ui_ $ Dimmer (def & dimmed . event ?~ (Nothing <$ evt)) $ do
       divClass "ui text loader" $ text "Dimmed"
   |]
 
@@ -46,18 +43,14 @@ dimmers = LinkedSection "Dimmer" (text "A dimmers hides distractions to focus at
   evt <- ui $ Buttons def $ do
     on <- ui $ Button (def & icon |~ True) $ ui $ Icon "plus" def
     off <- ui $ Button (def & icon |~ True) $ ui $ Icon "minus" def
-    return $ leftmost
-      [ Transition Fade (def & direction ?~ In) <$ on
-      , Transition Fade (def & direction ?~ Out) <$ off ]
+    return $ leftmost [ Just In <$ on, Just Out <$ off ]
 
   ui_ $ Segment def $ do
     ui_ $ Header def $ text "Some Content"
     paragraph $ text $ "Suspendisse hendrerit justo id dignissim maximus. Ut maximus eu arcu sit amet egestas. Aenean et dictum felis. Ut rhoncus ipsum non luctus scelerisque. Proin pellentesque sed mauris efficitur aliquet. Duis imperdiet pulvinar rhoncus. Fusce tempor sem aliquet, mattis turpis vitae, rutrum orci. Aliquam in metus volutpat mi commodo dignissim et sed magna."
     paragraph $ text $ "Fusce varius bibendum eleifend. Integer ut finibus risus. Nunc non condimentum lorem. Sed aliquam scelerisque maximus. In hac habitasse platea dictumst. Nam mollis orci sem, vel posuere mi sollicitudin molestie. Praesent at pretium ex. Proin condimentum lacus sit amet risus volutpat, vitae feugiat ante iaculis. Nullam id interdum diam, nec sagittis quam. Ut finibus dapibus nunc sed tincidunt. Vestibulum mi lorem, euismod ut molestie id, viverra vitae ex."
 
-    let conf = def
-          & transition ?~ (def & event .~ evt)
-    ui_ $ Dimmer conf $ do
+    ui_ $ Dimmer (def & dimmed . event ?~ evt) $ do
       divClass "content" $ divClass "center" $ do
         let headerConfig = def & icon ?~ Icon "heart" def
                          & iconHeader |~ True & inverted |~ True
@@ -69,13 +62,8 @@ dimmers = LinkedSection "Dimmer" (text "A dimmers hides distractions to focus at
     & subtitle ?~ text "A dimmer can be fixed to the page")
     [example|
   on <- ui $ Button def $ ui (Icon "plus" def) >> text "Show"
-  let evt = Transition Fade (def & direction ?~ In) <$ on
 
-  let conf = def
-        & transition ?~ (def & initial .~ True & event .~ evt)
-        & page .~ True
-
-  ui_ $ Dimmer conf $ do
+  ui_ $ Dimmer (def & page .~ True & dimmed . event ?~ (Just In <$ on)) $ do
     divClass "content" $ divClass "center" $ do
       let headerConfig = def & icon ?~ Icon "mail" def
                         & iconHeader |~ True & inverted |~ True
@@ -90,14 +78,10 @@ dimmers = LinkedSection "Dimmer" (text "A dimmers hides distractions to focus at
       ("code", Left $ mdo
     on <- ui $ Button def $ ui (Icon "plus" def) >> text "Show"
 
-    let evt = leftmost
-          [ Transition Fade (def & direction ?~ In) <$ on
-          , Transition Fade (def & direction ?~ Out) <$ close ]
 
-        conf = def
-          & transition ?~ (def & initial .~ True & event .~ evt)
-          & page .~ True
-          & closeOnClick |~ False
+    let conf = def
+          & dimmed . event ?~ leftmost [ Just In <$ on, Just Out <$ close ]
+          & page .~ True & closeOnClick |~ False
 
     close <- ui $ Dimmer conf $ do
       divClass "content" $ divClass "center" $ do
@@ -120,17 +104,12 @@ dimmers = LinkedSection "Dimmer" (text "A dimmers hides distractions to focus at
     --[example|
       ("code", Left $ mdo
 
-    let trans d = Transition SlideDown (def & direction ?~ d & duration .~ 0.3)
     let evt = leftmost
-          [ trans In <$ domEvent Mouseenter e
-          , trans Out <$ domEvent Mouseleave e ]
-
-    let conf = def
-          & transition ?~ (def & initial .~ True & event .~ evt)
-          & closeOnClick |~ False
+          [ Just In <$ domEvent Mouseenter e
+          , Just Out <$ domEvent Mouseleave e ]
 
     (e, _) <- ui' $ ContentImage "images/animals/cat.png" (def & size |?~ Medium) $ do
-      ui_ $ Dimmer conf $ do
+      ui_ $ Dimmer (def & dimmed . event ?~ evt & closeOnClick |~ False) $ do
         divClass "content" $ divClass "center" $ do
           ui $ PageHeader H2 (def & inverted |~ True) $ text "Title"
           ui $ Button (def & emphasis |?~ Primary) $ text "Add"

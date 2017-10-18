@@ -315,17 +315,34 @@ instance (m ~ m', t ~ t') => UI t' m' None (Dimmer t m a) where
 
   ui' (Dimmer config@DimmerConfig {..} content) = do
 --    when _page $ liftJSM $ addBodyClasses ["dimmable"]
-    rec
-      (e, a) <- reComponent $ elWithAnim' "div" (elConfig $ domEvent Click e) $ do
 
+    let f Nothing d = flipDirection d
+        f (Just d) _ = d
+    rec
+
+      let click = ffilter id $ tagActive _closeOnClick $ domEvent Click e
+
+      dDir <- holdUniqDyn <=< foldDyn f (_dimmed ^. initial) $ leftmost
+            [ fromMaybe never $ _dimmed ^. event
+            , Just Out <$ click ]
+
+      (e, a) <- reComponent $ elWithAnim' "div" (elConfig $ updated dDir) $ do
         reComponent content
+
     return (e, a)
+
     where
+
       elConfig evt = _config <> def
         { _classes = dimmerConfigClasses config
-        , _transition = Just $ def & event .~ (Transition Fade (def & direction ?~ Out) <$ ffilter id (tagActive _closeOnClick evt))
---        , _transition = Just $ def & extraClasses .~ bool Nothing (Just "active")
+        , _transition = Just $ transConfig evt
         }
+
+      transConfig evt = def
+        & initialDirection .~ _dimmed ^. initial
+        & event .~ fmap mkTrans evt
+
+      mkTrans d = Transition Fade (def & cancelling .~ True & direction ?~ d)
 
 --------------------------------------------------------------------------------
 -- Divider instances
