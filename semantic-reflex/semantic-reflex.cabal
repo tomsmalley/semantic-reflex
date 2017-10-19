@@ -52,6 +52,7 @@ library
     Reflex.Dom.SemanticUI.Paragraph
     Reflex.Dom.SemanticUI.RadioGroup
     Reflex.Dom.SemanticUI.Segment
+    Reflex.Dom.SemanticUI.Sticky
     Reflex.Dom.SemanticUI.Transition
     Reflex.Dom.SemanticUI.TH
   if !impl(ghcjs)

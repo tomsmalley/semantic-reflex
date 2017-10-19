@@ -70,6 +70,29 @@ setLocationHash hash = do
     hash' = if "#" `T.isPrefixOf` hash then hash else "#" <> hash
 
 
+intro :: MonadWidget t m => Component None m ()
+intro = do
+  ui $ PageHeader H2 def $ text "Introduction"
+  paragraph $ do
+    text "This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the "
+    ui $ Anchor (text "reflex-dom-semui") $ def
+      & href |?~ "https://github.com/reflex-frp/reflex-dom-semui"
+    text " library."
+  paragraph $ text "This page serves to provide an example of the library and components in use. Examples are shown along with the code that generated them."
+
+  ui $ PageHeader H3 def $ text "Overview"
+  paragraph $ text "The library exposes components in the form of data types. The convention is to have a record with all parts required to specify a component, with the last being a config type that contains the optional or unnecessary parts. All of the component types have overloaded field lenses so they can be modified concisely."
+  paragraph $ do
+    text "Components can be rendered using the function "
+    hsCodeInline $(printDefinition oneline id 'ui)
+    text "."
+
+  paragraph $ text "To avoid having lots of unnecessary dynamics in config types, we use the type:"
+  hscode $(printDefinition oneline id ''Active)
+  paragraph $ text "For the common use case of config values to 'pure value' (in the case of Active, this translates to Static), we also provide lenses:"
+  hscode $(printDefinition oneline id '(|?~))
+  hscode $(printDefinition oneline id '(|~))
+
 putSections :: MonadWidget t m => [Section t m] -> Component None m ()
 putSections sections = do
   pb :: Event t () <- delay 0.1 =<< getPostBuild
@@ -80,62 +103,39 @@ putSections sections = do
     & elConfigAttributes |~ ("id" =: "main")
     & elConfigClasses |~ "ui container") $ do
 
-    -- Menu
-    (_, _) <- divClass "ui dividing right rail" $ do
-      elActiveAttr' "div" (pure $ "class" =: "ui sticky") `mapComponent` do
-        ui $ PageHeader H4 def $ text "Components"
-        --divClass "ui vertical following fluid accordion text menu" $ do
+    rec
 
-        let conf = def
-              & vertical .~ True
-              & fluid .~ True
-              & textContent .~ True
-              & setValue .~ onLoadEvent
+      -- Menu
+      divClass "ui dividing right rail" $ do
+        ui_ $ Sticky def $ do
+          ui_ $ PageHeader H4 def $ text "Components"
+          --divClass "ui vertical following fluid accordion text menu" $ do
 
-            renderItem (LinkedSection heading _ _) = MenuItem (toId heading) def $ staticText heading
+          let conf = def & vertical .~ True & fluid .~ True
+                         & textContent .~ True & setValue .~ onLoadEvent
 
-        (selected, _) <- ui $ Menu conf $ mapM_ (ui_ . renderItem) sections
+              renderItem (LinkedSection heading _ _)
+                = MenuItem (toId heading) def $ staticText heading
 
-        performEvent_ $ fmap (\id -> do
-          liftJSM $ setLocationHash id
-          liftJSM $ scrollIntoView id
-          ) $ fmapMaybe id $ updated selected
+          (selected, _) <- ui $ Menu conf $ mapM_ (ui_ . renderItem) sections
 
-    -- Sections
-    --(contextEl, _) <- el' "div" $ do
-    divClass "context" $ do
+          performEvent_ $ fmap (\id -> do
+            liftJSM $ setLocationHash id
+            liftJSM $ scrollIntoView id
+            ) $ fmapMaybe id $ updated selected
 
-      divClass "intro" $ do
-        ui $ PageHeader H2 def $ text "Introduction"
-        paragraph $ do
-          text "This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the "
-          ui $ Anchor (text "reflex-dom-semui") $ def
-            & href |?~ "https://github.com/reflex-frp/reflex-dom-semui"
-          text " library."
-        paragraph $ text "This page serves to provide an example of the library and components in use. Examples are shown along with the code that generated them."
-
-        ui $ PageHeader H3 def $ text "Overview"
-        paragraph $ text "The library exposes components in the form of data types. The convention is to have a record with all parts required to specify a component, with the last being a config type that contains the optional or unnecessary parts. All of the component types have overloaded field lenses so they can be modified concisely."
-        paragraph $ do
-          text "Components can be rendered using the function "
-          hsCodeInline $(printDefinition oneline id 'ui)
-          text "."
-
-        paragraph $ text "To avoid having lots of unnecessary dynamics in config types, we use the type:"
-        hscode $(printDefinition oneline id ''Active)
-        paragraph $ text "For the common use case of config values to 'pure value' (in the case of Active, this translates to Static), we also provide lenses:"
-        hscode $(printDefinition oneline id '(|?~))
-        hscode $(printDefinition oneline id '(|~))
-
-      for_ sections $ \(LinkedSection heading subHeading child) -> do
-        let hConf = def
-              & dividing |~ True
-              & style |~ Style ("margin-top" =: "3em")
-              & attributes |~ ("id" =: toId heading)
-        ui $ PageHeader H2 hConf $ do
-          text $ Static heading
-          ui $ SubHeader subHeading
-        child
+      -- Sections
+      (contextEl, _) <- divClass' "context" $ do
+        intro
+        for_ sections $ \(LinkedSection heading subHeading child) -> do
+          let hConf = def
+                & dividing |~ True
+                & style |~ Style ("margin-top" =: "3em")
+                & attributes |~ ("id" =: toId heading)
+          ui $ PageHeader H2 hConf $ do
+            text $ Static heading
+            ui $ SubHeader subHeading
+          child
 
   {-
     performEvent_ $ (void . liftJSM $ do

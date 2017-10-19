@@ -29,6 +29,7 @@ module Reflex.Dom.SemanticUI.Transition
   , elConfigStyle
   , elConfigClasses
   , divClass
+  , divClass'
   , SetValue' (..)
   , SetValue
   , flipDirection
@@ -419,7 +420,12 @@ elWithAnim' _element ActiveElConfig {..} (Component child) = Component $ do
 
 divClass :: MonadWidget t m
          => Active t Classes -> Component None m a -> Component None m a
-divClass c = elWithAnim "div" (def & elConfigClasses .~ c)
+divClass c = fmap snd . divClass' c
+
+divClass'
+  :: MonadWidget t m
+  => Active t Classes -> Component None m a -> Component None m (El t, a)
+divClass' c = elWithAnim' "div" (def & elConfigClasses .~ c)
 
 -- Lenses
 

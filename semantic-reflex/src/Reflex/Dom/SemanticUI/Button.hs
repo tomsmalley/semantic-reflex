@@ -1,19 +1,6 @@
-{-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DuplicateRecordFields    #-}
-{-# LANGUAGE CPP                      #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE JavaScriptFFI            #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE RecursiveDo              #-}
-{-# LANGUAGE ScopedTypeVariables      #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE UndecidableInstances     #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving     #-}
-{-# LANGUAGE GADTs     #-}
 
 module Reflex.Dom.SemanticUI.Button where
 

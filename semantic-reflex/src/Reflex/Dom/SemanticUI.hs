@@ -20,6 +20,7 @@ module Reflex.Dom.SemanticUI
   , module Reflex.Dom.SemanticUI.Lenses
   , module Reflex.Dom.SemanticUI.Paragraph
   , module Reflex.Dom.SemanticUI.Segment
+  , module Reflex.Dom.SemanticUI.Sticky
   , module Reflex.Dom.SemanticUI.Transition
   , semanticMain
   , semanticMainWithCss
@@ -44,6 +45,7 @@ import Reflex.Dom.SemanticUI.Message
 import Reflex.Dom.SemanticUI.Lenses
 import Reflex.Dom.SemanticUI.Paragraph
 import Reflex.Dom.SemanticUI.Segment
+import Reflex.Dom.SemanticUI.Sticky
 import Reflex.Dom.SemanticUI.Transition
 import Reflex.Dom.Core hiding
   ( checkbox, Checkbox (..), checkbox_value, checkbox_change

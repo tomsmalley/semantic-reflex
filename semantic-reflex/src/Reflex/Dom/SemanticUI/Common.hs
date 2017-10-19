@@ -52,8 +52,8 @@ import Reflex.Dom.Active
 -- JSaddle helpers
 
 -- | Javascript console.log
-consoleLog :: ToJSVal a => a -> JSM ()
-consoleLog a = do
+consoleLog :: MonadJSM m => ToJSVal a => a -> m ()
+consoleLog a = liftJSM $ do
   console <- jsg ("console" :: Text)
   void $ console ^. js1 ("log" :: Text) a
 

@@ -23,7 +23,13 @@
 }
 #main.container > .right.rail {
   margin-left: 3em;
+}
+#main.container > .right.rail > .ui.sticky {
   padding-top: 2.5em;
+}
+
+#main.container .intro {
+  position: relative;
 }
 
 @media only screen and (max-width: 1272px) {

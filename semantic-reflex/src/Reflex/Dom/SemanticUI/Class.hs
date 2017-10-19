@@ -17,6 +17,7 @@
 {-# LANGUAGE PolyKinds     #-}
 {-# LANGUAGE DataKinds     #-}
 {-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE MultiWayIf     #-}
 
 {-# OPTIONS_GHC -fno-warn-missing-methods -fno-warn-name-shadowing #-}
 
@@ -42,8 +43,14 @@ import GHC.TypeLits
 import qualified GHCJS.DOM as DOM
 import qualified GHCJS.DOM.Types as DOM
 import qualified GHCJS.DOM.HTMLInputElement as Input
+import qualified GHCJS.DOM.Node as Node
+import qualified GHCJS.DOM.GlobalEventHandlers as GlobalEventHandlers
+import qualified GHCJS.DOM.EventM as EventM
 import qualified GHCJS.DOM.Element as Element
 import qualified GHCJS.DOM.Document as Document
+import qualified GHCJS.DOM.RequestAnimationFrameCallback as RequestAnimationFrameCallback
+import qualified GHCJS.DOM.Window as Window
+import qualified GHCJS.DOM.DOMRect as DOMRect
 import qualified GHCJS.DOM.DOMTokenList as DOMTokenList
 import Language.Javascript.JSaddle (liftJSM)
 
@@ -66,6 +73,7 @@ import Reflex.Dom.SemanticUI.Label
 import Reflex.Dom.SemanticUI.Menu
 import Reflex.Dom.SemanticUI.Message
 import Reflex.Dom.SemanticUI.Segment
+import Reflex.Dom.SemanticUI.Sticky
 import Reflex.Dom.SemanticUI.Transition
 
 import Reflex.Dom.SemanticUI.Paragraph
@@ -630,3 +638,100 @@ instance (t ~ t', m ~ m') => UI t' m' None (Segment t m a) where
 
     where
       elConfig = _config <> def { _classes = segmentConfigClasses config }
+
+--------------------------------------------------------------------------------
+-- Sticky instances
+
+-- | This function is very basic and not efficient in comparison to the real
+-- semantic-ui javascript
+runSticky :: Bool -> DOM.Element -> DOM.JSM ()
+runSticky pushing sticky = do
+  Just window <- DOM.currentWindow
+  Just context <- Node.getParentElement sticky
+
+  stickyTopInit <- DOMRect.getY =<< Element.getBoundingClientRect sticky
+  contextTopInit <- DOMRect.getY =<< Element.getBoundingClientRect context
+
+  domTokenList <- Element.getClassList sticky
+  let removeClass :: DOM.MonadJSM m => DOM.JSString -> m ()
+      removeClass c = DOMTokenList.remove domTokenList [c]
+      addClass :: DOM.MonadJSM m => DOM.JSString -> m ()
+      addClass c = DOMTokenList.add domTokenList [c]
+
+      setTop :: DOM.MonadJSM m => Bool -> m ()
+      setTop True = addClass "top" >> removeClass "bottom"
+      setTop False = addClass "bottom" >> removeClass "top"
+
+      setFixed :: DOM.MonadJSM m => Bool -> m ()
+      setFixed True = addClass "fixed" >> removeClass "bound"
+      setFixed False = addClass "bound" >> removeClass "fixed"
+
+  -- Set initial values
+  setTop True
+  setFixed False
+
+  EventM.on window GlobalEventHandlers.scroll $ do
+
+    stickyRect <- Element.getBoundingClientRect sticky
+    contextRect <- Element.getBoundingClientRect context
+
+    stickyTop <- DOMRect.getY stickyRect
+    stickyHeight <- DOMRect.getHeight stickyRect
+    let stickyBottom = stickyTop + stickyHeight
+
+    contextTop <- DOMRect.getY contextRect
+    contextHeight <- DOMRect.getHeight contextRect
+    let contextBottom = contextTop + contextHeight
+
+    isFixed <- DOMTokenList.contains domTokenList ("fixed" :: DOM.JSString)
+    isTop <- DOMTokenList.contains domTokenList ("top" :: DOM.JSString)
+
+    if isFixed
+    then do -- line 515
+      if isTop
+      then do
+        -- Top fixed sticky reached top of context
+        when (contextTop >= stickyTop) $ setFixed False
+        -- Top fixed sticky reached bottom of context
+        when (stickyBottom >= contextBottom) $ setFixed False >> setTop False
+      else do
+        -- Bottom fixed sticky reached bottom of context
+        when (contextBottom <= stickyBottom) $ setFixed False
+        -- Bottom fixed sticky reached top of context
+        when (stickyTop <= contextTop) $ setFixed False >> setTop True
+
+    else do -- line 557
+      if isTop
+      then do
+        -- Top bound sticky context went off page
+        when (contextTop <= 0) $ setFixed True
+        -- Catch fast scrolls: the bottom of the context is now above the
+        -- viewport
+        when (contextBottom <= 0) $ setFixed False >> setTop False
+      else do
+        if pushing
+        then do
+          windowHeight <- Window.getInnerHeight window
+          -- Context bottom crossed lower window bound
+          when (fromIntegral windowHeight <= contextBottom) $ setFixed True
+        else
+          -- Bottom bound sticky crossed fully into view
+          when (stickyTop >= 0) $ setFixed True >> setTop True
+        -- Catch fast scrolls: the top of the context is now in view
+        when (contextTop >= 0) $ setFixed False
+
+  return ()
+
+instance (t ~ t', m ~ m') => UI t' m' None (Sticky t m a) where
+  type Return t' m' (Sticky t m a) = a
+  ui' (Sticky config@StickyConfig{..} content) = do
+
+    (stickyEl, a) <- reComponent $ elWithAnim' "div" elConfig content
+
+    liftJSM $ runSticky _pushing (_element_raw stickyEl)
+
+    return (stickyEl, a)
+
+    where
+      elConfig = _config <> def { _classes = stickyConfigClasses config }
+
