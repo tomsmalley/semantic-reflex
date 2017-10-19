@@ -113,8 +113,6 @@ instance (m' ~ m, t' ~ t) => UI t' m' None (Buttons t m a) where
 
 instance (m' ~ m, t' ~ t) => UI t' m' Buttons (Button t m)
   where ui' = unComponent . ui'
-instance (m' ~ m, t' ~ t) => UI t' m' Buttons (DivButton t m)
-  where ui' = unComponent . ui'
 instance (m' ~ m, t' ~ t) => UI t' m' Buttons (LabeledButton t m)
   where ui' = unComponent . ui'
 instance t ~ t' => UI t' m Buttons (Conditional t) where
@@ -132,11 +130,12 @@ instance (m' ~ m, t' ~ t) => UI t' m' None (Button t m) where
   type Return t' m' (Button t m) = Event t ()
 
   ui' (Button config@ButtonConfig {..} content) = do
-    (e, _) <- reComponent $ elWithAnim' "button" elConfig $ case _animated of
-      Just (AnimatedButton _ hiddenContent) -> do
-        reComponent $ divClass "visible content" $ reComponent content
-        reComponent $ divClass "hidden content" $ reComponent hiddenContent
-      Nothing -> reComponent content
+    (e, _) <- reComponent $ elWithAnim' (toTagText _tag) elConfig
+      $ case _animated of
+        Just (AnimatedButton _ hiddenContent) -> do
+          reComponent $ divClass "visible content" $ reComponent content
+          reComponent $ divClass "hidden content" $ reComponent hiddenContent
+        Nothing -> reComponent content
     return (e, domEvent Click e)
     where
       elConfig = _config <> def
@@ -146,28 +145,6 @@ instance (m' ~ m, t' ~ t) => UI t' m' None (Button t m) where
 instance t' ~ t => UI t' m Button (Icon t)
   where ui' = unComponent . ui'
 instance (m' ~ m, t' ~ t) => UI t' m' Button (Icons t m a)
-  where ui' = unComponent . ui'
-
--- DivButton
-
-instance (m ~ m', t' ~ t) => UI t' m' None (DivButton t m) where
-  type Return t' m' (DivButton t m) = Event t ()
-
-  ui' (DivButton config@ButtonConfig {..} content) = do
-    (e, _) <- reComponent $ elWithAnim' "div" elConfig $ case _animated of
-      Just (AnimatedButton _ hiddenContent) -> do
-        reComponent $ divClass "visible content" $ reComponent content
-        reComponent $ divClass "hidden content" $ reComponent hiddenContent
-      Nothing -> reComponent content
-    return (e, domEvent Click e)
-    where
-      elConfig = _config <> def
-        { _classes = buttonConfigClasses config
-        }
-
-instance t' ~ t => UI t' m DivButton (Icon t)
-  where ui' = unComponent . ui'
-instance (m' ~ m, t' ~ t) => UI t' m' DivButton (Icons t m a)
   where ui' = unComponent . ui'
 
 -- LabeledButton
@@ -184,8 +161,6 @@ instance (m ~ m', t' ~ t) => UI t' m' None (LabeledButton t m) where
         { _classes = labeledButtonConfigClasses config }
 
 instance (m' ~ m, t' ~ t) => UI t' m' LabeledButton (Button t m)
-  where ui' = unComponent . ui'
-instance (m' ~ m, t' ~ t) => UI t' m' LabeledButton (DivButton t m)
   where ui' = unComponent . ui'
 instance (m ~ m', t ~ t') => UI t' m' LabeledButton (Label t m a)
   where ui' = unComponent . ui'
@@ -318,6 +293,7 @@ instance (m ~ m', t ~ t') => UI t' m' None (Dimmer t m a) where
 
     let f Nothing d = flipDirection d
         f (Just d) _ = d
+
     rec
 
       let click = ffilter id $ tagActive _closeOnClick $ domEvent Click e
@@ -342,7 +318,9 @@ instance (m ~ m', t ~ t') => UI t' m' None (Dimmer t m a) where
         & initialDirection .~ _dimmed ^. initial
         & event .~ fmap mkTrans evt
 
-      mkTrans d = Transition Fade (def & cancelling .~ True & direction ?~ d)
+      mkTrans d = Transition Fade $ def
+        & cancelling .~ True
+        & direction ?~ d
 
 --------------------------------------------------------------------------------
 -- Divider instances

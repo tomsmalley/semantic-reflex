@@ -182,9 +182,9 @@ main' = do
       ui $ PageHeader H1 (def & image ?~ semanticLogo) $ do
         text "Semantic UI for Reflex Dom"
         ui $ SubHeader $ text "Documentation and examples"
-      ui $ Button (def & disabled |~ True) $ text "Hackage"
+      ui $ Button (def & tag ?~ LinkButton & disabled |~ True) $ text "Hackage"
       -- FIXME needs to be <a>
-      ui $ Button (def & color |?~ Teal & attributes |~ ("href" =: "https://github.com/tomsmalley/reflex-dom-semui")) $ do
+      ui $ Button (def & tag ?~ LinkButton & color |?~ Teal & attributes |~ ("href" =: "https://github.com/tomsmalley/semantic-reflex")) $ do
         ui $ Icon "github" def
         text "GitHub"
 

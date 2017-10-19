@@ -25,7 +25,6 @@ buttons = LinkedSection "Button" (text "") $ do
   paragraph $ text ""
 
   hscode $(printDefinition id stripParens ''Button)
-  hscode $(printDefinition id stripParens ''DivButton)
   hscode $(printDefinition id stripParens ''ButtonConfig)
 
   ui_ $ PageHeader H3 def $ text "Types"
@@ -33,7 +32,8 @@ buttons = LinkedSection "Button" (text "") $ do
   ui_ $ Example "Button" (def & subtitle ?~ text "A standard button")
     [example|
   ui_ $ Button def $ text "Button"
-  ui_ $ DivButton def $ text "DivButton"
+  ui_ $ Button (def & tag ?~ DivButton) $ text "Div Button"
+  ui_ $ Button (def & tag ?~ LinkButton) $ text "Link Button"
   |]
 
   ui_ $ Example "Emphasis" (def
@@ -223,11 +223,11 @@ buttons = LinkedSection "Button" (text "") $ do
 
   ui_ $ Example "Attached" (def
     & subtitle ?~ text "A button can be attached to the top or bottom of other content"
-    & inbetween ?~ upstreamIssue 5851 "Attached 'Button' elements are incorrectly sized, use 'DivButton' until this is fixed upstream.")
+    & inbetween ?~ upstreamIssue 5851 "Attached 'Button' elements are incorrectly sized, use an alternate tag until this is fixed upstream.")
     [example|
-  ui_ $ DivButton (def & attached |?~ Vertically TopAttached) $ text "Top"
+  ui_ $ Button (def & tag ?~ DivButton & attached |?~ Vertically TopAttached) $ text "Top"
   ui_ $ Segment (def & attached |?~ Attached) $ text "Segment"
-  ui_ $ DivButton (def & attached |?~ Vertically BottomAttached) $ text "Bottom"
+  ui_ $ Button (def & tag ?~ DivButton & attached |?~ Vertically BottomAttached) $ text "Bottom"
   |]
 
   ui_ $ PageHeader H2 def $ text "Buttons"

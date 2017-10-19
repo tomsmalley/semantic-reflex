@@ -87,11 +87,6 @@ data Button t m = Button
   , _content :: Component Button m ()
   }
 
-data DivButton t m = DivButton
-  { _config :: ButtonConfig t m
-  , _content :: Component Button m ()
-  }
-
 data LabeledButton t m = LabeledButton
   { _config :: LabeledButtonConfig t
   , _content :: Component LabeledButton m ()
@@ -157,8 +152,16 @@ data ButtonConfig t m = ButtonConfig
   , _labeledIcon :: Active t (Maybe Labeled)
   , _attached :: Active t (Maybe ExclusiveAttached)
   , _animated :: Maybe (AnimatedButton t m)
+  , _tag :: Maybe ButtonTag
   , _config :: ActiveElConfig t
   }
+
+data ButtonTag = LinkButton | DivButton
+
+toTagText :: Maybe ButtonTag -> Text
+toTagText Nothing = "button"
+toTagText (Just LinkButton) = "a"
+toTagText (Just DivButton) = "div"
 
 instance Reflex t => Default (ButtonConfig t m) where
   def = ButtonConfig
@@ -180,6 +183,7 @@ instance Reflex t => Default (ButtonConfig t m) where
 --    , _icon = NeverRender
     , _attached = pure Nothing
     , _animated = Nothing
+    , _tag = Nothing
     , _config = def
     }
 
