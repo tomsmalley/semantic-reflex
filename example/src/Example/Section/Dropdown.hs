@@ -6,60 +6,52 @@
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE LambdaCase           #-}
 
 module Example.Section.Dropdown where
 
 {-
 import GHC.Tuple -- TH requires this for (,)
-import Control.Lens
-import Control.Monad ((<=<), void, when, join)
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import Example.QQ
 import Example.StateEnum
 import Example.CountryEnum
 -}
+import Control.Lens
+import Control.Monad ((<=<), void)
 import Reflex.Dom.SemanticUI
+
+import Example.QQ
 import Example.Common
 
 dropdowns :: MonadWidget t m => Section t m
-dropdowns = LinkedSection "Dropdown" blank $ do
-  text "Not implemented"
+dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/modules/dropdown.html") $ do
+
+  hscode $(printDefinition id stripParens ''DropdownConfig)
+
+  ui_ $ PageHeader H3 def $ text "Dropdown"
+  hscode $(printDefinition id stripParens ''Dropdown)
+  paragraph $ text "The standard dropdown returns a Maybe to signify the possibility of no selection. However, if you specify an initial value, the user will be unable to deselect it. In this case you can clear the value with 'setValue' by passing 'Nothing'."
+
+  togg <- toggle False <=< ui $ Button def $ text "reset"
+  do
+--  ui_ $ Example "Dropdown" (def & subtitle ?~ text "A simple dropdown" & dynamic ?~ dynCode)
+--    [resetExample|
+--  \resetEvent -> do
+    void $ ui $ Dropdown (mkDropdownConfig Nothing) $ do
+      ui $ Header (def & icon ?~ Icon "tag" def) $ text "Filter by tag"
+      ui $ Divider def
+      ui $ MenuItem (Just "important") def $ text "Important"
+      ui $ MenuItem (Just "announcement") def $ text "Announcement"
+      ui $ MenuItem (Just "discussion") def $ text "Discussion"
+      void $ dyn' $ ffor togg $ \case
+        True -> ui $ MenuItem (Just "A") def $ text "A"
+        False -> ui $ MenuItem (Just "B") def $ text "B"
+--  |]
 
 {-
-  elAttr "a" ("href" =: "https://semantic-ui.com/modules/dropdown.html") $ text "Semantic UI Docs"
-  hscode $ $(printDefinition id stripParens ''DropdownConfig)
-  hscode $ $(printDefinition id stripParens ''DropdownItem)
-  hscode $ $(printDefinition id stripParens ''DropdownItemConfig)
-
-  ui $ Header H3 (text "Dropdown") def
-  hscode $ $(printDefinition id stripParens ''Dropdown)
-  el "p" $ text "The standard dropdown returns a Maybe to signify the possibility of no selection. However, if you specify an initial value, the user will be unable to deselect it. In this case you can clear the value with 'setValue' by passing 'Nothing'."
-
-  exampleCardDyn dynCode "Single value" "" [mkExample|
-  \resetEvent -> do
-    ui $ Dropdown
-      [ Content $ Header H3 (text "One Or Two") def
-      , Content Divider
-      , DropdownItem (1 :: Int) "One" def
-      , DropdownItem 2 "Two" def
-      , Content $ Header H2 (text "Greater Than Three") def
-      , Content Divider
-      , Items "More"
-        [ DropdownItem 3 "Three" def
-        , DropdownItem 4 "Four" def
-        , DropdownItem 5 "Five" def
-        ]
-      , DropdownItem 6 "Six" def
-      , DropdownItem 7 "Seven" def
-      , DropdownItem 8 "Eight" def
-      ] $ pure Nothing
-        & placeholder .~ "Pick a number"
-        & setValue .~ (Nothing <$ resetEvent)
-  |]
-
   divClass "ui two column stackable grid" $ do
     divClass "row" $ do
 

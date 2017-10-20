@@ -81,7 +81,7 @@ data Example t m a = Example
   }
 
 instance (t' ~ t, m' ~ m) => UI t' m' None (Example t m a) where
-  type Return t' m' (Example t m a) = a
+  type Return t' m' None (Example t m a) = a
   ui' (Example name ExampleConf {..} (code, eitherWidget))
 
     = let exampleConf = def & padded |~ True & vertical |~ True

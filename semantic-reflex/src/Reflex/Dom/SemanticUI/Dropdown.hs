@@ -1,19 +1,18 @@
-{-# LANGUAGE DeriveFunctor            #-}
-{-# LANGUAGE DuplicateRecordFields    #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE ScopedTypeVariables      #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TemplateHaskell          #-}
-{-# LANGUAGE UndecidableInstances     #-}
-{-# LANGUAGE GADTs     #-}
-{-# LANGUAGE LambdaCase     #-}
+{-# LANGUAGE DuplicateRecordFields  #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedLists        #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE RecordWildCards        #-}
+{-# LANGUAGE RecursiveDo            #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
+{-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE InstanceSigs           #-}
 
-module Reflex.Dom.SemanticUI.Dropdown
-  (
+module Reflex.Dom.SemanticUI.Dropdown where
+--  (
   {-
     Dropdown (..)
 
@@ -25,38 +24,32 @@ module Reflex.Dom.SemanticUI.Dropdown
 
   , Divider(..)
   -}
-  ) where
+--  ) where
 
-{-
-import           Control.Monad
-import           Control.Monad.Trans
-import           Control.Lens ((^.))
-import           Data.Default
-import           Data.Functor.Identity
+import Control.Monad.Reader
+import Control.Monad
+import Control.Monad.Trans
+import Data.Semigroup
+import Control.Lens ((^.))
+import Data.Default
+import Data.Functor.Identity
 import qualified Data.List as L
-import           Data.Map (Map)
-import           Data.Maybe (catMaybes, listToMaybe, mapMaybe)
-import           Data.Monoid
-import           Data.Text (Text)
+import Data.Map (Map)
+import Data.Maybe (catMaybes, listToMaybe, mapMaybe)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.These
 import Data.Align
 import qualified GHCJS.DOM.Element as DOM
-import           Language.Javascript.JSaddle
-import           Text.Read (readMaybe)
-import           Reflex
---import           Reflex.Host.Class
-import           Reflex.Dom.Core hiding
-  ( Dropdown (..), DropdownConfig (..), Select )
-------------------------------------------------------------------------------
-import           Reflex.Dom.SemanticUI.Common
-import           Reflex.Dom.SemanticUI.Icon
-import           Reflex.Dom.SemanticUI.Image
-import           Reflex.Dom.SemanticUI.Header
-------------------------------------------------------------------------------
--}
+import Language.Javascript.JSaddle
+import Text.Read (readMaybe)
+import Reflex
 
-{-
+import Reflex.Dom.Active
+import Reflex.Dom.SemanticUI.Common
+import Reflex.Dom.SemanticUI.Icon
+import Reflex.Dom.SemanticUI.Transition
+import Reflex.Dom.SemanticUI.Menu
 
 data DropdownAction
   = Activate
@@ -74,6 +67,73 @@ instance ToJSVal DropdownAction where
     -- div around the placeholder.
     Select -> "activate"
     Hide -> "hide"
+
+
+data DropdownStyle = DropdownButton | DropdownLabel
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
+
+instance ToClassText DropdownStyle where
+  toClassText DropdownButton = "button"
+  toClassText DropdownLabel = "label"
+
+-- | Config for new semantic dropdowns
+data DropdownConfig t a = DropdownConfig
+  { _value :: SetValue t a
+  , _placeholder :: Active t Text
+  , _search :: Active t Bool
+  , _selection :: Active t Bool
+  , _compact :: Active t Bool
+  , _fluid :: Active t Bool
+  , _item :: Active t Bool
+  , _inline :: Active t Bool
+  , _as :: Active t (Maybe DropdownStyle)
+  , _config :: ActiveElConfig t
+  }
+--  , _textOnly :: Bool
+--  , _maxSelections :: Maybe Int
+--  , _useLabels :: Bool
+--  , _fullTextSearch :: Bool
+--  , _action :: DropdownAction
+
+mkDropdownConfig a = DropdownConfig
+  { _value = SetValue a Nothing
+  , _placeholder = pure mempty
+  , _search = pure False
+  , _selection = pure False
+  , _compact = pure False
+  , _fluid = pure False
+  , _item = pure False
+  , _inline = pure False
+  , _as = pure Nothing
+  , _config = def
+  }
+
+instance Reflex t => Default (DropdownConfig t (Maybe a)) where
+  def = mkDropdownConfig Nothing
+
+instance Reflex t => Default (DropdownConfig t [a]) where
+  def = mkDropdownConfig []
+
+
+dropdownConfigClasses :: Reflex t => DropdownConfig t a -> Active t Classes
+dropdownConfigClasses DropdownConfig {..} = activeClasses
+  [ Static $ Just "ui dropdown"
+  , boolClass "search" _search
+  , boolClass "compact" _compact
+  , boolClass "fluid" _fluid
+  , boolClass "selection" _selection
+  , boolClass "item" _item
+  , boolClass "inline" _inline
+  , fmap toClassText <$> _as
+  ]
+
+data Dropdown f t m a = Dropdown
+  { _config :: DropdownConfig t (f a)
+  --, _items :: Component Menu m a
+  , _items :: Component Menu (ReaderT (Demux t (Maybe a)) (EventWriterT t (First a) m)) ()
+  }
+
+{-
 
 ------------------------------------------------------------------------------
 
@@ -212,7 +272,7 @@ instance ToDropdownItem (Header t m a) where
 
 instance ToDropdownItem Divider where
   toDropdownItem Divider = Divider
---
+
 -- TODO
 -- Selection is incompatible with sub menus.
 -- Sections of menu can be scrolling, this is also incompatible with sub menus.

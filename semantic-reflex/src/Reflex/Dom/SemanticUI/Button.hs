@@ -79,12 +79,6 @@ data LabeledButton t m = LabeledButton
   , _content :: Component LabeledButton m ()
   }
 
-data Labeled = LeftLabeled | RightLabeled
-
-instance ToClassText Labeled where
-  toClassText LeftLabeled = "left labeled"
-  toClassText RightLabeled = "right labeled"
-
 data LabeledButtonConfig t = LabeledButtonConfig
   { _labeled :: Active t Labeled
   , _config :: ActiveElConfig t

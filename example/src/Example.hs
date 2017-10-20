@@ -31,9 +31,11 @@ import Example.Section.Buttons (buttons)
 import Example.Section.Checkbox (checkboxes)
 import Example.Section.Dimmer (dimmers)
 import Example.Section.Divider (dividers)
+import Example.Section.Dropdown (dropdowns)
 import Example.Section.Flag (flags)
 import Example.Section.Header
 import Example.Section.Icon (icons)
+import Example.Section.Input (inputs)
 import Example.Section.Label (labels)
 import Example.Section.Menu (menu)
 import Example.Section.Message (messages)
@@ -111,8 +113,11 @@ putSections sections = do
           ui_ $ PageHeader H4 def $ text "Components"
           --divClass "ui vertical following fluid accordion text menu" $ do
 
-          let conf = def & vertical .~ True & fluid .~ True
-                         & textContent .~ True & setValue .~ onLoadEvent
+          let conf = def
+                & vertical .~ True
+                & fluid .~ True
+                & textContent .~ True
+                & value . event ?~ onLoadEvent
 
               renderItem (LinkedSection heading _ _)
                 = MenuItem (toId heading) def $ staticText heading
@@ -164,7 +169,7 @@ runWithLoader = do
   pb <- delay 0 =<< getPostBuild
   rec runComponent $ loadingDimmer pb'
       liftJSM syncPoint
-      pb' <- fmap updated $ widgetHold blank $ runComponent main' <$ pb
+      pb' <- runComponent $ fmap updated $ widgetHold' blank $ main' <$ pb
   return ()
 
 loadingDimmer :: MonadWidget t m => Event t () -> Component None m ()
@@ -190,6 +195,6 @@ main' = do
 
       return ()
 
-  putSections [ dimmers, buttons, checkboxes, dividers, flags, headers, icons, labels, menu, messages, transitions ]
+  putSections [ inputs, dropdowns, menu, dimmers, buttons, checkboxes, dividers, flags, headers, icons, labels, menu, messages, transitions ]
 
   return ()

@@ -50,7 +50,7 @@ labels = LinkedSection "Label" blank $ do
   ui_ $ Example "Pointing" (def
     & subtitle ?~ text "A label can point to adjacent content")
     [example|
-  ui_ $ Input $ def & fluid |~ True
+  ui_ $ Input (def & fluid |~ True) $ textInput def
   ui_ $ Label (def & image |~ True & pointing |?~ AbovePointing) $ do
     text "Please enter a value"
 
@@ -58,11 +58,11 @@ labels = LinkedSection "Label" blank $ do
 
   ui_ $ Label (def & image |~ True & pointing |?~ BelowPointing) $ do
     text "Please enter a value"
-  ui_ $ Input $ def & fluid |~ True
+  ui_ $ Input (def & fluid |~ True) $ textInput def
 
   ui_ $ Divider def
 
-  ui_ $ Input def
+  ui_ $ Input def $ textInput def
   ui_ $ Label (def & image |~ True & pointing |?~ LeftPointing) $ do
     text "That name is taken!"
 
@@ -70,7 +70,7 @@ labels = LinkedSection "Label" blank $ do
 
   ui_ $ Label (def & image |~ True & pointing |?~ RightPointing) $ do
     text "Your password must be 6 characters or more"
-  ui_ $ Input def
+  ui_ $ Input def $ textInput def
   |]
 
   ui_ $ Example "Corner" (def

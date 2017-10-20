@@ -244,6 +244,14 @@ staticText t = Component $ text t
 widgetHold' :: (MonadHold t m, DomBuilder t m, MonadFix m) => Component r m a -> Event t (Component r m a) -> Component r m (Dynamic t a)
 widgetHold' (Component m) evt = Component $ widgetHold m $ fmap runComponent evt
 
+dyn' :: (MonadHold t m, DomBuilder t m, MonadFix m, PostBuild t m)
+     => Dynamic t (Component r m a) -> Component r m (Event t a)
+dyn' = Component . dyn . fmap runComponent
+
+display' :: (PostBuild t m, Show a, DomBuilder t m)
+         => Dynamic t a -> Component Inline m ()
+display' = Component . display
+
 --type Attrs = Attrs $ Map Text Text
 
 data Inline
@@ -261,6 +269,9 @@ l |?~ b = set l (pure $ Just b)
 
 infixr 4 |?~
 
+keyIs :: Reflex t => Key -> Event t Word -> Event t ()
+keyIs key = void . ffilter (\n -> keyCodeLookup (fromIntegral n) == key)
+
 -- | Like 'count', but keeps the most recent event
 data CountWithLast a = NotFired | Fired Int a deriving (Eq, Show)
 countWithLast
@@ -271,6 +282,12 @@ countWithLast = holdDyn NotFired <=< zipListWithEvent Fired [1..]
 -- | Showing dynamic items such as records with dynamic or event fields
 class DynShow t a where
   dynShow :: (Reflex t, MonadHold t m, MonadFix m) => a -> m (Dynamic t String)
+
+data Labeled = LeftLabeled | RightLabeled
+
+instance ToClassText Labeled where
+  toClassText LeftLabeled = "left labeled"
+  toClassText RightLabeled = "right labeled"
 
 data Floated = LeftFloated | RightFloated deriving (Eq, Show)
 

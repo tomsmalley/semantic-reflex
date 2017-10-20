@@ -32,6 +32,7 @@ library
     , Example.Section.Flag
     , Example.Section.Header
     , Example.Section.Icon
+    , Example.Section.Input
     , Example.Section.Label
     , Example.Section.Menu
     , Example.Section.Message

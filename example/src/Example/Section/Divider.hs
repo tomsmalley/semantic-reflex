@@ -38,7 +38,8 @@ dividers = LinkedSection "Divider" (text "A divider visually segments content in
     & subtitle ?~ text "A horizontal divider with content inside it")
     [example|
   ui_ $ Segment (def & aligned |?~ CenterAligned & basic |~ True) $ do
-    ui_ $ Input $ def & placeholder |?~ "Search..."
+    ui_ $ Input def $ do
+      textInput $ def & placeholder |~ "Search..."
     ui_ $ ContentDivider def $ text "Or"
     ui_ $ Button (def & color |?~ Teal) $ text "Create New Order"
   |]

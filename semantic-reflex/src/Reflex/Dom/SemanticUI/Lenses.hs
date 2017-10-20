@@ -21,6 +21,7 @@ import Reflex.Dom.SemanticUI.Button
 import Reflex.Dom.SemanticUI.Checkbox
 import Reflex.Dom.SemanticUI.Dimmer
 import Reflex.Dom.SemanticUI.Divider
+import Reflex.Dom.SemanticUI.Dropdown
 import Reflex.Dom.SemanticUI.Header
 import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Input
@@ -41,15 +42,16 @@ $(makeFieldsNoPrefix ''ConditionalConfig)
 
 $(makeFieldsNoPrefix ''Input)
 $(makeFieldsNoPrefix ''InputConfig)
-$(makeFieldsNoPrefix ''InputResult)
+$(makeFieldsNoPrefix ''TextInputConfig)
+$(makeFieldsNoPrefix ''TextInputResult)
 
 $(makeFieldsNoPrefix ''Checkbox)
 $(makeFieldsNoPrefix ''CheckboxResult)
 $(makeFieldsNoPrefix ''CheckboxConfig)
 
+$(makeFieldsNoPrefix ''DropdownConfig)
 {-
 $(makeFieldsNoPrefix ''Dropdown)
-$(makeFieldsNoPrefix ''DropdownConfig)
 
 $(makeFieldsNoPrefix ''DropdownItem)
 $(makeFieldsNoPrefix ''DropdownItemConfig)

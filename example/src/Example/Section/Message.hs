@@ -141,11 +141,11 @@ messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collecti
   ui $ Example "Negative / Error" (def
     & subtitle ?~ text "A message may be formatted to display a negative message")
     [example|
-  ui $ Message (def & positive |?~ Negative) $ do
+  ui $ Message (def & messageType |?~ MessageType Negative) $ do
     ui $ Header def $ text "I'm sorry Dave, I'm afraid I can't do that."
     paragraph $ text "I think you know what the problem is just as well as I do."
 
-  ui $ Message (def & positive |?~ Error) $ do
+  ui $ Message (def & messageType |?~ MessageType Error) $ do
     ui $ Header def $ text "There were some errors with your submission"
     paragraph $ text "You need to select your home country."
   |]

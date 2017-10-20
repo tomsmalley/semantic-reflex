@@ -10,6 +10,7 @@ module Reflex.Dom.SemanticUI
   , module Reflex.Dom.SemanticUI.Common
   , module Reflex.Dom.SemanticUI.Dimmer
   , module Reflex.Dom.SemanticUI.Divider
+  , module Reflex.Dom.SemanticUI.Dropdown
   , module Reflex.Dom.SemanticUI.Icon
   , module Reflex.Dom.SemanticUI.Image
   , module Reflex.Dom.SemanticUI.Input
@@ -32,9 +33,10 @@ import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Button
 import Reflex.Dom.SemanticUI.Checkbox
 import Reflex.Dom.SemanticUI.Class
-import Reflex.Dom.SemanticUI.Common (tshow, Color (..), Size (..), Floated(..), jQuery, consoleLog, consoleTime, consoleTimeEnd, catchJS, (|~), (|?~), HorizontalAttached (..), VerticalAttached (..), ExclusiveAttached(..), Aligned(..), zipActiveWith, DynShow(..), Classes(..), Style(..), Width(..), mapComponent, Component(..), None, activeText, Inline, staticText, widgetHold', Emphasis(..), countWithLast, Positive(..), Social(..), ToClassText(..), unComponent, reComponent, addClass, runComponent)
+import Reflex.Dom.SemanticUI.Common (tshow, Color (..), Size (..), Floated(..), jQuery, consoleLog, consoleTime, consoleTimeEnd, catchJS, (|~), (|?~), HorizontalAttached (..), VerticalAttached (..), ExclusiveAttached(..), Aligned(..), zipActiveWith, DynShow(..), Classes(..), Style(..), Width(..), mapComponent, Component(..), None, activeText, Inline, staticText, widgetHold', dyn', display', Emphasis(..), countWithLast, Positive(..), Social(..), ToClassText(..), unComponent, reComponent, addClass, runComponent, Labeled(..), keyIs)
 import Reflex.Dom.SemanticUI.Dimmer
 import Reflex.Dom.SemanticUI.Divider
+import Reflex.Dom.SemanticUI.Dropdown
 import Reflex.Dom.SemanticUI.Header
 import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Image
@@ -55,6 +57,7 @@ import Reflex.Dom.Core hiding
   , link, Link, Input, Drop
   , divClass, text, tag, Error
   , elAttr, elAttr'
+  , textInput, TextInputConfig(..), keypress
   )
 import Language.Javascript.JSaddle (JSM)
 

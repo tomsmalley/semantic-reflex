@@ -335,7 +335,7 @@ runTransition (TransConfig eTransition initDirection forceVisible) = do
     -- Clear the possible existing classes by setting to the start direction
     [ finalClasses forceVisible . startDirection . snd <$> eStart
     -- Set any animating classes
-    , animatingClasses <$> eAnimStart
+    , animatingClasses forceVisible <$> eAnimStart
     -- Set the final classes
     , finalClasses forceVisible <$> eFinalFiltered ]
 
@@ -346,11 +346,11 @@ runTransition (TransConfig eTransition initDirection forceVisible) = do
   return $ AnimationAttrs mClasses mStyle
 
 -- | Make the animating classes from a queue item
-animatingClasses :: QueueItem -> Maybe Classes
-animatingClasses (QueueItem (Left t) _ _ d)
-  = Just $ Classes ["animating", "transition", toClassText t, toClassText d]
-animatingClasses (QueueItem (Right t) _ _ _)
-  = Just $ Classes ["animating", "transition", toClassText t]
+animatingClasses :: Bool -> QueueItem -> Maybe Classes
+animatingClasses fv (QueueItem (Left t) _ _ d)
+  = Just $ Classes ["animating", "transition", toClassText t, toClassText d, if fv then "visible" else mempty]
+animatingClasses fv (QueueItem (Right t) _ _ _)
+  = Just $ Classes ["animating", "transition", toClassText t, if fv then "visible" else mempty]
 
 -- | Make the final classes given the direction and whether visibility should be
 -- forced

@@ -46,8 +46,6 @@ data MessageConfig t = MessageConfig
   -- ^ If the message should be compact
   , _messageType :: Active t (Maybe MessageType)
   -- ^ Message type (essentially more color choices)
-  , _positive :: Active t (Maybe Positive)
-  -- ^ Message success / error
   , _color :: Active t (Maybe Color)
   -- ^ Message color
   , _size :: Active t (Maybe Size)
@@ -65,7 +63,6 @@ instance Reflex t => Default (MessageConfig t) where
     , _attached = Static Nothing
     , _compact = Static False
     , _messageType = Static Nothing
-    , _positive = Static Nothing
     , _color = Static Nothing
     , _size = Static Nothing
     , _config = def
@@ -80,7 +77,6 @@ messageConfigClasses MessageConfig {..} = activeClasses
   , fmap toClassText <$> _attached
   , boolClass "compact" _compact
   , fmap toClassText <$> _messageType
-  , fmap toClassText <$> _positive
   , fmap toClassText <$> _color
   , fmap toClassText <$> _size
   ]
