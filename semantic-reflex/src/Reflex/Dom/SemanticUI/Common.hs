@@ -1,36 +1,19 @@
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE CPP                      #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE JavaScriptFFI            #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE RecursiveDo              #-}
-{-# LANGUAGE ScopedTypeVariables      #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeFamilyDependencies   #-}
-{-# LANGUAGE UndecidableInstances     #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving     #-}
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE GADTs     #-}
-{-# LANGUAGE LambdaCase     #-}
-{-# LANGUAGE StandaloneDeriving     #-}
-{-# LANGUAGE InstanceSigs     #-}
-{-# LANGUAGE PolyKinds     #-}
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE TypeInType     #-}
-{-# LANGUAGE FunctionalDependencies     #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE PolyKinds #-}
 
 module Reflex.Dom.SemanticUI.Common where
 
-------------------------------------------------------------------------------
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Reader (MonadReader)
-import Control.Monad.Writer hiding ((<>))
 import Control.Lens ((^.), set, ASetter)
 import Control.Monad (void, (<=<))
 import Data.String
@@ -46,9 +29,7 @@ import Language.Javascript.JSaddle hiding (Success)
 import Reflex.Dom.Core hiding (Link, Error, elAttr', DynamicWriterT)
 
 import Reflex.Dom.Active
-------------------------------------------------------------------------------
 
-------------------------------------------------------------------------------
 -- JSaddle helpers
 
 -- | Javascript console.log
@@ -116,7 +97,7 @@ reComponent (Component m) = Component m
 unComponent :: Component None m a -> Component r m a
 unComponent (Component m) = Component m
 
-mapComponent :: forall r t m a b. Monad m
+mapComponent :: forall r m a b. Monad m
              => (m a -> m b) -> Component r m a -> Component r m b
 mapComponent f = Component . f . runComponent
 
@@ -180,9 +161,12 @@ zipActiveWith f a b = f <$> a <*> b
 -- Attrs
 
 boolClass :: Reflex t => Text -> Active t Bool -> Active t (Maybe Text)
-boolClass t a = fmap f a
+boolClass t = fmap f
   where f True = Just t
         f False = Nothing
+
+boolClass' :: Reflex t => Text -> Active t Bool -> Active t (Maybe Text)
+boolClass' t = fmap (\p -> if p then Just t else Nothing)
 
 activeClasses :: Reflex t => [ Active t (Maybe Text) ] -> Active t Classes
 activeClasses = fmap (Classes . S.fromList . catMaybes) . sequenceA
@@ -214,8 +198,7 @@ instance Monoid Classes where
   mempty = Classes mempty
   Classes a `mappend` Classes b = Classes $ a `mappend` b
 
-
-data Style = Style (Map Text Text) deriving (Eq, Show)
+newtype Style = Style (Map Text Text) deriving (Eq, Show)
 
 styleAttr :: Style -> Map Text Text
 styleAttr (Style m)

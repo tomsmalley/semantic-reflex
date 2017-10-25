@@ -12,7 +12,9 @@
 module Example.Section.Menu where
 
 import Control.Lens
-import Control.Monad ((<=<), void, join)
+import Control.Monad ((<=<), join)
+import Data.List.NonEmpty
+import qualified Data.Set as S
 import Data.Text (Text)
 import Reflex.Dom.SemanticUI
 import GHC.Tuple
@@ -39,6 +41,88 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
   hscode $(printDefinition id stripParens ''MenuItemConfig)
 
 
+  ui_ $ Example "Identity Menu" (def & subtitle ?~ text "A menu can have a single definite value" & dynamic ?~ dynCode)
+   [resetExample|
+  \resetEvent -> do
+
+    let menuConfig = mkMenuConfig (Identity 1)
+          & value . event ?~ (Identity 1 <$ resetEvent)
+
+    (dynVal, _) <- ui $ Menu menuConfig $ do
+      ui_ $ MenuItem 1 def $ text "One"
+      ui_ $ MenuItem 2 def $ text "Two"
+      ui_ $ MenuItem 3 def $ text "Three"
+      ui_ $ MenuItem 4 def $ text "Four"
+
+    return dynVal
+  |]
+
+  ui_ $ Example "Maybe Menu" (def & subtitle ?~ text "A menu can have a single deselectable value" & dynamic ?~ dynCode)
+   [resetExample|
+  \resetEvent -> do
+
+    let menuConfig = def & value . event ?~ (Nothing <$ resetEvent)
+
+    (dynVal, _) <- ui $ Menu menuConfig $ do
+      ui_ $ MenuItem 1 def $ text "One"
+      ui_ $ MenuItem 2 def $ text "Two"
+      ui_ $ MenuItem 3 def $ text "Three"
+      ui_ $ MenuItem 4 def $ text "Four"
+
+    return dynVal
+  |]
+
+  ui_ $ Example "List Menu" (def
+    & subtitle ?~ text "A menu can have many (zero or more) selected values"
+    & inbetween ?~ ui_ (Message (def & messageType |?~ InfoMessage) $ paragraph $ do
+        ui $ Icon "info" def
+        text "The selections of List / NonEmpty menus are in order of addition, from oldest to newest.")
+    & dynamic ?~ dynCode)
+   [resetExample|
+  \resetEvent -> do
+
+    let menuConfig = def & value . event ?~ ([] <$ resetEvent)
+
+    (dynVal, _) <- ui $ Menu menuConfig $ do
+      ui_ $ MenuItem 1 def $ text "One"
+      ui_ $ MenuItem 2 def $ text "Two"
+      ui_ $ MenuItem 3 def $ text "Three"
+      ui_ $ MenuItem 4 def $ text "Four"
+
+    return dynVal
+  |]
+
+  ui_ $ Example "NonEmpty Menu" (def & subtitle ?~ text "A menu can have some (one or more) selected values" & dynamic ?~ dynCode)
+   [resetExample|
+  \resetEvent -> do
+
+    let menuConfig = mkMenuConfig (3 :| [])  & value . event ?~ ((3 :| []) <$ resetEvent)
+
+    (dynVal, _) <- ui $ Menu menuConfig $ do
+      ui_ $ MenuItem 1 def $ text "One"
+      ui_ $ MenuItem 2 def $ text "Two"
+      ui_ $ MenuItem 3 def $ text "Three"
+      ui_ $ MenuItem 4 def $ text "Four"
+
+    return dynVal
+  |]
+
+  ui_ $ Example "Set Menu" (def & subtitle ?~ text "A menu can have many (zero or more) ordered selected values" & dynamic ?~ dynCode)
+   [resetExample|
+  \resetEvent -> do
+
+    let menuConfig = mkMenuConfig (S.singleton 3) & value . event ?~ (S.singleton 3 <$ resetEvent)
+
+    (dynVal, _) <- ui $ Menu menuConfig $ do
+      ui_ $ MenuItem 1 def $ text "One"
+      ui_ $ MenuItem 2 def $ text "Two"
+      ui_ $ MenuItem 3 def $ text "Three"
+      ui_ $ MenuItem 4 def $ text "Four"
+
+    return dynVal
+  |]
+
+
   ui_ $ Example "Secondary Menu" (def & subtitle ?~ text "A menu can adjust its appearance to de-emphasize its contents" & dynamic ?~ dynCode)
    [resetExample|
   \resetEvent -> do
@@ -63,19 +147,21 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
     return $ (,) <$> dynVal <*> search
   |]
 
-  ui_ $ Example "Pointing Menu" (def & subtitle ?~ text "A menu can point to show its relationship to nearby content" & dynamic ?~ dynCode)
-   [resetExample|
-  \resetEvent -> do
+  resetEvent <- ui $ Button def $ text "s"
+  do
+--  ui_ $ Example "Pointing Menu" (def & subtitle ?~ text "A menu can point to show its relationship to nearby content" & dynamic ?~ dynCode)
+--   [resetExample|
+--  \resetEvent -> do
 
-    let menuConfig = def
+    let menuConfig = mkMenuConfig (Identity ("home" :: Text))
           & pointing |~ True
-          & value . event ?~ (Nothing <$ resetEvent)
+          & value . event ?~ (Identity "home" <$ resetEvent)
 
     (dynVal, search) <- ui $ Menu menuConfig $ do
       ui_ $ MenuItem "home" def $ text "Home"
       ui_ $ MenuItem "messages" def $ text "Messages"
       ui_ $ MenuItem "friends" def $ text "Friends"
-      ui $ Menu (def & right |~ True) $ do
+      ui $ Menu (mkMenuConfig (Identity "search") & right |~ True) $
         ui $ MenuItem' def $ do
           search <- ui $ Input (def & icon |?~ LeftIcon) $ do
             ui $ Icon "search" def
@@ -84,15 +170,14 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
 
           return $ search ^. value
 
-    ui $ Segment def $ do
-      paragraph $ do
-        display' dynVal
-        text " content..."
+    ui $ Segment def $ paragraph $ do
+      display' dynVal
+      text " content..."
 
     return $ (,) <$> dynVal <*> search
-  |]
+--  |]
 
-  (dynVal, result) <- ui $ Menu def $ do
+  (dynVal, result) <- ui $ Menu (mkMenuConfig Nothing) $ do
 
     ui $ Header (def & icon ?~ Icon "smile" def) $ text "hi"
     ui $ MenuItem 1 def $ text "One"
@@ -104,10 +189,9 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
   Component $ display dynVal
   return ()
 
-  resetEvent <- ui $ Button def $ text "Reset"
-  void $ do
---  exampleCardDyn dynCode "Vertical Menu" "A vertical menu displays elements vertically" [mkExample|
---  \resetEvent -> do
+  ui_ $ Example "Vertical Menu" (def & subtitle ?~ text "A vertical menu displays elements vertically" & dynamic ?~ dynCode)
+   [resetExample|
+  \resetEvent -> do
     let counter txt = let widget = count <=< ui $ Button def $ text $ Static txt
                       in join <$> widgetHold' widget (widget <$ resetEvent)
 
@@ -115,28 +199,39 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
     spamCount <- counter "Add spam item"
     updatesCount <- counter "Add updates item"
 
-    let mkLabel dCount mColor = Label (labelConfig dCount mColor) (text $ Dynamic $ tshow <$> dCount)
+    let mkLabel dCount mColor = Label (labelConfig dCount mColor)
+          $ text $ Dynamic $ tshow <$> dCount
+
         labelConfig dCount mColor = def
           & color |~ mColor
-          & transition ?~ (def & event .~ (leftmost
-            [ Animation Jiggle (def & duration .~ 0.4) <$ (ffilter id $ updated $ (> 0) <$> dCount)
-            , Transition Fade (def & direction ?~ Out) <$ (ffilter id $ updated $ (<= 0) <$> dCount)
-            ]))
+          & transition ?~ (def & initialDirection .~ Out
+                               & event .~ fmap mkTransition (updated dCount))
 
-        conf = def & vertical .~ True
+        mkTransition count
+          | count > 0 = Animation Jiggle $ def
+              & cancelling .~ True & direction ?~ In & duration .~ 0.4
+          | otherwise = Transition Fade $ def
+              & cancelling .~ True & direction ?~ Out
+
+        menuConfig = def & vertical .~ True
                    & value . event ?~ (Just "inbox" <$ resetEvent)
                    & value . initial ?~ "inbox"
 
-    (selected, _) <- ui $ Menu conf $ do
-      ui $ MenuItem ("inbox" :: Text) (def & color ?~ Teal) $ do
+    (selected, search) <- ui $ Menu menuConfig $ do
+      ui $ MenuItem "inbox" (def & color ?~ Teal) $ do
         text "Inbox"
         ui $ mkLabel inboxCount $ Just Teal
-      ui $ MenuItem ("spam" :: Text) def $ do
+      ui $ MenuItem "spam" def $ do
         text "Spam"
         ui $ mkLabel spamCount Nothing
-      ui $ MenuItem ("updates" :: Text) def $ do
+      ui $ MenuItem "updates" def $ do
         text "Updates"
         ui $ mkLabel updatesCount Nothing
+      ui $ MenuItem' def $
+        ui $ Input (def & transparent |~ True & icon |?~ RightIcon) $ do
+          ui $ Icon "search" def
+          textInput $ def & placeholder |~ "Search mail..."
 
-    return selected
+    return $ (,) <$> selected <*> view value search
+ |]
 

@@ -42,6 +42,7 @@ library
   build-depends:
       base            >= 4.8 && < 4.10
     , bytestring
+    , containers
     , data-default
     , file-embed      >= 0.0.10 && < 0.1
     --, ghcjs-dom

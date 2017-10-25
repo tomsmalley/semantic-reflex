@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
+--{-# LANGUAGE FlexibleContexts #-}
+--{-# LANGUAGE TemplateHaskell #-}
+--{-# LANGUAGE TypeFamilies #-}
 
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 

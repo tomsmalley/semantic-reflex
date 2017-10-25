@@ -13,7 +13,7 @@ docs-nocc: ghcjs-nocc
 	cp -r example/resources/* docs
 
 ghcjs: semantic-reflex example
-	nix-build --arg ghcjs true
+	nix-build --attr example --arg ghcjs true
 
 ghcjs-nocc: semantic-reflex example
-	nix-build --arg ghcjs true --arg runCC false
+	nix-build --attr example --arg ghcjs true --arg runCC false

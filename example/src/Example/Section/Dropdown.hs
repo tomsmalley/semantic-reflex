@@ -21,6 +21,7 @@ import Example.CountryEnum
 -}
 import Control.Lens
 import Control.Monad ((<=<), void)
+import Data.Text (Text)
 import Reflex.Dom.SemanticUI
 
 import Example.QQ
@@ -35,6 +36,7 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
   hscode $(printDefinition id stripParens ''Dropdown)
   paragraph $ text "The standard dropdown returns a Maybe to signify the possibility of no selection. However, if you specify an initial value, the user will be unable to deselect it. In this case you can clear the value with 'setValue' by passing 'Nothing'."
 
+{-
   togg <- toggle False <=< ui $ Button def $ text "reset"
   do
 --  ui_ $ Example "Dropdown" (def & subtitle ?~ text "A simple dropdown" & dynamic ?~ dynCode)
@@ -43,14 +45,16 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
     void $ ui $ Dropdown (mkDropdownConfig Nothing) $ do
       ui $ Header (def & icon ?~ Icon "tag" def) $ text "Filter by tag"
       ui $ Divider def
-      ui $ MenuItem (Just "important") def $ text "Important"
-      ui $ MenuItem (Just "announcement") def $ text "Announcement"
-      ui $ MenuItem (Just "discussion") def $ text "Discussion"
-      void $ dyn' $ ffor togg $ \case
-        True -> ui $ MenuItem (Just "A") def $ text "A"
-        False -> ui $ MenuItem (Just "B") def $ text "B"
+      ui $ MenuItem "important" def $ text "Important"
+      ui $ MenuItem "announcement" def $ text "Announcement"
+      ui_ $ MenuItem "discussion" def $ text "Discussion"
+--      void $ dyn' $ ffor togg $ \case
+--        True -> ui $ MenuItem "A" def $ text "A"
+--        False -> ui $ MenuItem "B" def $ text "B"
 --  |]
+-}
 
+  return ()
 {-
   divClass "ui two column stackable grid" $ do
     divClass "row" $ do

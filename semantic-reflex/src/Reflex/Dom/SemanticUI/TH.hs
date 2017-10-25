@@ -36,7 +36,7 @@ makeFunctions name = do
   typeInfo <- reifyDatatype name
 
   -- Make declarations for each data constructor
-  fmap concat $ traverse makeDecs (datatypeCons typeInfo)
+  concat <$> traverse makeDecs (datatypeCons typeInfo)
 
   where
 

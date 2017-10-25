@@ -1,10 +1,10 @@
-{-# LANGUAGE DuplicateRecordFields    #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE TemplateHaskell          #-}
-{-# LANGUAGE TypeFamilies             #-}
+--{-# LANGUAGE DuplicateRecordFields    #-}
+--{-# LANGUAGE FlexibleInstances        #-}
+--{-# LANGUAGE MultiParamTypeClasses    #-}
+--{-# LANGUAGE OverloadedStrings        #-}
+--{-# LANGUAGE RecordWildCards          #-}
+--{-# LANGUAGE TemplateHaskell          #-}
+--{-# LANGUAGE TypeFamilies             #-}
 
 module Reflex.Dom.SemanticUI.RadioGroup
   (

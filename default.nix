@@ -7,7 +7,6 @@ let
   ];
 
   pkgs = import <nixpkgs> { };
-  platform = import reflex-platform { };
 
   makeOverrides = function: names: self: super:
     let toPackage = name: {
@@ -17,8 +16,6 @@ let
     in builtins.listToAttrs (map toPackage names);
 
   manualOverrides = self: super: rec {
-    semantic-reflex = self.callPackage ./semantic-reflex { inherit ghcjs; };
-    example = self.callPackage ./example { inherit semantic-reflex; inherit ghcjs; };
   };
 
   composeExtensionsList = pkgs.lib.fold pkgs.lib.composeExtensions (_: _: { });
@@ -36,6 +33,11 @@ let
         };
     in pkgs.lib.mapAttrs' toPackage (builtins.readDir ./nix);
 
-in if ghcjs
-    then (doOverrides platform.ghcjs).callPackage ./example { inherit ghcjs runCC; }
-    else (doOverrides platform.ghc).callPackage ./example { inherit ghcjs runCC; }
+  platform = import reflex-platform { };
+  compiler = doOverrides (if ghcjs then platform.ghcjs else platform.ghc);
+
+in rec {
+  semantic-reflex = compiler.callPackage ./semantic-reflex { inherit ghcjs; };
+  example = compiler.callPackage ./example { inherit ghcjs runCC semantic-reflex; };
+}
+

@@ -1,26 +1,18 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PolyKinds #-}
 
 module Reflex.Dom.SemanticUI.Menu where
 
 import Control.Monad.Reader
 import Data.Default (Default (def))
 import Data.Semigroup
+import qualified Data.Set as S
+import Data.Set (Set)
 import Data.Text (Text)
 import Data.These
 import Reflex
@@ -41,7 +33,6 @@ data MenuConfig t a = MenuConfig
   , _fluid :: Bool
   , _textContent :: Bool
   , _compact :: Bool
-  , _customMenu :: Maybe Text
   , _floated :: Maybe Floated
   , _component :: Bool
   , _config :: ActiveElConfig t
@@ -58,7 +49,6 @@ mkMenuConfig a = MenuConfig
   , _fluid = False
   , _textContent = False
   , _compact = False
-  , _customMenu = Nothing
   , _floated = Nothing
   , _component = False
   , _config = def
@@ -67,13 +57,19 @@ mkMenuConfig a = MenuConfig
 instance Reflex t => Default (MenuConfig t (Maybe a)) where
   def = mkMenuConfig Nothing
 
+instance Reflex t => Default (MenuConfig t [a]) where
+  def = mkMenuConfig []
+
+instance Reflex t => Default (MenuConfig t (Set a)) where
+  def = mkMenuConfig S.empty
+
 menuConfigClasses :: Reflex t => MenuConfig t a -> Active t Classes
 menuConfigClasses MenuConfig {..} = activeClasses
 --  [ justWhen _disabled "disabled"
 --  , justWhen _loading "loading"
 --  , justWhen _fitted "fitted"
 --  , justWhen _link "link"
-  [ Static $ Just $ "menu"
+  [ Static $ Just "menu"
   , boolClass "ui" $ Static $ not _component
   , Static $ toClassText <$> _size
   , boolClass "vertical" $ Static _vertical
@@ -85,7 +81,6 @@ menuConfigClasses MenuConfig {..} = activeClasses
   , boolClass "compact" $ Static _compact
   , Static $ toClassText <$> _floated
 --  , uiText <$> _color
-  , Static $ _customMenu
   ]
 
 data MenuLink
@@ -128,8 +123,13 @@ itemElAttrs conf@MenuItemConfig{..} = case _link of
           { _classes = menuItemConfigClasses conf }
 
 
-data Menu t m v b = Menu
-  { _config :: MenuConfig t (Maybe v)
-  , _items :: Component Menu (ReaderT (Demux t (Maybe v)) (EventWriterT t (First v) m)) b
+data Menu f t m v b = Menu
+  { _config :: MenuConfig t (f v)
+  , _items :: Component Menu (ReaderT (Dynamic t (f v)) (EventWriterT t (First v) m)) b
+  }
+
+data MenuDef t m v b = MenuDef
+  { _config :: MenuConfig t v
+  , _items :: Component Menu (ReaderT (Demux t v) (EventWriterT t (First v) m)) b
   }
 

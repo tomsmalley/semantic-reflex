@@ -176,7 +176,7 @@ labels = LinkedSection "Label" blank $ do
   ui_ $ Example "Floating" (def
     & subtitle ?~ text "A label can float above another element")
     [example|
-  ui_ $ Menu (def & compact .~ True) $ do
+  ui_ $ Menu (mkMenuConfig Nothing & compact .~ True) $ do
     ui_ $ MenuItem (1 :: Int) def $ do
       ui_ $ Icon "mail" def
       text "Messages"

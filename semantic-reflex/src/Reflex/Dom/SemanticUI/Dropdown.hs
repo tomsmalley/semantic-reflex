@@ -1,30 +1,11 @@
-{-# LANGUAGE DuplicateRecordFields  #-}
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE OverloadedLists        #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE RecordWildCards        #-}
-{-# LANGUAGE RecursiveDo            #-}
-{-# LANGUAGE ScopedTypeVariables    #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE InstanceSigs           #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Reflex.Dom.SemanticUI.Dropdown where
---  (
-  {-
-    Dropdown (..)
-
-  , DropdownConfig (..)
-  , DropdownAction (..)
-
-  , DropdownItem (..)
-  , DropdownItemConfig (..)
-
-  , Divider(..)
-  -}
---  ) where
 
 import Control.Monad.Reader
 import Control.Monad
@@ -108,13 +89,6 @@ mkDropdownConfig a = DropdownConfig
   , _config = def
   }
 
-instance Reflex t => Default (DropdownConfig t (Maybe a)) where
-  def = mkDropdownConfig Nothing
-
-instance Reflex t => Default (DropdownConfig t [a]) where
-  def = mkDropdownConfig []
-
-
 dropdownConfigClasses :: Reflex t => DropdownConfig t a -> Active t Classes
 dropdownConfigClasses DropdownConfig {..} = activeClasses
   [ Static $ Just "ui dropdown"
@@ -129,8 +103,7 @@ dropdownConfigClasses DropdownConfig {..} = activeClasses
 
 data Dropdown f t m a = Dropdown
   { _config :: DropdownConfig t (f a)
-  --, _items :: Component Menu m a
-  , _items :: Component Menu (ReaderT (Demux t (Maybe a)) (EventWriterT t (First a) m)) ()
+  , _items :: Component Menu (ReaderT (Dynamic t (f a)) (EventWriterT t (First a) m)) ()
   }
 
 {-

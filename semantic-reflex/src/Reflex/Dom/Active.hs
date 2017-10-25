@@ -3,7 +3,6 @@
 
 module Reflex.Dom.Active where
 
-import Control.Monad.Fix (MonadFix)
 import Data.Map (Map)
 import Data.Text (Text)
 import Data.Semigroup

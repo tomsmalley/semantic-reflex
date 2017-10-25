@@ -1,24 +1,23 @@
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE CPP                      #-}
-{-# LANGUAGE DuplicateRecordFields                      #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE InstanceSigs     #-}
-{-# LANGUAGE JavaScriptFFI            #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE RecursiveDo              #-}
-{-# LANGUAGE ScopedTypeVariables      #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE UndecidableInstances     #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE PolyKinds     #-}
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE MultiWayIf     #-}
-{-# LANGUAGE LambdaCase     #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE JavaScriptFFI #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE LambdaCase #-}
 
 {-# OPTIONS_GHC -fno-warn-missing-methods -fno-warn-name-shadowing #-}
 
@@ -32,12 +31,16 @@ import Control.Monad.Writer hiding ((<>), First(..))
 import Data.Bool (bool)
 import Data.Default (Default(..))
 import Data.Foldable (traverse_, for_)
+import Data.List.NonEmpty (NonEmpty(..))
+import qualified Data.List.NonEmpty as NonEmpty
 import Data.Traversable (for)
 import Data.Functor.Misc (WrapArg(..))
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import Data.Proxy (Proxy(..))
 import Data.Semigroup ((<>), First(..))
+import qualified Data.Set as S
+import Data.Set (Set)
 import Data.Text (Text)
 
 import GHC.TypeLits
@@ -240,7 +243,7 @@ instance UI t m None (Checkbox t) where
           -- If the checkbox was indeterminate we always set checked to true,
           -- otherwise we toggle the value.
           -- This matches the Semantic UI visual behaviour.
-          let newValue = if oldIndeterminate then True else not oldValue
+          let newValue = oldIndeterminate || not oldValue
           -- Always clear the indeterminate state
               newIndeterminate = False
 
@@ -265,7 +268,7 @@ instance UI t m None (Checkbox t) where
       , True <$ select (_element_events inputEl) (WrapArg Focus)
       ]
 
-    return $ (divEl, CheckboxResult
+    return (divEl, CheckboxResult
       { _value = value
       , _change = fst <$> uiEvent
       , _indeterminate = indeterminate
@@ -317,7 +320,7 @@ instance (m ~ m', t ~ t') => UI t' m' None (Dimmer t m a) where
             [ fromMaybe never $ _dimmed ^. event
             , Just Out <$ click ]
 
-      (e, a) <- reComponent $ elWithAnim' "div" (elConfig $ updated dDir) $ do
+      (e, a) <- reComponent $ elWithAnim' "div" (elConfig $ updated dDir) $
         reComponent content
 
     return (e, a)
@@ -343,8 +346,8 @@ instance (m ~ m', t ~ t') => UI t' m' None (Dimmer t m a) where
 instance t ~ t' => UI t' m None (Divider t) where
   type Return t' m None (Divider t) = ()
 
-  ui' (Divider config@DividerConfig {..}) = do
-    reComponent $ elWithAnim' "div" elConfig blank
+  ui' (Divider config@DividerConfig {..})
+    = reComponent $ elWithAnim' "div" elConfig blank
     where
       elConfig = _config <> def
         { _classes = dividerConfigClasses config
@@ -353,8 +356,8 @@ instance t ~ t' => UI t' m None (Divider t) where
 instance (m ~ m', t ~ t') => UI t' m' None (ContentDivider t m a) where
   type Return t' m' None (ContentDivider t m a) = a
 
-  ui' (ContentDivider config@DividerConfig {..} content) = do
-    reComponent $ elWithAnim' "div" elConfig $ reComponent content
+  ui' (ContentDivider config@DividerConfig {..} content)
+    = reComponent $ elWithAnim' "div" elConfig $ reComponent content
     where
       elConfig = _config <> def
         { _classes = addClass "horizontal" <$> dividerConfigClasses config
@@ -370,7 +373,8 @@ instance (m ~ m', t ~ t') => UI t' m' ContentDivider (Header t m a) where
 --------------------------------------------------------------------------------
 -- Dropdown instances
 
-instance (Ord a, t ~ t', m ~ m') => UI t' m' None (Dropdown f t m a) where
+instance (Ord (f a), Ord a, t ~ t', m ~ m', Selectable f)
+  => UI t' m' None (Dropdown f t m a) where
   type Return t' m' None (Dropdown f t m a) = Dynamic t (f a)
   ui' (Dropdown config@DropdownConfig {..} items) = do
 
@@ -382,15 +386,15 @@ instance (Ord a, t ~ t', m ~ m') => UI t' m' None (Dropdown f t m a) where
           { _classes = dropdownConfigClasses config
           , _attrs = Static $ "tabindex" =: "0" }
 
-    value <- holdDyn (_value ^. initial) $ never
+    value <- holdDyn (_value ^. initial) never
 
     rec
       isOpen <- holdDyn False $ leftmost
-        [ True <$ (gate (not <$> current isOpen) $ domEvent Click divEl)
+        [ True <$ gate (not <$> current isOpen) (domEvent Click divEl)
         , False <$ domEvent Blur divEl
         ]
 
-      let menuConfig = def & component .~ True
+      let menuConfig = mkMenuConfig (_value ^. initial) & component .~ True
             & transition ?~ (def & initialDirection .~ Out
                                  & forceVisible .~ True
                                  & event .~ evt)
@@ -405,24 +409,24 @@ instance (Ord a, t ~ t', m ~ m') => UI t' m' None (Dropdown f t m a) where
       (divEl, result) <- unComponent $ elWithAnim' "div" elConfig $ do
         Component $ element "input" cfg blank
         unComponent $ ui $ Icon "dropdown" def
-        result <- unComponent $ ui $ Menu menuConfig $ items
-        return result
+        unComponent $ ui $ Menu menuConfig items
 
     return (divEl, value)
 
 --------------------------------------------------------------------------------
 -- Menu instances
 
-instance ( t ~ t', m ~ m', Ord v
-          , MonadReader (Demux t (Maybe v)) m, EventWriter t (First v) m)
-  => UI t' m' Menu (MenuItem t m v) where
-  type Return t' m' Menu (MenuItem t m v) = ()
+instance ( t ~ t', m ~ m', Ord a, Foldable f, Eq (f a)
+         , MonadReader (Dynamic t (f a)) m, EventWriter t (First a) m)
+  => UI t' m' Menu (MenuItem t m a) where
+  type Return t' m' Menu (MenuItem t m a) = ()
   ui' (MenuItem value config@MenuItemConfig{..} widget) = do
     selected <- ask
-    let isSelected = Dynamic $ demuxed selected $ Just value
+    --let isSelected = Dynamic $ demuxed selected $ pure value
+    let isSelected = Dynamic $ elem value <$> selected
 
     (e, _) <- reComponent $ elWithAnim' "div" (elConfig isSelected) widget
-    Component $ tellEvent $ (First value) <$ domEvent Click e
+    Component $ tellEvent $ First value <$ domEvent Click e
     return (e, ())
       where
 --        (_, _) = itemElAttrs config { _link = reLink _link }
@@ -436,8 +440,8 @@ instance ( t ~ t', m ~ m', Ord v
 
 instance (t ~ t', m ~ m') => UI t' m' Menu (MenuItem' t m b) where
   type Return t' m' Menu (MenuItem' t m b) = b
-  ui' (MenuItem' config@MenuItemConfig{..} widget) = do
-    reComponent $ elWithAnim' "div" elConfig widget
+  ui' (MenuItem' config@MenuItemConfig{..} widget)
+    = reComponent $ elWithAnim' "div" elConfig widget
       where
         elConfig = _config <> def
           { _classes = menuItemConfigClasses $ config & link .~ NoLink }
@@ -446,28 +450,74 @@ instance (m ~ m', t ~ t') => UI t' m' Inline (Input t m a) where
   type Return t' m' Inline (Input t m a) = a -- InputResult t a
   ui' = unComponent . ui'
 
-instance (Ord v, t ~ t', m ~ m') => UI t' m' None (Menu t m v a) where
-  type Return t' m' None (Menu t m v a) = (Dynamic t (Maybe v), a)
-  ui' (Menu config@MenuConfig{..} items) = reComponent $ elWithAnim' "div" elConfig $ do
+-- | Collections which can be selectable. This is similar to an insert operation
+-- on a structure, but with the caveat that if the element already exists in
+-- the structure it should be removed (if possible). In pseudo code it should
+-- satisfy:
+--
+--    toggleSelection x xs == if elem x xs then delete x xs else insert x xs
+--
+class Selectable t where
+  toggleSelection :: Ord a => a -> t a -> t a
+
+instance Selectable [] where
+  toggleSelection a [] = [a]
+  toggleSelection a (a':as)
+    | a == a' = as
+    | otherwise = a' : toggleSelection a as
+
+instance Selectable Set where
+  toggleSelection a s
+    | S.member a s = S.delete a s
+    | otherwise = S.insert a s
+
+instance Selectable NonEmpty where
+  toggleSelection a (a' :| [])
+    | a == a' = a :| []
+    | otherwise = a' :| [a]
+
+  toggleSelection a (a' :| as)
+    | a == a' = NonEmpty.fromList as
+    | otherwise = a' :| toggleSelection a as
+
+instance Selectable Maybe where
+  toggleSelection a Nothing = Just a
+  toggleSelection a (Just a')
+    | a == a' = Nothing
+    | otherwise = Just a
+
+instance Selectable Identity where
+  toggleSelection a _ = Identity a
+
+instance (Selectable f, Ord (f a), Ord a, t ~ t', m ~ m')
+  => UI t' m' None (Menu f t m a b) where
+  type Return t' m' None (Menu f t m a b) = (Dynamic t (f a), b)
+  ui' (Menu config@MenuConfig{..} items)
+    = reComponent $ elWithAnim' "div" elConfig $ do
     rec
-      (b, evt) <- Component $ do
-        runEventWriterT $ runReaderT (runComponent items) (demux current)
-      current <- holdDyn (_value ^. initial) $ case _value ^. event of
-        Nothing -> Just . getFirst <$> evt
-        Just setValue -> leftmost [Just . getFirst <$> evt, setValue]
+      (b, evt) <- Component $
+        runEventWriterT $ runReaderT (runComponent items) current
+
+      current <- foldDyn mkCurrent (_value ^. initial) $ case _value ^. event of
+        Just setValue -> leftmost [Left . getFirst <$> evt, Right <$> setValue]
+        Nothing -> Left . getFirst <$> evt
 
     return (current, b)
     where
       elConfig = _config <> def
         { _classes = menuConfigClasses config }
+      mkCurrent :: Either a (f a) -> f a -> f a
+      mkCurrent (Left x) acc = toggleSelection x acc
+      mkCurrent (Right acc) _ = acc
 
-instance ( Ord v, m ~ m', t ~ t'
-         , MonadReader (Demux t (Maybe v)) m, EventWriter t (First v) m)
-  => UI t' m' Menu (Menu t m v a) where
-  type Return t' m' Menu (Menu t m v a) = a
+
+instance ( Ord a, m ~ m', t ~ t'
+         , MonadReader (Dynamic t (f a)) m, EventWriter t (First a) m)
+  => UI t' m' Menu (Menu f t m a b) where
+  type Return t' m' Menu (Menu f t m a b) = b
   ui' (Menu config@MenuConfig{..} items) = do
     selected <- ask
-    (el, (b, evt)) <- reComponent $ elWithAnim' "div" elConfig $ do
+    (el, (b, evt)) <- reComponent $ elWithAnim' "div" elConfig $
       Component $ runEventWriterT $ runReaderT (runComponent items) selected
 
     Component $ tellEvent evt
@@ -475,10 +525,6 @@ instance ( Ord v, m ~ m', t ~ t'
 
     where elConfig = _config <> def { _classes = menuConfigClasses $ config
                                                & component .~ True }
-
---      current <- holdDyn (_value ^. initial) $ case _value ^. event of
---        Nothing -> Just . getFirst <$> evt
---        Just setValue -> leftmost [Just . getFirst <$> evt, setValue]
 
 {-
     unComponent $ ui' $ Menu (conf & component .~ True) $ do
@@ -514,8 +560,8 @@ instance t ~ t' => UI t' m Inline (Flag t) where
 
 instance (m ~ m', t ~ t') => UI t' m' None (PageHeader t m a) where
   type Return t' m' None (PageHeader t m a) = a
-  ui' (PageHeader size config@HeaderConfig {..} widget) = do
-    reComponent $ elWithAnim' (headerSizeEl size) elConfig $ case _image of
+  ui' (PageHeader size config@HeaderConfig {..} widget)
+    = reComponent $ elWithAnim' (headerSizeEl size) elConfig $ case _image of
       Nothing -> case _icon of
         Nothing -> reComponent widget
         Just i -> ui_ i >> divClass "content" (reComponent widget)
@@ -525,8 +571,8 @@ instance (m ~ m', t ~ t') => UI t' m' None (PageHeader t m a) where
 
 instance (m ~ m', t ~ t') => UI t' m' None (Header t m a) where
   type Return t' m' None (Header t m a) = a
-  ui' (Header config@HeaderConfig {..} widget) = do
-    reComponent $ elWithAnim' "div" elConfig $ case _image of
+  ui' (Header config@HeaderConfig {..} widget)
+    = reComponent $ elWithAnim' "div" elConfig $ case _image of
       Nothing -> case _icon of
         Nothing -> reComponent widget
         Just i -> ui_ i >> divClass "content" (reComponent widget)
@@ -556,8 +602,8 @@ instance t ~ t' => UI t' m Header (Image t) where
 
 instance (t ~ t', m ~ m') => UI t' m' Header (SubHeader t m a) where
   type Return t' m' Header (SubHeader t m a) = a
-  ui' (SubHeader content) = do
-    reComponent $ elWithAnim' "div" elConfig $ reComponent content
+  ui' (SubHeader content)
+    = reComponent $ elWithAnim' "div" elConfig $ reComponent content
     where
       elConfig = def { _classes = "sub header" }
 
@@ -595,9 +641,8 @@ instance t' ~ t => UI t' m Icons (Icon t) where
 instance (m ~ m', t' ~ t) => UI t' m' None (Input t m a) where
   type Return t' m' None (Input t m a) = a
 
-  ui' (Input config@InputConfig {..} contents) = do
-    reComponent $ elWithAnim' "div" elConfig $ do
-      reComponent contents
+  ui' (Input config@InputConfig {..} contents)
+    = reComponent $ elWithAnim' "div" elConfig $ reComponent contents
     where
       elConfig = _config <> def { _classes = inputConfigClasses config }
 
@@ -609,7 +654,8 @@ instance (m ~ m', t ~ t') => UI t' m' Input (Label t m a) where
   type Return t' m' Input (Label t m a) = a
   ui' = unComponent . ui'
 
-instance (Ord a, m ~ m', t ~ t') => UI t' m' Input (Dropdown f t m a) where
+instance (Ord (f a), Ord a, Selectable f, m ~ m', t ~ t')
+  => UI t' m' Input (Dropdown f t m a) where
   type Return t' m' Input (Dropdown f t m a) = Dynamic t (f a)
   ui' = unComponent . ui'
 
@@ -622,15 +668,15 @@ instance (m' ~ m, t' ~ t) => UI t' m' Input (Button t m) where
 
 instance t ~ t' => UI t' m Label (Detail t) where
   type Return t' m Label (Detail t) = ()
-  ui' (Detail txt) = do
-    reComponent $ elWithAnim' "div" elConfig $ activeText txt
+  ui' (Detail txt)
+    = reComponent $ elWithAnim' "div" elConfig $ activeText txt
       where elConfig = def { _classes = "detail" }
 
 instance (m ~ m', t ~ t') => UI t' m' None (Label t m a) where
   type Return t' m' None (Label t m a) = a
 
-  ui' (Label config@LabelConfig {..} content) = do
-    reComponent $ elWithAnim' elType elConfig $ reComponent content
+  ui' (Label config@LabelConfig {..} content)
+    = reComponent $ elWithAnim' elType elConfig $ reComponent content
     where
       elConfig = _config <> def
         { _classes = labelConfigClasses config
@@ -764,10 +810,8 @@ instance (m ~ m', t ~ t') => UI t' m' Inline (Label t m a) where
 
 instance (t ~ t', m ~ m') => UI t' m' None (Segment t m a) where
   type Return t' m' None (Segment t m a) = a
-  ui' (Segment config@SegmentConfig{..} content) = do
-
-    reComponent $ elWithAnim' "div" elConfig content
-
+  ui' (Segment config@SegmentConfig{..} content)
+    = reComponent $ elWithAnim' "div" elConfig content
     where
       elConfig = _config <> def { _classes = segmentConfigClasses config }
 
@@ -816,7 +860,7 @@ runSticky pushing sticky = do
     isTop <- DOMTokenList.contains domTokenList ("top" :: DOM.JSString)
 
     if isFixed
-    then do -- line 515
+    then -- line 515
       if isTop
       then do
         -- Top fixed sticky reached top of context
@@ -829,7 +873,7 @@ runSticky pushing sticky = do
         -- Bottom fixed sticky reached top of context
         when (stickyTop <= contextTop) $ setFixed False >> setTop True
 
-    else do -- line 557
+    else -- line 557
       if isTop
       then do
         -- Top bound sticky context went off page

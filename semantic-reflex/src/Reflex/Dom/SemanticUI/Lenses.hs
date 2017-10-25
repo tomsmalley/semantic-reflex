@@ -50,16 +50,6 @@ $(makeFieldsNoPrefix ''CheckboxResult)
 $(makeFieldsNoPrefix ''CheckboxConfig)
 
 $(makeFieldsNoPrefix ''DropdownConfig)
-{-
-$(makeFieldsNoPrefix ''Dropdown)
-
-$(makeFieldsNoPrefix ''DropdownItem)
-$(makeFieldsNoPrefix ''DropdownItemConfig)
-
-$(makeFieldsNoPrefix ''RadioItem)
-$(makeFieldsNoPrefix ''RadioItemConfig)
-$(makeFieldsNoPrefix ''RadioGroupConfig)
--}
 
 $(makeFieldsNoPrefix ''MenuConfig)
 $(makeFieldsNoPrefix ''MenuItemConfig)
@@ -80,15 +70,11 @@ $(makeFieldsNoPrefix ''AnchorConfig)
 $(makeFieldsNoPrefix ''SegmentConfig)
 
 $(makeFieldsNoPrefix ''Message)
--- $(makeFieldsNoPrefix ''MessageResult)
 $(makeFieldsNoPrefix ''MessageConfig)
 
 $(makeFieldsNoPrefix ''SetValue')
 $(makeFieldsNoPrefix ''TransitionConfig)
 $(makeFieldsNoPrefix ''TransConfig)
--- $(makeFieldsNoPrefix ''Transition)
--- $(makeFieldsNoPrefix ''ActiveElConfig)
--- $(makeFieldsNoPrefix ''Animation)
 
 class HasTransition t a where
   transition :: Lens' a (Maybe (TransConfig t))
@@ -113,3 +99,4 @@ instance HasConfig a (ActiveElConfig t) => HasClasses t a where
 
 instance HasConfig a (ActiveElConfig t) => HasTransition t a where
   transition = config . elConfigTransition
+
