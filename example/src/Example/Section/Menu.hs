@@ -14,10 +14,13 @@ module Example.Section.Menu where
 import Control.Lens
 import Control.Monad ((<=<), join)
 import Data.List.NonEmpty
+import qualified Data.Sequence as Seq
 import qualified Data.Set as S
 import Data.Text (Text)
 import Reflex.Dom.SemanticUI
 import GHC.Tuple
+
+import Data.Selectable
 
 import Example.QQ
 import Example.Common
@@ -115,6 +118,51 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
 
     (dynVal, _) <- ui $ Menu menuConfig $ do
       ui_ $ MenuItem 1 def $ text "One"
+      ui_ $ MenuItem 2 def $ text "Two"
+      ui_ $ MenuItem 3 def $ text "Three"
+      ui_ $ MenuItem 4 def $ text "Four"
+
+    return dynVal
+  |]
+
+  ui_ $ Example "Seq Menu" (def & subtitle ?~ text "A menu can have many (zero or more) selected values as a sequence" & dynamic ?~ dynCode)
+   [resetExample|
+  \resetEvent -> do
+
+    let menuConfig = mkMenuConfig (Seq.singleton 3) & value . event ?~ (Seq.singleton 3 <$ resetEvent)
+
+    (dynVal, _) <- ui $ Menu menuConfig $ do
+      ui_ $ MenuItem 1 def $ text "One"
+      ui_ $ MenuItem 2 def $ text "Two"
+      ui_ $ MenuItem 3 def $ text "Three"
+      ui_ $ MenuItem 4 def $ text "Four"
+
+    return dynVal
+  |]
+
+  ui_ $ Example "Limited Seq Menu" (def & subtitle ?~ text "A menu can have many (zero or more) selected values as a limited sequence" & dynamic ?~ dynCode)
+   [resetExample|
+  \resetEvent -> do
+
+    let menuConfig = mkMenuConfig (LimitedSeq 2 False $ pure 3) & value . event ?~ (LimitedSeq 2 False (pure 3) <$ resetEvent)
+
+    (dynVal, _) <- ui $ Menu menuConfig $ do
+      ui_ $ MenuItem (1 :: Int) def $ text "One"
+      ui_ $ MenuItem 2 def $ text "Two"
+      ui_ $ MenuItem 3 def $ text "Three"
+      ui_ $ MenuItem 4 def $ text "Four"
+
+    return dynVal
+  |]
+
+  ui_ $ Example "Cycling Limited Seq Menu" (def & subtitle ?~ text "A menu can have many (zero or more) selected values as a cycling limited sequence" & dynamic ?~ dynCode)
+   [resetExample|
+  \resetEvent -> do
+
+    let menuConfig = mkMenuConfig (LimitedSeq 2 True $ pure 3) & value . event ?~ (LimitedSeq 2 True (pure 3) <$ resetEvent)
+
+    (dynVal, _) <- ui $ Menu menuConfig $ do
+      ui_ $ MenuItem (1 :: Int) def $ text "One"
       ui_ $ MenuItem 2 def $ text "Two"
       ui_ $ MenuItem 3 def $ text "Three"
       ui_ $ MenuItem 4 def $ text "Four"

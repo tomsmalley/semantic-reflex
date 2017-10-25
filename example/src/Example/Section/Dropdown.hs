@@ -36,7 +36,6 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
   hscode $(printDefinition id stripParens ''Dropdown)
   paragraph $ text "The standard dropdown returns a Maybe to signify the possibility of no selection. However, if you specify an initial value, the user will be unable to deselect it. In this case you can clear the value with 'setValue' by passing 'Nothing'."
 
-{-
   togg <- toggle False <=< ui $ Button def $ text "reset"
   do
 --  ui_ $ Example "Dropdown" (def & subtitle ?~ text "A simple dropdown" & dynamic ?~ dynCode)
@@ -48,11 +47,10 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
       ui $ MenuItem "important" def $ text "Important"
       ui $ MenuItem "announcement" def $ text "Announcement"
       ui_ $ MenuItem "discussion" def $ text "Discussion"
---      void $ dyn' $ ffor togg $ \case
---        True -> ui $ MenuItem "A" def $ text "A"
---        False -> ui $ MenuItem "B" def $ text "B"
+      void $ dyn' $ ffor togg $ \case
+        True -> ui $ MenuItem "A" def $ text "A"
+        False -> ui $ MenuItem "B" def $ text "B"
 --  |]
--}
 
   return ()
 {-

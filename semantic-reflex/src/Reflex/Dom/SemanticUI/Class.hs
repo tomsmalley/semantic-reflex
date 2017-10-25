@@ -26,21 +26,13 @@ module Reflex.Dom.SemanticUI.Class where
 import Control.Lens hiding (element)
 import Control.Monad ((<=<), void)
 import Control.Monad.Reader
-import Control.Monad.Writer hiding ((<>), First(..))
 
-import Data.Bool (bool)
 import Data.Default (Default(..))
-import Data.Foldable (traverse_, for_)
-import Data.List.NonEmpty (NonEmpty(..))
-import qualified Data.List.NonEmpty as NonEmpty
-import Data.Traversable (for)
 import Data.Functor.Misc (WrapArg(..))
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import Data.Proxy (Proxy(..))
 import Data.Semigroup ((<>), First(..))
-import qualified Data.Set as S
-import Data.Set (Set)
 import Data.Text (Text)
 
 import GHC.TypeLits
@@ -57,9 +49,10 @@ import qualified GHCJS.DOM.DOMRect as DOMRect
 import qualified GHCJS.DOM.DOMTokenList as DOMTokenList
 import Language.Javascript.JSaddle (liftJSM)
 
-import Reflex.Dom.Core hiding (fromJSString, divClass, Checkbox, CheckboxConfig, Input, setValue, Dropdown, DropdownConfig, HasValue(value), link)
+import Reflex.Dom.Core hiding (fromJSString, divClass, Checkbox, CheckboxConfig, Input, setValue, Dropdown, DropdownConfig, HasValue(value), link, selectElement)
 
 import Reflex.Dom.Active
+import Data.Selectable
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Lenses
 
@@ -450,45 +443,6 @@ instance (m ~ m', t ~ t') => UI t' m' Inline (Input t m a) where
   type Return t' m' Inline (Input t m a) = a -- InputResult t a
   ui' = unComponent . ui'
 
--- | Collections which can be selectable. This is similar to an insert operation
--- on a structure, but with the caveat that if the element already exists in
--- the structure it should be removed (if possible). In pseudo code it should
--- satisfy:
---
---    toggleSelection x xs == if elem x xs then delete x xs else insert x xs
---
-class Selectable t where
-  toggleSelection :: Ord a => a -> t a -> t a
-
-instance Selectable [] where
-  toggleSelection a [] = [a]
-  toggleSelection a (a':as)
-    | a == a' = as
-    | otherwise = a' : toggleSelection a as
-
-instance Selectable Set where
-  toggleSelection a s
-    | S.member a s = S.delete a s
-    | otherwise = S.insert a s
-
-instance Selectable NonEmpty where
-  toggleSelection a (a' :| [])
-    | a == a' = a :| []
-    | otherwise = a' :| [a]
-
-  toggleSelection a (a' :| as)
-    | a == a' = NonEmpty.fromList as
-    | otherwise = a' :| toggleSelection a as
-
-instance Selectable Maybe where
-  toggleSelection a Nothing = Just a
-  toggleSelection a (Just a')
-    | a == a' = Nothing
-    | otherwise = Just a
-
-instance Selectable Identity where
-  toggleSelection a _ = Identity a
-
 instance (Selectable f, Ord (f a), Ord a, t ~ t', m ~ m')
   => UI t' m' None (Menu f t m a b) where
   type Return t' m' None (Menu f t m a b) = (Dynamic t (f a), b)
@@ -507,7 +461,7 @@ instance (Selectable f, Ord (f a), Ord a, t ~ t', m ~ m')
       elConfig = _config <> def
         { _classes = menuConfigClasses config }
       mkCurrent :: Either a (f a) -> f a -> f a
-      mkCurrent (Left x) acc = toggleSelection x acc
+      mkCurrent (Left x) acc = selectElement x acc
       mkCurrent (Right acc) _ = acc
 
 
