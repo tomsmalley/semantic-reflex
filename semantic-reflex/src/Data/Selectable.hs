@@ -84,6 +84,6 @@ snoc a ll@LimitedSeq{..}
 
 instance Selectable LimitedSeq where
   selectElement a ll@LimitedSeq{..}
-    | elem a list = ll { list = Seq.fromList $ List.delete a $ toList list }
+    | a `elem` list = ll { list = Seq.fromList $ List.delete a $ toList list }
     | otherwise = snoc a ll
 

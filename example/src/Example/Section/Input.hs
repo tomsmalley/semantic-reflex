@@ -111,7 +111,7 @@ inputs = LinkedSection "Input" (text "An input is a field used to elicit a respo
 
   ui $ Input (def & labeled |?~ RightLabeled) $ do
     textInput $ def & placeholder |~ "Search users..."
-    ui $ Dropdown (mkDropdownConfig (Just "com") & as |?~ DropdownLabel) $ do
+    ui $ MenuDropdown (mkDropdownConfig (Just "com") & as |?~ DropdownLabel) $ do
       ui $ MenuItem "com" def $ text ".com"
       ui $ MenuItem "net" def $ text ".net"
       ui $ MenuItem "org" def $ text ".org"
@@ -170,7 +170,7 @@ inputs = LinkedSection "Input" (text "An input is a field used to elicit a respo
   ui $ Input (def & action |?~ RightAction & icon |?~ LeftIcon) $ do
     ui $ Icon "search" def
     textInput $ def & placeholder |~ "Search..."
-    ui $ Dropdown (mkDropdownConfig (Just "page") & as |?~ DropdownButton) $ do
+    ui $ MenuDropdown (mkDropdownConfig (Just "page") & as |?~ DropdownButton) $ do
       ui $ MenuItem "page" def $ text "This Page"
       ui $ MenuItem "org" def $ text "This Organisation"
       ui $ MenuItem "site" def $ text "Entire Site"
@@ -179,7 +179,7 @@ inputs = LinkedSection "Input" (text "An input is a field used to elicit a respo
 
   ui $ Input (def & action |?~ RightAction) $ do
     textInput $ def & placeholder |~ "Search..."
-    ui $ Dropdown (mkDropdownConfig (Just "all") & compact |~ True & selection |~ True) $ do
+    ui $ MenuDropdown (mkDropdownConfig (Just "all") & compact |~ True & selection |~ True) $ do
       ui $ MenuItem "all" def $ text "All"
       ui $ MenuItem "articles" def $ text "Articles"
       ui $ MenuItem "products" def $ text "Products"

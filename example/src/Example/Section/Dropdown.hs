@@ -21,6 +21,7 @@ import Example.CountryEnum
 -}
 import Control.Lens
 import Control.Monad ((<=<), void)
+import Data.Foldable (for_)
 import Data.Text (Text)
 import Reflex.Dom.SemanticUI
 
@@ -33,24 +34,32 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
   hscode $(printDefinition id stripParens ''DropdownConfig)
 
   ui_ $ PageHeader H3 def $ text "Dropdown"
-  hscode $(printDefinition id stripParens ''Dropdown)
-  paragraph $ text "The standard dropdown returns a Maybe to signify the possibility of no selection. However, if you specify an initial value, the user will be unable to deselect it. In this case you can clear the value with 'setValue' by passing 'Nothing'."
+  hscode $(printDefinition id stripParens ''MenuDropdown)
+  hscode $(printDefinition id stripParens ''SelectionDropdown)
 
   togg <- toggle False <=< ui $ Button def $ text "reset"
-  do
 --  ui_ $ Example "Dropdown" (def & subtitle ?~ text "A simple dropdown" & dynamic ?~ dynCode)
 --    [resetExample|
 --  \resetEvent -> do
-    void $ ui $ Dropdown (mkDropdownConfig Nothing) $ do
-      ui $ Header (def & icon ?~ Icon "tag" def) $ text "Filter by tag"
-      ui $ Divider def
-      ui $ MenuItem "important" def $ text "Important"
-      ui $ MenuItem "announcement" def $ text "Announcement"
-      ui_ $ MenuItem "discussion" def $ text "Discussion"
-      void $ dyn' $ ffor togg $ \case
-        True -> ui $ MenuItem "A" def $ text "A"
-        False -> ui $ MenuItem "B" def $ text "B"
+  ui $ MenuDropdown (mkDropdownConfig Nothing) $ do
+    ui $ Header (def & icon ?~ Icon "tag" def) $ text "Filter by tag"
+    ui $ Divider def
+    ui $ MenuItem "important" def $ text "Important"
+    ui $ MenuItem "announcement" def $ text "Announcement"
+    ui_ $ MenuItem "discussion" def $ text "Discussion"
+    void $ dyn' $ ffor togg $ \case
+      True -> ui $ MenuItem "A" def $ text "A"
+      False -> ui $ MenuItem "B" def $ text "B"
 --  |]
+
+  ui_ $ Divider def
+
+  ddval <- ui $ MenuDropdown (mkDropdownConfig Nothing & selection |~ True) $
+    for_ [1..100] $ \i -> ui $ MenuItem i def $ text $ Static $ tshow i
+
+  ui_ $ Divider def
+
+  Component $ display ddval
 
   return ()
 {-

@@ -367,9 +367,9 @@ instance (m ~ m', t ~ t') => UI t' m' ContentDivider (Header t m a) where
 -- Dropdown instances
 
 instance (Ord (f a), Ord a, t ~ t', m ~ m', Selectable f)
-  => UI t' m' None (Dropdown f t m a) where
-  type Return t' m' None (Dropdown f t m a) = Dynamic t (f a)
-  ui' (Dropdown config@DropdownConfig {..} items) = do
+  => UI t' m' None (MenuDropdown f t m a) where
+  type Return t' m' None (MenuDropdown f t m a) = Dynamic t (f a)
+  ui' (MenuDropdown config@DropdownConfig {..} items) = do
 
     let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
           & initialAttributes .~ constAttrs
@@ -379,15 +379,15 @@ instance (Ord (f a), Ord a, t ~ t', m ~ m', Selectable f)
           { _classes = dropdownConfigClasses config
           , _attrs = Static $ "tabindex" =: "0" }
 
-    value <- holdDyn (_value ^. initial) never
-
     rec
       isOpen <- holdDyn False $ leftmost
         [ True <$ gate (not <$> current isOpen) (domEvent Click divEl)
         , False <$ domEvent Blur divEl
         ]
 
-      let menuConfig = mkMenuConfig (_value ^. initial) & component .~ True
+      let menuConfig = mkMenuConfig (_value ^. initial)
+            & component .~ True
+            & value . event .~ _value ^. event
             & transition ?~ (def & initialDirection .~ Out
                                  & forceVisible .~ True
                                  & event .~ evt)
@@ -404,7 +404,7 @@ instance (Ord (f a), Ord a, t ~ t', m ~ m', Selectable f)
         unComponent $ ui $ Icon "dropdown" def
         unComponent $ ui $ Menu menuConfig items
 
-    return (divEl, value)
+    return (divEl, fst result)
 
 --------------------------------------------------------------------------------
 -- Menu instances
@@ -609,8 +609,8 @@ instance (m ~ m', t ~ t') => UI t' m' Input (Label t m a) where
   ui' = unComponent . ui'
 
 instance (Ord (f a), Ord a, Selectable f, m ~ m', t ~ t')
-  => UI t' m' Input (Dropdown f t m a) where
-  type Return t' m' Input (Dropdown f t m a) = Dynamic t (f a)
+  => UI t' m' Input (MenuDropdown f t m a) where
+  type Return t' m' Input (MenuDropdown f t m a) = Dynamic t (f a)
   ui' = unComponent . ui'
 
 instance (m' ~ m, t' ~ t) => UI t' m' Input (Button t m) where

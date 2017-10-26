@@ -32,6 +32,8 @@ import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Transition
 import Reflex.Dom.SemanticUI.Menu
 
+import qualified Reflex.Dom.Core as Core
+
 data DropdownAction
   = Activate
   | Combo
@@ -101,10 +103,33 @@ dropdownConfigClasses DropdownConfig {..} = activeClasses
   , fmap toClassText <$> _as
   ]
 
-data Dropdown f t m a = Dropdown
+data MenuDropdown f t m a = MenuDropdown
   { _config :: DropdownConfig t (f a)
   , _items :: Component Menu (ReaderT (Dynamic t (f a)) (EventWriterT t (First a) m)) ()
   }
+
+
+data SelectionDropdown f t m a = SelectionDropdown
+  { _config :: DropdownConfig t (f a)
+  , _preItems :: Component SelectionDropdown m ()
+  , _items :: Active t [DropdownItem m a]
+  }
+
+data DropdownItem m a = DropdownItem
+  { _value :: a
+  , _config :: DropdownItemConfig m
+  }
+
+simpleItem :: (Core.DomBuilder t m, Show a) => a -> DropdownItem m a
+simpleItem a = DropdownItem a $ def { _render = Component (Core.text $ tshow a) }
+
+data DropdownItemConfig m = DropdownItemConfig
+  { _render :: Component DropdownItemConfig m ()
+  , _altRender :: Maybe (Component DropdownItemConfig m ())
+  }
+
+instance Monad m => Default (DropdownItemConfig m) where
+  def = DropdownItemConfig Core.blank Nothing
 
 {-
 
