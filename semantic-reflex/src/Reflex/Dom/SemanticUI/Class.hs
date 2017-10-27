@@ -366,6 +366,68 @@ instance (m ~ m', t ~ t') => UI t' m' ContentDivider (Header t m a) where
 --------------------------------------------------------------------------------
 -- Dropdown instances
 
+instance (Ord (f a), Ord a, m ~ m', Foldable f
+         , MonadReader (Dynamic t (f a)) m, EventWriter t (First a) m)
+  => UI t m' SelectionDropdown (DropdownItem m a) where
+  type Return t m' SelectionDropdown (DropdownItem m a) = Event t (a, Component DropdownItem m ())
+  ui' (DropdownItem value config@DropdownItemConfig {..}) = do
+    undefined
+--    isSelected <- Component $ asks $ Dynamic . fmap (elem value)
+--    (e, _) <- reComponent $ elWithAnim' "div" (elConfig isSelected) $
+--      reComponent _render
+--    return (e, (value, _render) <$ domEvent Click e)
+--      where
+--        elConfig active = def
+--          & classes .~ "item" <> ((\b -> if b then "active" else "") <$> active)
+
+instance (Ord (f a), Ord a, t ~ t', m ~ m', Selectable f)
+  => UI t' m' None (SelectionDropdown f t m a) where
+  type Return t' m' None (SelectionDropdown f t m a) = Dynamic t (f a)
+  ui' (SelectionDropdown config@DropdownConfig {..} preItems items) = do
+
+    undefined
+{-
+    let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
+          & initialAttributes .~ constAttrs
+        constAttrs = "type" =: "hidden"
+
+        elConfig = _config <> def
+          { _classes = dropdownConfigClasses config
+          , _attrs = Static $ "tabindex" =: "0" }
+
+    rec
+      isOpen <- holdDyn False $ leftmost
+        [ True <$ gate (not <$> current isOpen) (domEvent Click divEl)
+        , False <$ domEvent Blur divEl
+        ]
+
+      let menuConfig = mkMenuConfig (_value ^. initial)
+            & component .~ True
+            & value . event .~ _value ^. event
+            & transition ?~ (def & initialDirection .~ Out
+                                 & forceVisible .~ True
+                                 & event .~ evt)
+
+          evt = ffor (updated isOpen) $ \case
+                  True -> mkTransition (Just In)
+                  False -> mkTransition (Just Out)
+
+          mkTransition d = Transition SlideDown $ def
+            & cancelling .~ True & duration .~ 0.2 & direction .~ d
+
+      (divEl, result) <- unComponent $ elWithAnim' "div" elConfig $ do
+        Component $ element "input" cfg blank
+        unComponent $ ui $ Icon "dropdown" def
+        unComponent $ elWithAnim' "div" menuConfig $ do
+          preItems
+          evts <- traverse ui items
+          leftmost evts
+
+    return (divEl, fst result)
+-}
+
+
+
 instance (Ord (f a), Ord a, t ~ t', m ~ m', Selectable f)
   => UI t' m' None (MenuDropdown f t m a) where
   type Return t' m' None (MenuDropdown f t m a) = Dynamic t (f a)

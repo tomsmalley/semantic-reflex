@@ -57,9 +57,14 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
   ddval <- ui $ MenuDropdown (mkDropdownConfig Nothing & selection |~ True) $
     for_ [1..100] $ \i -> ui $ MenuItem i def $ text $ Static $ tshow i
 
-  ui_ $ Divider def
+  ui_ $ Divider $ def & hidden |~ True
 
   Component $ display ddval
+
+  ui_ $ Divider def
+
+--  ddval <- ui $ SelectionDropdown (mkDropdownConfig Nothing & selection |~ True) (return ()) $
+--    Static $ for [1..100] $ \i -> simpleItem i
 
   return ()
 {-

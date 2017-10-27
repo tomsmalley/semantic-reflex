@@ -124,8 +124,8 @@ simpleItem :: (Core.DomBuilder t m, Show a) => a -> DropdownItem m a
 simpleItem a = DropdownItem a $ def { _render = Component (Core.text $ tshow a) }
 
 data DropdownItemConfig m = DropdownItemConfig
-  { _render :: Component DropdownItemConfig m ()
-  , _altRender :: Maybe (Component DropdownItemConfig m ())
+  { _render :: Component DropdownItem m ()
+  , _altRender :: Maybe (Component DropdownItem m ())
   }
 
 instance Monad m => Default (DropdownItemConfig m) where
