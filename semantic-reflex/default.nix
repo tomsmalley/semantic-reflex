@@ -1,5 +1,5 @@
 { mkDerivation
-, ghcjs
+, ghc
 , stdenv
 
 , base
@@ -28,7 +28,8 @@
 , warp
 , websockets
 }:
-mkDerivation {
+let ghcjs = ghc.isGhcjs or false;
+in mkDerivation {
   pname = "semantic-reflex";
   version = "0.1";
   src = ./.;

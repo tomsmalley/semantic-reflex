@@ -34,6 +34,7 @@ library
     , Example.Section.Icon
     , Example.Section.Input
     , Example.Section.Label
+    , Example.Section.List
     , Example.Section.Menu
     , Example.Section.Message
     , Example.Section.RadioGroup

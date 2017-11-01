@@ -23,7 +23,7 @@
 
 module Reflex.Dom.SemanticUI.Class where
 
-import Control.Lens hiding (element)
+import Control.Lens hiding (element, List)
 import Control.Monad ((<=<), void)
 import Control.Monad.Reader
 
@@ -67,6 +67,7 @@ import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Image
 import Reflex.Dom.SemanticUI.Input
 import Reflex.Dom.SemanticUI.Label
+import Reflex.Dom.SemanticUI.List
 import Reflex.Dom.SemanticUI.Menu
 import Reflex.Dom.SemanticUI.Message
 import Reflex.Dom.SemanticUI.Segment
@@ -371,6 +372,7 @@ instance (Ord (f a), Ord a, m ~ m', Foldable f
   => UI t m' SelectionDropdown (DropdownItem m a) where
   type Return t m' SelectionDropdown (DropdownItem m a) = Event t (a, Component DropdownItem m ())
   ui' (DropdownItem value config@DropdownItemConfig {..}) = do
+
     undefined
 --    isSelected <- Component $ asks $ Dynamic . fmap (elem value)
 --    (e, _) <- reComponent $ elWithAnim' "div" (elConfig isSelected) $
@@ -704,6 +706,49 @@ instance t' ~ t => UI t' m Label (Icon t) where
   ui' = unComponent . ui'
 instance (m' ~ m, t' ~ t) => UI t' m' Label (Icons t m a) where
   type Return t' m' Label (Icons t m a) = a
+  ui' = unComponent . ui'
+
+--------------------------------------------------------------------------------
+-- List instances
+
+instance (m ~ m', t ~ t') => UI t' m' None (List t m a) where
+  type Return t' m' None (List t m a) = a
+  ui' (List config@ListConfig {..} widget)
+    = reComponent $ elWithAnim' "div" elConfig $ reComponent widget
+    where
+      elConfig = _config <> def
+        { _classes = listConfigClasses config
+        }
+
+instance (m ~ m', t ~ t') => UI t' m' List (ListItem t m a) where
+  type Return t' m' List (ListItem t m a) = a
+  ui' (ListItem config@ListItemConfig {..} widget)
+    = reComponent $ elWithAnim' (listItemElement _as) elConfig $ case _image of
+      Nothing -> case _icon of
+        Nothing -> reComponent widget
+        Just i -> ui_ i >> divClass "content" (reComponent widget)
+      Just i -> ui_ i >> divClass "content" (reComponent widget)
+    where
+      elConfig = _config <> def
+        { _classes = listItemConfigClasses config
+        }
+
+instance (t ~ t', m ~ m') => UI t' m' ListItem (List t m a) where
+  type Return t' m' ListItem (List t m a) = a
+  ui' = unComponent . ui'
+
+instance (t ~ t', m ~ m') => UI t' m' ListItem (ListHeader t m a) where
+  type Return t' m' ListItem (ListHeader t m a) = a
+  ui' (ListHeader content)
+    = reComponent $ divClass' "header" $ reComponent content
+
+instance (t ~ t', m ~ m') => UI t' m' ListItem (ListDescription t m a) where
+  type Return t' m' ListItem (ListDescription t m a) = a
+  ui' (ListDescription content)
+    = reComponent $ divClass' "description" $ reComponent content
+
+instance (t ~ t', m ~ m') => UI t' m' ListItem (Anchor t m a) where
+  type Return t' m' ListItem (Anchor t m a) = AnchorResult t a
   ui' = unComponent . ui'
 
 --------------------------------------------------------------------------------

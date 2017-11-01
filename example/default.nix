@@ -2,10 +2,11 @@
 , file-embed, ghc-prim, ghcjs-dom, haskell-src-exts
 , haskell-src-meta, hscolour, jsaddle, jsaddle-warp, lens, mtl
 , reflex, reflex-dom-core, semantic-reflex, stdenv, template-haskell, text, these
-, wai, wai-app-static, warp, websockets, ghcjs
+, wai, wai-app-static, warp, websockets, ghc
 , closurecompiler, runCC
 }:
-mkDerivation rec {
+let ghcjs = ghc.isGhcjs or false;
+in mkDerivation rec {
   pname = "example";
   version = "0.1";
   src = builtins.filterSource (path: type: !(builtins.elem (baseNameOf path)
@@ -42,6 +43,7 @@ mkDerivation rec {
   license = stdenv.lib.licenses.bsd3;
   buildTools = [ closurecompiler ];
   postInstall = stdenv.lib.optionalString ghcjs (''
+    echo Making distribution directory...
     mkdir $out/dist;
     mkdir $out/dist/js;
     cp -r ${semantic-reflex}/share/*/*/data/static/* $out/dist;
@@ -51,7 +53,6 @@ mkDerivation rec {
       closure-compiler
       --js_output_file $out/dist/js/all.js
       --externs=$out/bin/${pname}.jsexe/all.js.externs
-      --externs=${semantic-reflex}/share/*/*/lib/jquery.js.externs
       $out/bin/${pname}.jsexe/all.js
       -O ADVANCED;
   '') else (''

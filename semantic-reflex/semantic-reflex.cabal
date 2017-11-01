@@ -20,10 +20,7 @@ data-files:
   data/static/themes/default/assets/fonts/icons.woff
   data/static/themes/default/assets/fonts/icons.woff2
   data/static/themes/default/assets/images/flags.png
-  data/static/js/semantic.min.js
-  data/static/js/jquery.min.js
   data/static/index.html
-  data/jquery.js.externs
 
 library
   hs-source-dirs: src
@@ -46,6 +43,7 @@ library
     Reflex.Dom.SemanticUI.Image
     Reflex.Dom.SemanticUI.Input
     Reflex.Dom.SemanticUI.Label
+    Reflex.Dom.SemanticUI.List
     Reflex.Dom.SemanticUI.Lenses
     Reflex.Dom.SemanticUI.Menu
     Reflex.Dom.SemanticUI.Message
@@ -60,17 +58,17 @@ library
     exposed-modules: Reflex.Dom.SemanticUI.Warp
 
   build-depends:
-      base            >= 4.8 && < 4.10
+      base              >= 4.8 && < 4.10
     , bytestring
     , containers
     , data-default
-    , file-embed      >= 0.0.10 && < 0.1
+    , file-embed        >= 0.0.10 && < 0.1
     , ghcjs-dom
-    , jsaddle         >= 0.8.0.0 && < 0.10
-    , lens            >= 4.15.2
+    , jsaddle           >= 0.8.0.0 && < 0.10
+    , lens              >= 4.15.2 && < 4.16
     , mtl
-    , reflex          >= 0.5 && < 0.6
-    , reflex-dom-core >= 0.4 && < 0.5
+    , reflex            >= 0.5 && < 0.6
+    , reflex-dom-core   >= 0.4 && < 0.5
     , ref-tf
     , template-haskell
     , text
@@ -81,7 +79,7 @@ library
 
   if !impl(ghcjs)
     build-depends:
-        jsaddle-warp >= 0.9.2.0
+        jsaddle-warp    >= 0.9.2.0 && < 0.10
       , wai
       , wai-app-static
       , warp

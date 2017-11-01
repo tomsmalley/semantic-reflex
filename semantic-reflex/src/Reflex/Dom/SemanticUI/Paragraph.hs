@@ -3,7 +3,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE PolyKinds #-}
@@ -23,6 +22,7 @@ import Reflex.Dom.SemanticUI.Transition hiding (divClass)
 
 import Reflex.Dom.SemanticUI.Button (Button)
 import Reflex.Dom.SemanticUI.Label (Label)
+import Reflex.Dom.SemanticUI.List (ListItem)
 import Reflex.Dom.SemanticUI.Divider (ContentDivider)
 import Reflex.Dom.SemanticUI.Header (Header)
 import Reflex.Dom.SemanticUI.Message (Message)
@@ -35,6 +35,7 @@ class PlainText (r :: k) t m where
 instance PlainText None t m
 instance PlainText Inline t m
 instance PlainText Header t m
+instance PlainText ListItem t m
 instance PlainText ContentDivider t m
 instance PlainText Label t m
 instance PlainText Button t m

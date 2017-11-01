@@ -37,6 +37,7 @@ import Example.Section.Header
 import Example.Section.Icon (icons)
 import Example.Section.Input (inputs)
 import Example.Section.Label (labels)
+import Example.Section.List (lists)
 import Example.Section.Menu (menu)
 import Example.Section.Message (messages)
 import Example.Section.Transition (transitions)
@@ -55,7 +56,7 @@ scrollIntoView id = do
   o <# ("behavior" :: Text) $ ("smooth" :: Text)
   mEl :: Maybe JSVal <- fromJSVal =<< document ^. js1 ("getElementById" :: Text) id
   case mEl of
-    Nothing -> consoleLog ("el does not exist" :: Text) >> return ()
+    Nothing -> void $ consoleLog ("el does not exist" :: Text)
     Just el -> void $ el ^. js1 ("scrollIntoView" :: Text) o
 
 getLocationHash :: JSM (Maybe Text)
@@ -108,7 +109,7 @@ putSections sections = do
     rec
 
       -- Menu
-      divClass "ui dividing right rail" $ do
+      divClass "ui dividing right rail" $
         ui_ $ Sticky def $ do
           ui_ $ PageHeader H4 def $ text "Components"
           --divClass "ui vertical following fluid accordion text menu" $ do
@@ -173,14 +174,14 @@ runWithLoader = do
   return ()
 
 loadingDimmer :: MonadWidget t m => Event t () -> Component None m ()
-loadingDimmer evt = do
-  ui $ Dimmer (def & page .~ True & transition ?~ (def & event .~ (Transition Fade def <$ evt))) $ do
+loadingDimmer evt =
+  ui $ Dimmer (def & page .~ True & transition ?~ (def & event .~ (Transition Fade def <$ evt))) $
     divClass "ui huge text loader" $ text "Loading semantic-reflex docs..."
 
 main' :: MonadWidget t m => Component None m ()
 main' = do
 
-  ui $ Segment (def & attributes |~ ("id" =: "masthead") & vertical |~ True) $ do
+  ui $ Segment (def & attributes |~ ("id" =: "masthead") & vertical |~ True) $
     divClass "ui container" $ do
       let semanticLogo = Image "https://semantic-ui.com/images/logo.png" $ def
             & shape |?~ Rounded
@@ -195,6 +196,6 @@ main' = do
 
       return ()
 
-  putSections [ inputs, dropdowns, menu, dimmers, buttons, checkboxes, dividers, flags, headers, icons, labels, menu, messages, transitions ]
+  putSections [ inputs, dropdowns, menu, dimmers, buttons, checkboxes, dividers, flags, headers, icons, labels, lists, menu, messages, transitions ]
 
   return ()

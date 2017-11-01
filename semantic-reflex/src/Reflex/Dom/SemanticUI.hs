@@ -15,6 +15,7 @@ module Reflex.Dom.SemanticUI
   , module Reflex.Dom.SemanticUI.Image
   , module Reflex.Dom.SemanticUI.Input
   , module Reflex.Dom.SemanticUI.Label
+  , module Reflex.Dom.SemanticUI.List
   , module Reflex.Dom.SemanticUI.Menu
   , module Reflex.Dom.SemanticUI.Message
   , module Reflex.Dom.SemanticUI.Header
@@ -42,6 +43,7 @@ import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Image
 import Reflex.Dom.SemanticUI.Input
 import Reflex.Dom.SemanticUI.Label
+import Reflex.Dom.SemanticUI.List
 import Reflex.Dom.SemanticUI.Menu
 import Reflex.Dom.SemanticUI.Message
 import Reflex.Dom.SemanticUI.Lenses

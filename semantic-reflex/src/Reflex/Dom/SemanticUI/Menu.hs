@@ -14,10 +14,8 @@ import Data.Semigroup
 import qualified Data.Set as S
 import Data.Set (Set)
 import Data.Text (Text)
-import Data.These
 import Reflex
 import Reflex.Dom.Core hiding (SetValue)
-import Data.Align
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
@@ -126,10 +124,5 @@ itemElAttrs conf@MenuItemConfig{..} = case _link of
 data Menu f t m v b = Menu
   { _config :: MenuConfig t (f v)
   , _items :: Component Menu (ReaderT (Dynamic t (f v)) (EventWriterT t (First v) m)) b
-  }
-
-data MenuDef t m v b = MenuDef
-  { _config :: MenuConfig t v
-  , _items :: Component Menu (ReaderT (Demux t v) (EventWriterT t (First v) m)) b
   }
 

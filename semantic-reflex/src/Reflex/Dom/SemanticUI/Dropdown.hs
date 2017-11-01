@@ -8,27 +8,14 @@
 module Reflex.Dom.SemanticUI.Dropdown where
 
 import Control.Monad.Reader
-import Control.Monad
-import Control.Monad.Trans
 import Data.Semigroup
-import Control.Lens ((^.))
 import Data.Default
-import Data.Functor.Identity
-import qualified Data.List as L
-import Data.Map (Map)
-import Data.Maybe (catMaybes, listToMaybe, mapMaybe)
 import Data.Text (Text)
-import qualified Data.Text as T
-import Data.These
-import Data.Align
-import qualified GHCJS.DOM.Element as DOM
 import Language.Javascript.JSaddle
-import Text.Read (readMaybe)
 import Reflex
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
-import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Transition
 import Reflex.Dom.SemanticUI.Menu
 
@@ -78,6 +65,7 @@ data DropdownConfig t a = DropdownConfig
 --  , _fullTextSearch :: Bool
 --  , _action :: DropdownAction
 
+mkDropdownConfig :: Reflex t => a -> DropdownConfig t a
 mkDropdownConfig a = DropdownConfig
   { _value = SetValue a Nothing
   , _placeholder = pure mempty
