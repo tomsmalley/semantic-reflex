@@ -5,6 +5,7 @@
 -- app.
 module Reflex.Dom.SemanticUI.Warp where
 
+import Debug.Trace
 import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (unpack)
 import Control.Lens ((^.))
@@ -39,9 +40,9 @@ runApp css port mainApp mUserFilePath middleware preApp = do
     (preApp >> app) (middleware static)
   runSettings settings jsaddle
   where
-    settings = setPort port $ setTimeout 3600 $ defaultSettings
+    settings = setPort port $ setTimeout 3600 defaultSettings
     app = makeHead css >> mainApp >> syncPoint
-    static = staticApp $ (defaultFileServerSettings
+    static = staticApp $ (defaultFileServerSettings $ traceShowId
       $(strToExp =<< makeRelativeToProject "data/static"))
         { ss404Handler = mUserStatic }
     mUserStatic = fmap (staticApp . defaultFileServerSettings) mUserFilePath

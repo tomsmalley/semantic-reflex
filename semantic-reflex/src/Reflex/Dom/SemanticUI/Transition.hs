@@ -24,6 +24,7 @@ module Reflex.Dom.SemanticUI.Transition
   , ActiveElConfig (..)
   , elWithAnim
   , elWithAnim'
+  , semEl
   , elConfigTransition
   , elConfigAttributes
   , elConfigStyle
@@ -388,6 +389,34 @@ instance Reflex t => Monoid (ActiveElConfig t) where
   mempty = def
   mappend = (<>)
 
+semEl
+  :: MonadWidget t m
+  => Text
+  -> ActiveElConfig t
+  -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
+semEl _element ActiveElConfig {..} child = do
+  transAttrs <- traverse runTransition _transition
+  case transAttrs of
+    Nothing -> do
+      let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
+          mkAttrs c s attrs = classAttr c <> styleAttr s <> attrs
+      elActiveAttr' _element activeAttrs child
+
+    Just (AnimationAttrs mDynClasses mDynStyle) -> do
+
+      let activeAttrs = mkAttrs <$> _classes <*> Dynamic mDynClasses
+                              <*> _style <*> Dynamic mDynStyle
+                              <*> _attrs
+
+          mkAttrs c mClasses s mStyle attrs
+            = classAttr (maybe c (<> c) mClasses)
+            <> styleAttr (maybe s (<> s) mStyle)
+            <> attrs
+
+      elActiveAttr' _element activeAttrs child
+
+
 elWithAnim :: MonadWidget t m => Text -> ActiveElConfig t -> Component r m a -> Component None m a
 elWithAnim elType conf = fmap snd . elWithAnim' elType conf
 
@@ -418,14 +447,11 @@ elWithAnim' _element ActiveElConfig {..} (Component child) = Component $ do
 
       elActiveAttr' _element activeAttrs child
 
-divClass :: MonadWidget t m
-         => Active t Classes -> Component None m a -> Component None m a
+divClass :: MonadWidget t m => Active t Classes -> m a -> m a
 divClass c = fmap snd . divClass' c
 
-divClass'
-  :: MonadWidget t m
-  => Active t Classes -> Component None m a -> Component None m (El t, a)
-divClass' c = elWithAnim' "div" (def & elConfigClasses .~ c)
+divClass' :: MonadWidget t m => Active t Classes -> m a -> m (El t, a)
+divClass' c = semEl "div" (def & elConfigClasses .~ c)
 
 -- Lenses
 

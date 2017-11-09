@@ -1,6 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields    #-}
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE RecordWildCards          #-}
+{-# LANGUAGE GADTs          #-}
 
 module Reflex.Dom.SemanticUI.Button where
 
@@ -22,7 +23,8 @@ instance Reflex t => Default (ConditionalConfig t) where
     { _dataText = pure Nothing
     }
 
-data Buttons t m a = Buttons (ButtonsConfig t) (Component Buttons m a)
+data Buttons t m a where
+  Buttons :: Restriction m ~ Buttons => ButtonsConfig t -> m a -> Buttons t m a
 
 data ButtonsConfig t = ButtonsConfig
   { _color :: Active t (Maybe Color)
@@ -68,11 +70,8 @@ buttonsConfigClasses ButtonsConfig {..} = activeClasses
   , fmap toClassText <$> _floated
   ]
 
-
-data Button t m = Button
-  { _config :: ButtonConfig t m
-  , _content :: Component Button m ()
-  }
+data Button t m where
+  Button :: Restriction m ~ Button => ButtonConfig t m -> m () -> Button t m
 
 data LabeledButton t m = LabeledButton
   { _config :: LabeledButtonConfig t
@@ -104,10 +103,9 @@ instance ToClassText AnimatedButtonType where
   toClassText VerticalAnimated = "vertical animated"
   toClassText AnimatedFade = "animated fade"
 
-data AnimatedButton t m = AnimatedButton
-  { _animatedType :: Active t AnimatedButtonType
-  , _content :: Component Button m ()
-  }
+data AnimatedButton t m where
+  AnimatedButton :: Restriction m ~ AnimatedButton
+                 => Active t AnimatedButtonType -> m () -> AnimatedButton t m
 
 instance Monad m => Default (AnimatedButton t m) where
   def = AnimatedButton

@@ -11,13 +11,13 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-warn-missing-methods -fno-warn-name-shadowing #-}
 
@@ -28,6 +28,7 @@ import Control.Monad ((<=<), void)
 import Control.Monad.Reader
 
 import Data.Default (Default(..))
+import Data.Foldable (traverse_)
 import Data.Functor.Misc (WrapArg(..))
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
@@ -38,6 +39,7 @@ import Data.Text (Text)
 import GHC.TypeLits
 import qualified GHCJS.DOM as DOM
 import qualified GHCJS.DOM.Types as DOM
+import qualified GHCJS.DOM.HTMLFormElement as Form
 import qualified GHCJS.DOM.HTMLInputElement as Input
 import qualified GHCJS.DOM.Node as Node
 import qualified GHCJS.DOM.GlobalEventHandlers as GlobalEventHandlers
@@ -62,6 +64,8 @@ import Reflex.Dom.SemanticUI.Container
 import Reflex.Dom.SemanticUI.Dimmer
 import Reflex.Dom.SemanticUI.Divider
 import Reflex.Dom.SemanticUI.Dropdown
+import Reflex.Dom.SemanticUI.Field
+import Reflex.Dom.SemanticUI.Form
 import Reflex.Dom.SemanticUI.Header
 import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Image
@@ -76,12 +80,16 @@ import Reflex.Dom.SemanticUI.Transition
 
 import Reflex.Dom.SemanticUI.Paragraph
 
+import Reflex.Dom.SemanticUI.UI
+
+{-
 --------------------------------------------------------------------------------
 -- | The 'UI' class encapsulates how components 'a' are rendered in a certain
 -- context 'r'.
-class UI t m (r :: k) a where
-  type Return t m r a
-  ui' :: MonadWidget t m => a -> Component r m (El t, Return t m r a)
+class UI t m r a where
+  type Return r a
+  ui' :: (Restriction m ~ r, MonadWidget t m) => a -> m (El t, Return r a)
+-}
 
 -- | This instance is here to provide a more helpful and clear error message
 -- when other instances are not selected
@@ -93,6 +101,7 @@ instance {-# OVERLAPPABLE #-} TypeError
       ) => UI t m r a where
   ui' = error "impossible"
 
+{-
 ui :: forall r t m a. (MonadWidget t m, UI t m r a)
    => a -> Component r m (Return t m r a)
 ui = fmap snd . ui'
@@ -100,33 +109,40 @@ ui = fmap snd . ui'
 ui_ :: forall r t m a. (MonadWidget t m, UI t m r a)
     => a -> Component r m ()
 ui_ = void . ui
+-}
+
+ui :: forall t m r a. (Restriction m ~ r, MonadWidget t m, UI t m r a) => a -> m (Return t m r a)
+ui = fmap snd . ui'
+
+ui_ :: forall t m r a. (Restriction m ~ r, MonadWidget t m, UI t m r a) => a -> m ()
+ui_ = void . ui
 
 --------------------------------------------------------------------------------
 -- Button instances
 
 -- Buttons
 
-instance (m' ~ m, t' ~ t) => UI t' m' None (Buttons t m a) where
-  type Return t' m' None (Buttons t m a) = a
+instance (m' ~ m, t' ~ t) => UI t' m' (Ctx None) (Buttons t m a) where
+  type Return t' m' (Ctx None) (Buttons t m a) = a
 
   ui' (Buttons config@ButtonsConfig {..} buttons) = do
-    (e, results) <- reComponent $ elWithAnim' "div" attrs $ reComponent buttons
+    (e, results) <- semEl "div" attrs buttons
     return (e, results)
     where
       attrs = _config <> def
         { _classes = buttonsConfigClasses config
         }
 
-instance (m' ~ m, t' ~ t) => UI t' m' Buttons (Button t m) where
-  type Return t' m' Buttons (Button t m) = Event t ()
-  ui' = unComponent . ui'
-instance (m' ~ m, t' ~ t) => UI t' m' Buttons (LabeledButton t m) where
-  type Return t' m' Buttons (LabeledButton t m) = Event t ()
-  ui' = unComponent . ui'
-instance t ~ t' => UI t' m Buttons (Conditional t) where
-  type Return t' m Buttons (Conditional t) = ()
+instance (m' ~ m, t' ~ t) => UI t' m' (Ctx Buttons) (Button t m) where
+  type Return t' m' (Ctx Buttons) (Button t m) = Event t ()
+  ui' = ui'
+instance (m' ~ m, t' ~ t) => UI t' m' (Ctx Buttons) (LabeledButton t m) where
+  type Return t' m' (Ctx Buttons) (LabeledButton t m) = Event t ()
+  ui' = ui'
+instance t ~ t' => UI t' m (Ctx Buttons) (Conditional t) where
+  type Return t' m (Ctx Buttons) (Conditional t) = ()
   ui' (Conditional ConditionalConfig {..})
-    = reComponent $ elWithAnim' "div" config blank
+    = semEl "div" config blank
     where
       config = def
         & elConfigClasses |~ "or"
@@ -138,11 +154,11 @@ instance (m' ~ m, t' ~ t) => UI t' m' None (Button t m) where
   type Return t' m' None (Button t m) = Event t ()
 
   ui' (Button config@ButtonConfig {..} content) = do
-    (e, _) <- reComponent $ elWithAnim' (toTagText _tag) elConfig
+    (e, _) <- semEl (toTagText _tag) elConfig
       $ case _animated of
         Just (AnimatedButton _ hiddenContent) -> do
-          reComponent $ divClass "visible content" $ reComponent content
-          reComponent $ divClass "hidden content" $ reComponent hiddenContent
+          divClass "visible content" content
+          divClass "hidden content" hiddenContent
         Nothing -> reComponent content
     return (e, domEvent Click e)
     where
@@ -150,11 +166,11 @@ instance (m' ~ m, t' ~ t) => UI t' m' None (Button t m) where
         { _classes = buttonConfigClasses config
         }
 
-instance t' ~ t => UI t' m Button (Icon t) where
-  type Return t' m Button (Icon t) = ()
+instance t' ~ t => UI t' m (Ctx Buttons) (Icon t) where
+  type Return t' m (Ctx Buttons) (Icon t) = ()
   ui' = unComponent . ui'
-instance (m' ~ m, t' ~ t) => UI t' m' Button (Icons t m a) where
-  type Return t' m' Button (Icons t m a) = a
+instance (m' ~ m, t' ~ t) => UI t' m' (Ctx Buttons) (Icons t m a) where
+  type Return t' m' (Ctx Buttons) (Icons t m a) = a
   ui' = unComponent . ui'
 
 -- LabeledButton
@@ -170,11 +186,11 @@ instance (m ~ m', t' ~ t) => UI t' m' None (LabeledButton t m) where
       elConfig = _config <> def
         { _classes = labeledButtonConfigClasses config }
 
-instance (m' ~ m, t' ~ t) => UI t' m' LabeledButton (Button t m) where
-  type Return t' m' LabeledButton (Button t m) = Event t ()
+instance (m' ~ m, t' ~ t) => UI t' m' (Ctx LabeledButton) (Button t m) where
+  type Return t' m' (Ctx LabeledButton) (Button t m) = Event t ()
   ui' = unComponent . ui'
-instance (m ~ m', t ~ t') => UI t' m' LabeledButton (Label t m a) where
-  type Return t' m' LabeledButton (Label t m a) = a
+instance (m ~ m', t ~ t') => UI t' m' (Ctx LabeledButton) (Label t m a) where
+  type Return t' m' (Ctx LabeledButton) (Label t m a) = a
   ui' = unComponent . ui'
 
 --------------------------------------------------------------------------------
@@ -337,6 +353,23 @@ instance (m ~ m', t ~ t') => UI t' m' None (Dimmer t m a) where
 --------------------------------------------------------------------------------
 -- Divider instances
 
+instance Dividable None where
+  type Divide t m None a = DividerConfig t -> Either a (Component Divider m a)
+                        -> Component None m a
+  divider config@DividerConfig {..} eContent
+    = reComponent $ elWithAnim "div" elConfig $ case eContent of
+      Left a -> return a
+      Right content -> reComponent content
+      where
+        elConfig = _config <> def
+          { _classes = addContentDivider <$> dividerConfigClasses config }
+        addContentDivider = case eContent of
+          Left _ -> id
+          Right _ -> addClass "horizontal"
+
+
+
+
 instance t ~ t' => UI t' m None (Divider t) where
   type Return t' m None (Divider t) = ()
 
@@ -357,11 +390,11 @@ instance (m ~ m', t ~ t') => UI t' m' None (ContentDivider t m a) where
         { _classes = addClass "horizontal" <$> dividerConfigClasses config
         }
 
-instance (m ~ m', t ~ t') => UI t' m' ContentDivider (PageHeader t m a) where
-  type Return t' m' ContentDivider (PageHeader t m a) = a
+instance (m ~ m', t ~ t') => UI t' m' (Ctx ContentDivider) (PageHeader t m a) where
+  type Return t' m' (Ctx ContentDivider) (PageHeader t m a) = a
   ui' = unComponent . ui'
-instance (m ~ m', t ~ t') => UI t' m' ContentDivider (Header t m a) where
-  type Return t' m' ContentDivider (Header t m a) = a
+instance (m ~ m', t ~ t') => UI t' m' (Ctx ContentDivider) (Header t m a) where
+  type Return t' m' (Ctx ContentDivider) (Header t m a) = a
   ui' = unComponent . ui'
 
 --------------------------------------------------------------------------------
@@ -369,8 +402,8 @@ instance (m ~ m', t ~ t') => UI t' m' ContentDivider (Header t m a) where
 
 instance (Ord (f a), Ord a, m ~ m', Foldable f
          , MonadReader (Dynamic t (f a)) m, EventWriter t (First a) m)
-  => UI t m' SelectionDropdown (DropdownItem m a) where
-  type Return t m' SelectionDropdown (DropdownItem m a) = Event t (a, Component DropdownItem m ())
+  => UI t m' (Ctx SelectionDropdown) (DropdownItem m a) where
+  type Return t m' (Ctx SelectionDropdown) (DropdownItem m a) = Event t (a, Component DropdownItem m ())
   ui' (DropdownItem value config@DropdownItemConfig {..}) = do
 
     undefined
@@ -475,8 +508,8 @@ instance (Ord (f a), Ord a, t ~ t', m ~ m', Selectable f)
 
 instance ( t ~ t', m ~ m', Ord a, Foldable f, Eq (f a)
          , MonadReader (Dynamic t (f a)) m, EventWriter t (First a) m)
-  => UI t' m' Menu (MenuItem t m a) where
-  type Return t' m' Menu (MenuItem t m a) = ()
+  => UI t' m' (Ctx Menu) (MenuItem t m a) where
+  type Return t' m' (Ctx Menu) (MenuItem t m a) = ()
   ui' (MenuItem value config@MenuItemConfig{..} widget) = do
     selected <- ask
     --let isSelected = Dynamic $ demuxed selected $ pure value
@@ -495,8 +528,8 @@ instance ( t ~ t', m ~ m', Ord a, Foldable f, Eq (f a)
                                      <*> menuItemConfigClasses config'
           }
 
-instance (t ~ t', m ~ m') => UI t' m' Menu (MenuItem' t m b) where
-  type Return t' m' Menu (MenuItem' t m b) = b
+instance (t ~ t', m ~ m') => UI t' m' (Ctx Menu) (MenuItem' t m b) where
+  type Return t' m' (Ctx Menu) (MenuItem' t m b) = b
   ui' (MenuItem' config@MenuItemConfig{..} widget)
     = reComponent $ elWithAnim' "div" elConfig widget
       where
@@ -531,8 +564,8 @@ instance (Selectable f, Ord (f a), Ord a, t ~ t', m ~ m')
 
 instance ( Ord a, m ~ m', t ~ t'
          , MonadReader (Dynamic t (f a)) m, EventWriter t (First a) m)
-  => UI t' m' Menu (Menu f t m a b) where
-  type Return t' m' Menu (Menu f t m a b) = b
+  => UI t' m' (Ctx Menu) (Menu f t m a b) where
+  type Return t' m' (Ctx Menu) (Menu f t m a b) = b
   ui' (Menu config@MenuConfig{..} items) = do
     selected <- ask
     (el, (b, evt)) <- reComponent $ elWithAnim' "div" elConfig $
@@ -550,11 +583,11 @@ instance ( Ord a, m ~ m', t ~ t'
       result <- items
 -}
 
-instance t ~ t' => UI t' m Menu (Divider t) where
-  type Return t' m Menu (Divider t) = ()
+instance t ~ t' => UI t' m (Ctx Menu) (Divider t) where
+  type Return t' m (Ctx Menu) (Divider t) = ()
   ui' = unComponent . ui'
-instance (m ~ m', t ~ t') => UI t' m' Menu (Header t m a) where
-  type Return t' m' Menu (Header t m a) = a
+instance (m ~ m', t ~ t') => UI t' m' (Ctx Menu) (Header t m a) where
+  type Return t' m' (Ctx Menu) (Header t m a) = a
   ui' (Header conf content) = unComponent $ ui' $ Header conf' content
     where conf' = conf & component .~ True & item .~ True
 
@@ -574,7 +607,69 @@ instance t ~ t' => UI t' m Inline (Flag t) where
   ui' = unComponent . ui'
 
 --------------------------------------------------------------------------------
+-- Form / field instances
+
+instance (m ~ m', t ~ t') => UI t' m' None (Form t m a) where
+  type Return t' m' None (Form t m a) = a
+
+  ui' (Form config@FormConfig {..} form) = reComponent $ do
+    (formEl, formResult) <- elWithAnim' "form" elConfig $ reComponent form
+
+    let e = DOM.uncheckedCastTo DOM.HTMLFormElement $ _element_raw formEl
+
+    liftJSM $ EventM.on e GlobalEventHandlers.submit $ do
+      consoleLog ("default prevented" :: Text)
+      EventM.preventDefault
+
+    return (formEl, formResult)
+    where
+      elConfig = _config <> def
+        { _classes = formConfigClasses config
+        }
+
+instance (m ~ m', t ~ t') => UI t' m' (Ctx Form) (Buttons t m a) where
+  type Return t' m' (Ctx Form) (Buttons t m a) = a
+  ui' = unComponent . ui'
+instance (m ~ m', t ~ t') => UI t' m' (Ctx Form) (Button t m) where
+  type Return t' m' (Ctx Form) (Button t m) = Event t ()
+  ui' = unComponent . ui'
+
+
+instance (m ~ m', t ~ t') => UI t' m' (Ctx Form) (Field t m a) where
+  type Return t' m' (Ctx Form) (Field t m a) = a
+
+  ui' (Field config@FieldConfig {..} field)
+    = reComponent $ elWithAnim' "div" elConfig $ reComponent field
+    where
+      elConfig = _config <> def
+        { _classes = fieldConfigClasses config
+        }
+
+instance (m ~ m', t ~ t') => UI t' m' (Ctx Field) (Input t m a) where
+  type Return t' m' (Ctx Field) (Input t m a) = a
+  ui' = unComponent . ui'
+
+--------------------------------------------------------------------------------
 -- Header instances
+
+instance HasHeader t m None where
+  type HeaderType t m None a
+        = HeaderConfig t -> Component Header m a -> Component None m a
+  header config@HeaderConfig {..} widget
+    = reComponent $ elWithAnim "div" elConfig $ case _image of
+      Nothing -> case _icon of
+        Nothing -> reComponent widget
+        Just i -> ui_ i >> divClass "content" (reComponent widget)
+      Just i -> ui_ i >> divClass "content" (reComponent widget)
+    where
+      msize = (fmap . fmap) headerSizeText _size
+      addSize = maybe id addClass <$> msize
+      elConfig = _config <> def
+        { _classes = addSize <*> headerConfigClasses config
+        }
+
+
+
 
 instance (m ~ m', t ~ t') => UI t' m' None (PageHeader t m a) where
   type Return t' m' None (PageHeader t m a) = a
@@ -602,24 +697,24 @@ instance (m ~ m', t ~ t') => UI t' m' None (Header t m a) where
         { _classes = addSize <*> headerConfigClasses config
         }
 
-instance (t ~ t', m ~ m') => UI t' m' Header (Anchor t m a) where
-  type Return t' m' Header (Anchor t m a) = AnchorResult t a
+instance (t ~ t', m ~ m') => UI t' m' (Ctx Header) (Anchor t m a) where
+  type Return t' m' (Ctx Header) (Anchor t m a) = AnchorResult t a
   ui' = unComponent . ui'
-instance (m ~ m', t ~ t') => UI t' m' Header (Label t m a) where
-  type Return t' m' Header (Label t m a) = a
+instance (m ~ m', t ~ t') => UI t' m' (Ctx Header) (Label t m a) where
+  type Return t' m' (Ctx Header) (Label t m a) = a
   ui' = unComponent . ui'
-instance (m' ~ m, t' ~ t) => UI t' m' Header (Icons t m a) where
-  type Return t' m' Header (Icons t m a) = a
+instance (m' ~ m, t' ~ t) => UI t' m' (Ctx Header) (Icons t m a) where
+  type Return t' m' (Ctx Header) (Icons t m a) = a
   ui' = unComponent . ui'
-instance t' ~ t => UI t' m Header (Icon t) where
-  type Return t' m Header (Icon t) = ()
+instance t' ~ t => UI t' m (Ctx Header) (Icon t) where
+  type Return t' m (Ctx Header) (Icon t) = ()
   ui' = unComponent . ui'
-instance t ~ t' => UI t' m Header (Image t) where
-  type Return t' m Header (Image t) = ()
+instance t ~ t' => UI t' m (Ctx Header) (Image t) where
+  type Return t' m (Ctx Header) (Image t) = ()
   ui' = unComponent . ui'
 
-instance (t ~ t', m ~ m') => UI t' m' Header (SubHeader t m a) where
-  type Return t' m' Header (SubHeader t m a) = a
+instance (t ~ t', m ~ m') => UI t' m' (Ctx Header) (SubHeader t m a) where
+  type Return t' m' (Ctx Header) (SubHeader t m a) = a
   ui' (SubHeader content)
     = reComponent $ elWithAnim' "div" elConfig $ reComponent content
     where
@@ -649,8 +744,8 @@ instance (m' ~ m, t' ~ t) => UI t' m' None (Icons t m a) where
           { _classes = iconsConfigClasss config
           }
 
-instance t' ~ t => UI t' m Icons (Icon t) where
-  type Return t' m Icons (Icon t) = ()
+instance t' ~ t => UI t' m (Ctx Icons) (Icon t) where
+  type Return t' m (Ctx Icons) (Icon t) = ()
   ui' = unComponent . ui'
 
 --------------------------------------------------------------------------------
@@ -664,28 +759,28 @@ instance (m ~ m', t' ~ t) => UI t' m' None (Input t m a) where
     where
       elConfig = _config <> def { _classes = inputConfigClasses config }
 
-instance t' ~ t => UI t' m Input (Icon t) where
-  type Return t' m Input (Icon t) = ()
+instance t' ~ t => UI t' m (Ctx Input) (Icon t) where
+  type Return t' m (Ctx Input) (Icon t) = ()
   ui' = unComponent . ui'
 
-instance (m ~ m', t ~ t') => UI t' m' Input (Label t m a) where
-  type Return t' m' Input (Label t m a) = a
+instance (m ~ m', t ~ t') => UI t' m' (Ctx Input) (Label t m a) where
+  type Return t' m' (Ctx Input) (Label t m a) = a
   ui' = unComponent . ui'
 
 instance (Ord (f a), Ord a, Selectable f, m ~ m', t ~ t')
-  => UI t' m' Input (MenuDropdown f t m a) where
-  type Return t' m' Input (MenuDropdown f t m a) = Dynamic t (f a)
+  => UI t' m' (Ctx Input) (MenuDropdown f t m a) where
+  type Return t' m' (Ctx Input) (MenuDropdown f t m a) = Dynamic t (f a)
   ui' = unComponent . ui'
 
-instance (m' ~ m, t' ~ t) => UI t' m' Input (Button t m) where
-  type Return t' m' Input (Button t m) = Event t ()
+instance (m' ~ m, t' ~ t) => UI t' m' (Ctx Input) (Button t m) where
+  type Return t' m' (Ctx Input) (Button t m) = Event t ()
   ui' = unComponent . ui'
 
 --------------------------------------------------------------------------------
 -- Label instances
 
-instance t ~ t' => UI t' m Label (Detail t) where
-  type Return t' m Label (Detail t) = ()
+instance t ~ t' => UI t' m (Ctx Label) (Detail t) where
+  type Return t' m (Ctx Label) (Detail t) = ()
   ui' (Detail txt)
     = reComponent $ elWithAnim' "div" elConfig $ activeText txt
       where elConfig = def { _classes = "detail" }
@@ -701,11 +796,11 @@ instance (m ~ m', t ~ t') => UI t' m' None (Label t m a) where
         }
       elType = if _link then "a" else "div"
 
-instance t' ~ t => UI t' m Label (Icon t) where
-  type Return t' m Label (Icon t) = ()
+instance t' ~ t => UI t' m (Ctx Label) (Icon t) where
+  type Return t' m (Ctx Label) (Icon t) = ()
   ui' = unComponent . ui'
-instance (m' ~ m, t' ~ t) => UI t' m' Label (Icons t m a) where
-  type Return t' m' Label (Icons t m a) = a
+instance (m' ~ m, t' ~ t) => UI t' m' (Ctx Label) (Icons t m a) where
+  type Return t' m' (Ctx Label) (Icons t m a) = a
   ui' = unComponent . ui'
 
 --------------------------------------------------------------------------------
@@ -720,8 +815,8 @@ instance (m ~ m', t ~ t') => UI t' m' None (List t m a) where
         { _classes = listConfigClasses config
         }
 
-instance (m ~ m', t ~ t') => UI t' m' List (ListItem t m a) where
-  type Return t' m' List (ListItem t m a) = a
+instance (m ~ m', t ~ t') => UI t' m' (Ctx List) (ListItem t m a) where
+  type Return t' m' (Ctx List) (ListItem t m a) = a
   ui' (ListItem config@ListItemConfig {..} widget)
     = reComponent $ elWithAnim' (listItemElement _as) elConfig $ case _image of
       Nothing -> case _icon of
@@ -733,22 +828,22 @@ instance (m ~ m', t ~ t') => UI t' m' List (ListItem t m a) where
         { _classes = listItemConfigClasses config
         }
 
-instance (t ~ t', m ~ m') => UI t' m' ListItem (List t m a) where
-  type Return t' m' ListItem (List t m a) = a
+instance (t ~ t', m ~ m') => UI t' m' (Ctx ListItem) (List t m a) where
+  type Return t' m' (Ctx ListItem) (List t m a) = a
   ui' = unComponent . ui'
 
-instance (t ~ t', m ~ m') => UI t' m' ListItem (ListHeader t m a) where
-  type Return t' m' ListItem (ListHeader t m a) = a
+instance (t ~ t', m ~ m') => UI t' m' (Ctx ListItem) (ListHeader t m a) where
+  type Return t' m' (Ctx ListItem) (ListHeader t m a) = a
   ui' (ListHeader content)
     = reComponent $ divClass' "header" $ reComponent content
 
-instance (t ~ t', m ~ m') => UI t' m' ListItem (ListDescription t m a) where
-  type Return t' m' ListItem (ListDescription t m a) = a
+instance (t ~ t', m ~ m') => UI t' m' (Ctx ListItem) (ListDescription t m a) where
+  type Return t' m' (Ctx ListItem) (ListDescription t m a) = a
   ui' (ListDescription content)
     = reComponent $ divClass' "description" $ reComponent content
 
-instance (t ~ t', m ~ m') => UI t' m' ListItem (Anchor t m a) where
-  type Return t' m' ListItem (Anchor t m a) = AnchorResult t a
+instance (t ~ t', m ~ m') => UI t' m' (Ctx ListItem) (Anchor t m a) where
+  type Return t' m' (Ctx ListItem) (Anchor t m a) = AnchorResult t a
   ui' = unComponent . ui'
 
 --------------------------------------------------------------------------------
@@ -768,8 +863,8 @@ instance t ~ t' => UI t' m None (Image t) where
 -- | Images in labels *must* be some form of spaced if they are not an 'Avatar',
 -- or they will cause a line break. Default to spacing both sides allowing user
 -- override to 'LeftSpaced' or 'RightSpaced'.
-instance t ~ t' => UI t' m Label (Image t) where
-  type Return t' m Label (Image t) = ()
+instance t ~ t' => UI t' m (Ctx Label) (Image t) where
+  type Return t' m (Ctx Label) (Image t) = ()
   ui' (Image url conf@ImageConfig{..}) = unComponent $ ui' $ Image url conf'
     where conf' = conf { _spaced = mkSpaced <$> _shape <*> _spaced }
           mkSpaced mShape mSpaced = if mShape == Just Avatar then mSpaced
@@ -789,11 +884,11 @@ instance (m ~ m', t ~ t') => UI t' m' None (ContentImage t m a) where
                       , _classes = imageConfigClasses config }
       mkAttrs s t = "src" =: s <> maybe mempty ("title" =:) t
 
-instance (m ~ m', t ~ t') => UI t' m' Image (Dimmer t m a) where
-  type Return t' m' Image (Dimmer t m a) = a
+instance (m ~ m', t ~ t') => UI t' m' (Ctx Image) (Dimmer t m a) where
+  type Return t' m' (Ctx Image) (Dimmer t m a) = a
   ui' = unComponent . ui'
-instance (m ~ m', t ~ t') => UI t' m' Image (Label t m a) where
-  type Return t' m' Image (Label t m a) = a
+instance (m ~ m', t ~ t') => UI t' m' (Ctx Image) (Label t m a) where
+  type Return t' m' (Ctx Image) (Label t m a) = a
   ui' = unComponent . ui'
 
 --------------------------------------------------------------------------------
@@ -830,8 +925,8 @@ instance (t ~ t', m ~ m') => UI t' m' None (Message t m a) where
 
         return (divEl, result)
 
-instance (m ~ m', t ~ t') => UI t' m' Message (Header t m a) where
-  type Return t' m' Message (Header t m a) = a
+instance (m ~ m', t ~ t') => UI t' m' (Ctx Message) (Header t m a) where
+  type Return t' m' (Ctx Message) (Header t m a) = a
   ui' (Header config widget)
     = unComponent $ ui' $ Header (config & component .~ True) widget
 
@@ -848,8 +943,8 @@ instance (t ~ t', m ~ m') => UI t' m' None (Anchor t m a) where
 instance (t ~ t', m ~ m') => UI t' m' Inline (Anchor t m a) where
   type Return t' m' Inline (Anchor t m a) = AnchorResult t a
   ui' = unComponent . ui'
-instance (t ~ t', m ~ m') => UI t' m' Message (Anchor t m a) where
-  type Return t' m' Message (Anchor t m a) = AnchorResult t a
+instance (t ~ t', m ~ m') => UI t' m' (Ctx Message) (Anchor t m a) where
+  type Return t' m' (Ctx Message) (Anchor t m a) = AnchorResult t a
   ui' = unComponent . ui'
 
 instance t' ~ t => UI t' m Inline (Icon t) where

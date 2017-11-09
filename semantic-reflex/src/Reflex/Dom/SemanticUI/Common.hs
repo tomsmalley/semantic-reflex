@@ -1,20 +1,24 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Reflex.Dom.SemanticUI.Common where
 
+import Control.Monad.Ref
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Reader (MonadReader)
-import Control.Lens ((^.), set, ASetter)
+import Control.Monad.Reader
+import Control.Monad.Writer hiding ((<>))
+import Control.Monad.State
+import Control.Lens ((^.), set, ASetter, Unwrapped, Wrapped, _Unwrapped', _Wrapped', iso, view)
 import Control.Monad (void, (<=<))
 import Data.String
 import Data.Semigroup
@@ -28,9 +32,19 @@ import qualified Data.Text as T
 import Language.Javascript.JSaddle hiding (Success)
 import Reflex.Dom.Core hiding (Link, Error, elAttr', DynamicWriterT)
 
+import Reflex.Host.Class
+
 import Reflex.Dom.Active
 
 -- JSaddle helpers
+
+class Dividable a where
+  type Divide t (m :: * -> *) a b = r | r -> t m a b
+  divider :: MonadWidget t m => Divide t m a b
+
+class HasHeader t m r where
+  type HeaderType t (m :: * -> *) r a = c | c -> t m r a
+  header :: MonadWidget t m => HeaderType t m r a
 
 -- | Javascript console.log
 consoleLog :: MonadJSM m => ToJSVal a => a -> m ()
@@ -78,13 +92,61 @@ imap f = go 0
 
 ------------------------------------------------------------------------------
 
+data Ctx (r :: k)
+
+type family Restriction (m :: * -> *) :: k
+
+type instance Restriction (Component r m) = r
+
 newtype Component r m a = Component
   { runComponent :: m a }
-  deriving (Functor, Applicative, Monad, MonadFix, MonadSample t, MonadHold t, TriggerEvent t, MonadIO, PostBuild t, MonadReader r')
+  deriving
+    ( Functor, Applicative, Monad, MonadFix, MonadIO
+    , MonadSample t, MonadHold t, TriggerEvent t, PostBuild t, HasDocument
+    , MonadReflexCreateTrigger t
+    , MonadReader r', EventWriter t w, MonadDynamicWriter t w
+    )
+
+instance HasJSContext m => HasJSContext (Component r m) where
+  type JSContextPhantom (Component r m) = JSContextPhantom m
+  askJSContext = lift askJSContext
+
+instance Adjustable t m => Adjustable t (Component r m) where
+  runWithReplace (Component m) = Component . runWithReplace m . fmapCheap runComponent
+  traverseIntMapWithKeyWithAdjust f m
+    = Component . traverseIntMapWithKeyWithAdjust (\k -> runComponent . f k) m
+  traverseDMapWithKeyWithAdjust f m
+    = Component . traverseDMapWithKeyWithAdjust (\k -> runComponent . f k) m
+  traverseDMapWithKeyWithAdjustWithMove f m
+    = Component . traverseDMapWithKeyWithAdjustWithMove (\k -> runComponent . f k) m
+
+
+instance MonadTrans (Component r) where
+  lift = Component
+
+instance MonadRef m => MonadRef (Component r m) where
+  type Ref (Component r m) = Ref m
+  newRef = lift . newRef
+  readRef = lift . readRef
+  writeRef r = lift . writeRef r
+
+instance Wrapped (Component r m a) where
+  type Unwrapped (Component r m a) = m a
+  _Wrapped' = iso runComponent Component
 
 #ifndef ghcjs_HOST_OS
 deriving instance MonadJSM m => MonadJSM (Component r m)
 #endif
+
+instance DomBuilder t m => DomBuilder t (Component r m) where
+  type DomBuilderSpace (Component r m) = DomBuilderSpace m
+  textNode = liftTextNode
+  element t cfg (Component c) = Component $ element t cfg c
+  inputElement = lift . inputElement
+  textAreaElement = lift . textAreaElement
+  selectElement c = Component . selectElement c . runComponent
+  placeRawElement = lift . placeRawElement
+  wrapRawElement e = lift . wrapRawElement e
 
 instance PerformEvent t m => PerformEvent t (Component None m) where
   type Performable (Component None m) = Performable m
@@ -227,9 +289,24 @@ staticText t = Component $ text t
 widgetHold' :: (MonadHold t m, DomBuilder t m, MonadFix m) => Component r m a -> Event t (Component r m a) -> Component r m (Dynamic t a)
 widgetHold' (Component m) evt = Component $ widgetHold m $ fmap runComponent evt
 
-dyn' :: (MonadHold t m, DomBuilder t m, MonadFix m, PostBuild t m)
-     => Dynamic t (Component r m a) -> Component r m (Event t a)
-dyn' = Component . dyn . fmap runComponent
+class HasDyn t (m :: * -> *) where
+  dyn' :: Dynamic t (m a) -> m (Event t a)
+
+instance (MonadHold t m, DomBuilder t m, MonadFix m, PostBuild t m)
+  => HasDyn t (Component r m) where
+  dyn' = Component . dyn . fmap runComponent
+
+instance (Reflex t, HasDyn t m) => HasDyn t (ReaderT r m) where
+  dyn' d = ReaderT $ \r -> dyn' $ flip runReaderT r <$> d
+
+instance (Reflex t, MonadHold t m, Monad m, Semigroup w, HasDyn t m)
+  => HasDyn t (EventWriterT t w m) where
+  dyn' d = do
+    res <- lift $ dyn' $ runEventWriterT <$> d
+    tellEvent <=< switchPromptly never $ fmap snd res
+    return $ fmap fst res
+
+-- dyn' = Component . dyn . fmap runComponent
 
 display' :: (PostBuild t m, Show a, DomBuilder t m)
          => Dynamic t a -> Component Inline m ()

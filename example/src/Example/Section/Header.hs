@@ -33,6 +33,8 @@ headers = LinkedSection "Header" (simpleLink "https://semantic-ui.com/elements/h
   hscode $(printDefinition id stripParens ''Header)
   hscode $(printDefinition id stripParens ''HeaderConfig)
 
+--  header -- (def :: HeaderConfig t) (text "Simple header" :: Component Header m ()) :: Component None m ()
+
   ui $ Example "Page Headers" (def
     & subtitle ?~ text "Headers may be oriented to give the hierarchy of a section in the context of the page"
     & inbetween ?~ (ui_ $ Message (def & messageType |?~ InfoMessage) $ do

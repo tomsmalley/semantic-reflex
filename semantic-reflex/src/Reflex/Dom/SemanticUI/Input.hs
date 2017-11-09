@@ -4,7 +4,6 @@
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE RecordWildCards          #-}
 {-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeApplications         #-}
 
 module Reflex.Dom.SemanticUI.Input where
 
@@ -13,7 +12,7 @@ import Data.Map (Map)
 import Data.Maybe (fromMaybe)
 import Data.Semigroup ((<>))
 import Data.Text (Text)
-import Reflex.Dom.Core hiding (Input, SetValue, TextInputConfig)
+import Reflex.Dom.Core hiding (Input, SetValue, TextInput, TextInputConfig)
 import qualified Reflex.Dom.Core as Reflex
 
 import Reflex.Dom.Active
@@ -115,13 +114,13 @@ instance DynShow t (TextInputResult t) where
 textInput :: (DomBuilder t m, PostBuild t m, DomBuilderSpace m ~ GhcjsDomSpace)
           => TextInputConfig t -> Component Input m (TextInputResult t)
 textInput TextInputConfig {..} = Component $ do
-  TextInput {..} <- Reflex.textInput Reflex.TextInputConfig
+  Reflex.TextInput {..} <- Reflex.textInput Reflex.TextInputConfig
     { _textInputConfig_attributes = attrs
     , _textInputConfig_setValue = fromMaybe never mSetValue
     , _textInputConfig_initialValue = initialValue
-    , _textInputConfig_inputType = "text"
+    , _textInputConfig_inputType = inputTypeText _inputType
     }
-  return $ TextInputResult
+  return TextInputResult
     { _value = _textInput_value
     , _input = _textInput_input
     , _keypress = _textInput_keypress
@@ -134,10 +133,18 @@ textInput TextInputConfig {..} = Component $ do
       where attrs = (\p -> ("placeholder" =: p <>)) <$> _placeholder <*> _attrs
             SetValue initialValue mSetValue = _value
 
+data InputType = TextInput | PasswordInput
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
+
+inputTypeText :: InputType -> Text
+inputTypeText PasswordInput = "password"
+inputTypeText TextInput = "text"
+
 -- | TODO: attrs needs merging with the attributes lens
 data TextInputConfig t = TextInputConfig
   { _value :: SetValue t Text
   , _placeholder :: Dynamic t Text
+  , _inputType :: InputType
   , _attrs :: Dynamic t (Map Text Text)
   }
 
@@ -145,7 +152,7 @@ instance Reflex t => Default (TextInputConfig t) where
   def = TextInputConfig
     { _value = SetValue "" Nothing
     , _placeholder = pure ""
+    , _inputType = TextInput
     , _attrs = pure mempty
     }
-
 
