@@ -47,7 +47,7 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
     ui $ MenuItem "important" def $ text "Important"
     ui $ MenuItem "announcement" def $ text "Announcement"
     ui_ $ MenuItem "discussion" def $ text "Discussion"
-    void $ dyn' $ ffor togg $ \case
+    void $ dyn $ ffor togg $ \case
       True -> ui $ MenuItem "A" def $ text "A"
       False -> ui $ MenuItem "B" def $ text "B"
 --  |]
@@ -59,7 +59,7 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
 
   ui_ $ Divider $ def & hidden |~ True
 
-  Component $ display ddval
+  display ddval
 
   ui_ $ Divider def
 

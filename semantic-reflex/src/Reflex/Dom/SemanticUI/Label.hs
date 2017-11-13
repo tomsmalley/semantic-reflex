@@ -50,7 +50,7 @@ instance ToClassText TopCorner where
 
 data Label t m a = Label
   { _config :: LabelConfig t
-  , _content :: Component Label m a
+  , _content :: UI Label m a
   }
 
 -- | If a label is attached, it *must* be vertically attached in some way. There

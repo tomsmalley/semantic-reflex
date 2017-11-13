@@ -24,7 +24,7 @@ import Reflex.Dom.SemanticUI.Transition
 
 data Container t m a = Container
   { _config :: ContainerConfig t
-  , _contents :: Component None m a
+  , _contents :: UI None m a
   }
 
 data ContainerConfig t = ContainerConfig

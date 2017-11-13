@@ -29,7 +29,6 @@ library
     Data.Selectable
     Reflex.Dom.Active
     Reflex.Dom.SemanticUI
-    Reflex.Dom.SemanticUI.UI
     Reflex.Dom.SemanticUI.Button
     Reflex.Dom.SemanticUI.Checkbox
     Reflex.Dom.SemanticUI.Class

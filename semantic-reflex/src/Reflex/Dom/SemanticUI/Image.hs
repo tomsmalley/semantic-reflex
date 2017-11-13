@@ -72,6 +72,6 @@ data Image t = Image
 data ContentImage t m a = ContentImage
   { _src :: Active t Text
   , _config :: ImageConfig t
-  , _content :: Component Image m a
+  , _content :: UI Image m a
   }
 

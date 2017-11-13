@@ -112,7 +112,7 @@ iconConfigClasses IconConfig {..} = activeClasses
   , fmap toClassText <$> _corner
   ]
 
-data Icons t m a = Icons (IconsConfig t) (Component Icons m a)
+data Icons t m a = Icons (IconsConfig t) (UI Icons m a)
 
 data IconsConfig t = IconsConfig
   { _size :: Active t (Maybe Size)

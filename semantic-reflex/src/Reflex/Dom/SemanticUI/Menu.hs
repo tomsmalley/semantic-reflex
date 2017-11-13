@@ -109,9 +109,9 @@ menuItemConfigClasses MenuItemConfig {..} = activeClasses
   , boolClass "link" $ Static $ _link == StyleLink
   ]
 
-data MenuItem t m v = forall b. MenuItem v (MenuItemConfig t) (Component Inline m b)
+data MenuItem t m v = forall b. MenuItem v (MenuItemConfig t) (UI Inline m b)
 
-data MenuItem' t m b = MenuItem' (MenuItemConfig t) (Component Inline m b)
+data MenuItem' t m b = MenuItem' (MenuItemConfig t) (UI Inline m b)
 
 itemElAttrs :: Reflex t => MenuItemConfig t -> (Text, ActiveElConfig t)
 itemElAttrs conf@MenuItemConfig{..} = case _link of
@@ -123,6 +123,6 @@ itemElAttrs conf@MenuItemConfig{..} = case _link of
 
 data Menu f t m v b = Menu
   { _config :: MenuConfig t (f v)
-  , _items :: Component Menu (ReaderT (Dynamic t (f v)) (EventWriterT t (First v) m)) b
+  , _items :: UI Menu (ReaderT (Dynamic t (f v)) (EventWriterT t (First v) m)) b
   }
 

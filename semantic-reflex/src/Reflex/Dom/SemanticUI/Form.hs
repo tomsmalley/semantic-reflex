@@ -37,5 +37,5 @@ formConfigClasses FormConfig {..} = activeClasses
 -- | Form UI Element.
 data Form t m a = Form
   { _config :: FormConfig t
-  , _content :: Component Form m a
+  , _content :: UI Form m a
   }

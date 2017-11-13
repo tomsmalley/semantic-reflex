@@ -24,7 +24,7 @@ data Divider t = Divider
 -- https://github.com/Semantic-Org/Semantic-UI/issues/4342
 data ContentDivider t m a = ContentDivider
   { _config :: DividerConfig t
-  , _content :: Component ContentDivider m a
+  , _content :: UI ContentDivider m a
   }
 
 data DividerConfig t = DividerConfig

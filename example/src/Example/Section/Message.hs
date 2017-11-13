@@ -48,9 +48,9 @@ messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collecti
     [example|
   ui $ Message def $ do
     ui $ Header def $ text "New Site Features"
-    unComponent $ elClass "ul" "list" `mapComponent` do
-      el "li" `mapComponent` text "You can now have cover images on blog pages"
-      el "li" `mapComponent` text "Drafts will now auto-save while writing"
+    unUI $ elClass "ul" "list" $ do
+      el "li" $ text "You can now have cover images on blog pages"
+      el "li" $ text "Drafts will now auto-save while writing"
   |]
 
   ui $ Example "Icon Message" (def
@@ -130,7 +130,7 @@ messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collecti
     ui $ Header def $ text "You are eligible for a reward"
     paragraph $ do
       text "Go to your "
-      el "b" `mapComponent` text "special offers"
+      el "b" $ text "special offers"
       text " page to see now."
 
   ui $ Message (def & messageType |?~ MessageType Success) $ do

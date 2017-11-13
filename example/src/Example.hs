@@ -15,7 +15,7 @@
 
 module Example where
 
-import Control.Lens
+import Control.Lens ((^.), (?~))
 import Control.Monad (void)
 import Data.Foldable (for_)
 import Data.Monoid ((<>))
@@ -73,7 +73,7 @@ setLocationHash hash = do
     hash' = if "#" `T.isPrefixOf` hash then hash else "#" <> hash
 
 
-intro :: MonadWidget t m => Component None m ()
+intro :: MonadWidget t m => UI None m ()
 intro = do
   ui $ PageHeader H2 def $ text "Introduction"
   paragraph $ do
@@ -96,13 +96,13 @@ intro = do
   hscode $(printDefinition oneline id '(|?~))
   hscode $(printDefinition oneline id '(|~))
 
-putSections :: MonadWidget t m => [Section t m] -> Component None m ()
+putSections :: MonadWidget t m => [Section t m] -> UI None m ()
 putSections sections = do
   pb :: Event t () <- delay 0.1 =<< getPostBuild
   onLoadEvent <- performEvent $ liftJSM getLocationHash <$ pb
   performEvent_ $ liftJSM . scrollIntoView <$> fmapMaybe id onLoadEvent
 
-  elWithAnim "div" (def
+  element "div" (def
     & elConfigAttributes |~ ("id" =: "main")
     & elConfigClasses |~ "ui container") $ do
 
@@ -168,17 +168,17 @@ main = catchJS $ mainWidget runWithLoader
 runWithLoader :: MonadWidget t m => m ()
 runWithLoader = do
   pb <- delay 0 =<< getPostBuild
-  rec runComponent $ loadingDimmer pb'
+  rec runUI $ loadingDimmer pb'
       liftJSM syncPoint
-      pb' <- runComponent $ fmap updated $ widgetHold' blank $ main' <$ pb
+      pb' <- runUI $ fmap updated $ widgetHold blank $ main' <$ pb
   return ()
 
-loadingDimmer :: MonadWidget t m => Event t () -> Component None m ()
+loadingDimmer :: MonadWidget t m => Event t () -> UI None m ()
 loadingDimmer evt =
   ui $ Dimmer (def & page .~ True & transition ?~ (def & event .~ (Transition Fade def <$ evt))) $
     divClass "ui huge text loader" $ text "Loading semantic-reflex docs..."
 
-main' :: MonadWidget t m => Component None m ()
+main' :: MonadWidget t m => UI None m ()
 main' = do
 
   ui $ Segment (def & attributes |~ ("id" =: "masthead") & vertical |~ True) $
@@ -189,13 +189,25 @@ main' = do
         text "Semantic UI for Reflex Dom"
         ui $ SubHeader $ text "Documentation and examples"
       ui $ Button (def & tag ?~ LinkButton & disabled |~ True) $ text "Hackage"
-      -- FIXME needs to be <a>
       ui $ Button (def & tag ?~ LinkButton & color |?~ Teal & attributes |~ ("href" =: "https://github.com/tomsmalley/semantic-reflex")) $ do
         ui $ Icon "github" def
         text "GitHub"
 
-      return ()
+  putSections
+    [ inputs
+    , dropdowns
+    , menu
+    , dimmers
+    , buttons
+    , checkboxes
+    , dividers
+    , flags
+    , headers
+    , icons
+    , labels
+    , lists
+    , menu
+    , messages
+    , transitions
+    ]
 
-  putSections [ inputs, dropdowns, menu, dimmers, buttons, checkboxes, dividers, flags, headers, icons, labels, lists, menu, messages, transitions ]
-
-  return ()

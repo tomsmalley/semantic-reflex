@@ -16,9 +16,7 @@ import Control.Monad.Ref
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Reader
-import Control.Monad.Writer hiding ((<>))
-import Control.Monad.State
-import Control.Lens ((^.), set, ASetter, Unwrapped, Wrapped, _Unwrapped', _Wrapped', iso, view)
+import Control.Lens ((^.), set, ASetter, Unwrapped, Wrapped, _Wrapped', iso)
 import Control.Monad (void, (<=<))
 import Data.String
 import Data.Semigroup
@@ -92,14 +90,8 @@ imap f = go 0
 
 ------------------------------------------------------------------------------
 
-data Ctx (r :: k)
-
-type family Restriction (m :: * -> *) :: k
-
-type instance Restriction (Component r m) = r
-
-newtype Component r m a = Component
-  { runComponent :: m a }
+newtype UI r m a = UI
+  { runUI :: m a }
   deriving
     ( Functor, Applicative, Monad, MonadFix, MonadIO
     , MonadSample t, MonadHold t, TriggerEvent t, PostBuild t, HasDocument
@@ -107,61 +99,65 @@ newtype Component r m a = Component
     , MonadReader r', EventWriter t w, MonadDynamicWriter t w
     )
 
-instance HasJSContext m => HasJSContext (Component r m) where
-  type JSContextPhantom (Component r m) = JSContextPhantom m
+instance HasJSContext m => HasJSContext (UI r m) where
+  type JSContextPhantom (UI r m) = JSContextPhantom m
   askJSContext = lift askJSContext
 
-instance Adjustable t m => Adjustable t (Component r m) where
-  runWithReplace (Component m) = Component . runWithReplace m . fmapCheap runComponent
+instance Adjustable t m => Adjustable t (UI r m) where
+  runWithReplace (UI m) = UI . runWithReplace m . fmapCheap runUI
   traverseIntMapWithKeyWithAdjust f m
-    = Component . traverseIntMapWithKeyWithAdjust (\k -> runComponent . f k) m
+    = UI . traverseIntMapWithKeyWithAdjust (\k -> runUI . f k) m
   traverseDMapWithKeyWithAdjust f m
-    = Component . traverseDMapWithKeyWithAdjust (\k -> runComponent . f k) m
+    = UI . traverseDMapWithKeyWithAdjust (\k -> runUI . f k) m
   traverseDMapWithKeyWithAdjustWithMove f m
-    = Component . traverseDMapWithKeyWithAdjustWithMove (\k -> runComponent . f k) m
+    = UI . traverseDMapWithKeyWithAdjustWithMove (\k -> runUI . f k) m
 
+instance MonadTrans (UI r) where
+  lift = UI
 
-instance MonadTrans (Component r) where
-  lift = Component
-
-instance MonadRef m => MonadRef (Component r m) where
-  type Ref (Component r m) = Ref m
+instance MonadRef m => MonadRef (UI r m) where
+  type Ref (UI r m) = Ref m
   newRef = lift . newRef
   readRef = lift . readRef
   writeRef r = lift . writeRef r
 
-instance Wrapped (Component r m a) where
-  type Unwrapped (Component r m a) = m a
-  _Wrapped' = iso runComponent Component
+instance Wrapped (UI r m a) where
+  type Unwrapped (UI r m a) = m a
+  _Wrapped' = iso runUI UI
 
 #ifndef ghcjs_HOST_OS
-deriving instance MonadJSM m => MonadJSM (Component r m)
+deriving instance MonadJSM m => MonadJSM (UI r m)
 #endif
 
-instance DomBuilder t m => DomBuilder t (Component r m) where
-  type DomBuilderSpace (Component r m) = DomBuilderSpace m
-  textNode = liftTextNode
-  element t cfg (Component c) = Component $ element t cfg c
+instance DomBuilder t m => DomBuilder t (UI r m) where
+  type DomBuilderSpace (UI r m) = DomBuilderSpace m
+  textNode = lift . textNode
+  element t cfg = UI . element t cfg . runUI
   inputElement = lift . inputElement
   textAreaElement = lift . textAreaElement
-  selectElement c = Component . selectElement c . runComponent
+  selectElement c = UI . selectElement c . runUI
   placeRawElement = lift . placeRawElement
   wrapRawElement e = lift . wrapRawElement e
 
-instance PerformEvent t m => PerformEvent t (Component None m) where
-  type Performable (Component None m) = Performable m
-  performEvent = Component . performEvent
-  performEvent_ = Component . performEvent_
+instance PerformEvent t m => PerformEvent t (UI r m) where
+  type Performable (UI r m) = Performable m
+  performEvent = UI . performEvent
+  performEvent_ = UI . performEvent_
 
-reComponent :: Component r' m a -> Component r m a
-reComponent (Component m) = Component m
+reUI :: UI r' m a -> UI r m a
+reUI (UI m) = UI m
 
-unComponent :: Component None m a -> Component r m a
-unComponent (Component m) = Component m
+unUI :: UI None m a -> UI r m a
+unUI (UI m) = UI m
 
-mapComponent :: forall r m a b. Monad m
-             => (m a -> m b) -> Component r m a -> Component r m b
-mapComponent f = Component . f . runComponent
+mapUI :: forall r m a b. Monad m
+             => (m a -> m b) -> UI r m a -> UI r m b
+mapUI f = UI . f . runUI
+
+mapUI' :: forall r1 r2 m a b. Monad m
+              => (m a -> m b) -> UI r1 m a -> UI r2 m b
+mapUI' f = UI . f . runUI
+
 
 --
 
@@ -202,18 +198,18 @@ justWhen True = Just
 justWhen False = const Nothing
 
 activeText :: (PostBuild t m, DomBuilder t m, MonadHold t m, MonadFix m)
-           => Active t Text -> Component None m ()
-activeText (Static t) = Component $ text t
-activeText (Dynamic t) = Component $ dynText t
+           => Active t Text -> UI None m ()
+activeText (Static t) = UI $ text t
+activeText (Dynamic t) = UI $ dynText t
 
 activeMaybe :: (PostBuild t m, DomBuilder t m) => (a -> m ()) -> Active t (Maybe a) -> m ()
 activeMaybe f (Static ma) = maybe blank f ma
 activeMaybe f (Dynamic dma) = void $ dyn $ maybe blank f <$> dma
 
 {-
-runActive :: (Componention r a, MonadWidget t m, UI t m a)
-          => Active t a -> Component r m ()
-runActive (Dynamic a) = Component $ void $ dyn $ runComponent . ui_ <$> a
+runActive :: (UIion r a, MonadWidget t m, UI t m a)
+          => Active t a -> UI r m ()
+runActive (Dynamic a) = UI $ void $ dyn $ runUI . ui_ <$> a
 runActive (Static a) = ui_ a
 -}
 
@@ -283,34 +279,17 @@ styleText (Style m)
 addStyle :: Text -> Text -> Style -> Style
 addStyle name v (Style m) = Style $ M.insert name v m
 
-staticText :: (DomBuilder t m, MonadHold t m, MonadFix m) => Text -> Component Inline m ()
-staticText t = Component $ text t
+staticText :: (DomBuilder t m, MonadHold t m, MonadFix m) => Text -> UI Inline m ()
+staticText t = UI $ text t
 
-widgetHold' :: (MonadHold t m, DomBuilder t m, MonadFix m) => Component r m a -> Event t (Component r m a) -> Component r m (Dynamic t a)
-widgetHold' (Component m) evt = Component $ widgetHold m $ fmap runComponent evt
+divClass' :: (DomBuilderSpace m ~ GhcjsDomSpace, DomBuilder t m) => Text -> m a -> m (El t, a)
+divClass' = elClass' "div"
 
-class HasDyn t (m :: * -> *) where
-  dyn' :: Dynamic t (m a) -> m (Event t a)
-
-instance (MonadHold t m, DomBuilder t m, MonadFix m, PostBuild t m)
-  => HasDyn t (Component r m) where
-  dyn' = Component . dyn . fmap runComponent
-
-instance (Reflex t, HasDyn t m) => HasDyn t (ReaderT r m) where
-  dyn' d = ReaderT $ \r -> dyn' $ flip runReaderT r <$> d
-
-instance (Reflex t, MonadHold t m, Monad m, Semigroup w, HasDyn t m)
-  => HasDyn t (EventWriterT t w m) where
-  dyn' d = do
-    res <- lift $ dyn' $ runEventWriterT <$> d
-    tellEvent <=< switchPromptly never $ fmap snd res
-    return $ fmap fst res
-
--- dyn' = Component . dyn . fmap runComponent
+-- dyn' = UI . dyn . fmap runUI
 
 display' :: (PostBuild t m, Show a, DomBuilder t m)
-         => Dynamic t a -> Component Inline m ()
-display' = Component . display
+         => Dynamic t a -> UI Inline m ()
+display' = UI . display
 
 --type Attrs = Attrs $ Map Text Text
 

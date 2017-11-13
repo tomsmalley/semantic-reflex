@@ -85,5 +85,5 @@ messageConfigClasses MessageConfig {..} = activeClasses
 -- default configuration.
 data Message t m a = Message
   { _config :: MessageConfig t
-  , _content :: Component Message m a
+  , _content :: UI Message m a
   }

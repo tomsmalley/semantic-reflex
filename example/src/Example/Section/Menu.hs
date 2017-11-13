@@ -234,14 +234,14 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
       ui $ MenuItem' def $ ui $ Input def $ textInput def
       ui $ MenuItem 3 def $ text "Logout"
 
-  Component $ display dynVal
+  display dynVal
   return ()
 
   ui_ $ Example "Vertical Menu" (def & subtitle ?~ text "A vertical menu displays elements vertically" & dynamic ?~ dynCode)
    [resetExample|
   \resetEvent -> do
     let counter txt = let widget = count <=< ui $ Button def $ text $ Static txt
-                      in join <$> widgetHold' widget (widget <$ resetEvent)
+                      in join <$> widgetHold widget (widget <$ resetEvent)
 
     inboxCount <- counter "Add inbox item"
     spamCount <- counter "Add spam item"

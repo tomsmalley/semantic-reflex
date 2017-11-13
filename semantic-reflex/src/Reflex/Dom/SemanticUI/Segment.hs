@@ -105,5 +105,5 @@ segmentConfigClasses SegmentConfig {..} = activeClasses
 -- | Segment UI Element.
 data Segment t m a = Segment
   { _config :: SegmentConfig t
-  , _content :: Component None m a
+  , _content :: UI None m a
   }

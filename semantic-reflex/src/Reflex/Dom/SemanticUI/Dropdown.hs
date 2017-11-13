@@ -93,13 +93,13 @@ dropdownConfigClasses DropdownConfig {..} = activeClasses
 
 data MenuDropdown f t m a = MenuDropdown
   { _config :: DropdownConfig t (f a)
-  , _items :: Component Menu (ReaderT (Dynamic t (f a)) (EventWriterT t (First a) m)) ()
+  , _items :: UI Menu (ReaderT (Dynamic t (f a)) (EventWriterT t (First a) m)) ()
   }
 
 
 data SelectionDropdown f t m a = SelectionDropdown
   { _config :: DropdownConfig t (f a)
-  , _preItems :: Component SelectionDropdown m ()
+  , _preItems :: UI SelectionDropdown m ()
   , _items :: Active t [DropdownItem m a]
   }
 
@@ -109,11 +109,11 @@ data DropdownItem m a = DropdownItem
   }
 
 simpleItem :: (Core.DomBuilder t m, Show a) => a -> DropdownItem m a
-simpleItem a = DropdownItem a $ def { _render = Component (Core.text $ tshow a) }
+simpleItem a = DropdownItem a $ def { _render = UI (Core.text $ tshow a) }
 
 data DropdownItemConfig m = DropdownItemConfig
-  { _render :: Component DropdownItem m ()
-  , _altRender :: Maybe (Component DropdownItem m ())
+  { _render :: UI DropdownItem m ()
+  , _altRender :: Maybe (UI DropdownItem m ())
   }
 
 instance Monad m => Default (DropdownItemConfig m) where

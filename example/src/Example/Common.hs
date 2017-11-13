@@ -23,7 +23,7 @@ import Reflex.Dom.SemanticUI
 
 import Example.QQ
 
-data Section t m = LinkedSection Text (Component Inline m ()) (Component None m ())
+data Section t m = LinkedSection Text (UI Inline m ()) (UI None m ())
 
 removableWidget :: MonadWidget t m => Event t () -> m (Event t ()) -> m ()
 removableWidget restore widget = do
@@ -33,15 +33,15 @@ removableWidget restore widget = do
         ]
   return ()
 
-dynShowCode :: (MonadWidget t m, DynShow t a) => a -> Component r m ()
+dynShowCode :: (MonadWidget t m, DynShow t a) => a -> UI r m ()
 dynShowCode a = do
   a' <- dynShow a
-  Component $ void $ dyn $ runComponent . hscode <$> a'
+  UI $ void $ dyn $ runUI . hscode <$> a'
 
-dynCode :: (MonadWidget t m, Show a) => Dynamic t a -> Component r m ()
-dynCode d = Component $ void $ dyn $ runComponent . hscode . show <$> d
+dynCode :: (MonadWidget t m, Show a) => Dynamic t a -> UI r m ()
+dynCode d = UI $ void $ dyn $ runUI . hscode . show <$> d
 
-simpleLink :: MonadWidget t m => Text -> Component Inline m ()
+simpleLink :: MonadWidget t m => Text -> UI Inline m ()
 simpleLink url = ui_ $ Anchor (text $ Static url) $ def
   & href |?~ url
 
@@ -50,9 +50,9 @@ orElse a _ True = a
 orElse _ b False = b
 
 data ExampleConf t m a = ExampleConf
-  { _subtitle :: Maybe (Component Inline m ())
-  , _inbetween :: Maybe (Component None m ())
-  , _dynamic :: Maybe (a -> Component None m ())
+  { _subtitle :: Maybe (UI Inline m ())
+  , _inbetween :: Maybe (UI None m ())
+  , _dynamic :: Maybe (a -> UI None m ())
   }
 $(makeLenses ''ExampleConf)
 
@@ -63,7 +63,7 @@ instance Applicative m => Default (ExampleConf t m a) where
     , _dynamic = Nothing
     }
 
-upstreamIssue :: MonadWidget t m => Int -> Text -> Component None m ()
+upstreamIssue :: MonadWidget t m => Int -> Text -> UI None m ()
 upstreamIssue issue msg = ui_ $ Message def $ paragraph $ do
   ui $ Icon "warning sign" def
   text $ Static msg
@@ -77,10 +77,10 @@ upstreamIssue issue msg = ui_ $ Message def $ paragraph $ do
 data Example t m a = Example
   { _name :: Text
   , _config :: ExampleConf t m a
-  , _codeWidget :: (String, Either (Component None m a) (Event t () -> Component None m a))
+  , _codeWidget :: (String, Either (UI None m a) (Event t () -> UI None m a))
   }
 
-instance (t' ~ t, m' ~ m) => UI t' m' None (Example t m a) where
+instance (t' ~ t, m' ~ m) => Render t' m' None (Example t m a) where
   type Return t' m' None (Example t m a) = a
   ui' (Example name ExampleConf {..} (code, eitherWidget))
 
@@ -92,7 +92,7 @@ instance (t' ~ t, m' ~ m) => UI t' m' None (Example t m a) where
     -- Title
     ui $ Header (def & floated |?~ LeftFloated) $ do
       text $ Static name
-      traverse_ (ui_ . SubHeader) _subtitle
+      traverse_ subheader _subtitle
 
     -- Control buttons
     let bConf = def & floated |?~ RightFloated & size |?~ Large & basic |~ True

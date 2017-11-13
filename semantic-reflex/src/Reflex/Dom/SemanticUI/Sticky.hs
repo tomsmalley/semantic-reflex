@@ -14,7 +14,7 @@ import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
-data Sticky t m a = Sticky (StickyConfig t) (Component None m a)
+data Sticky t m a = Sticky (StickyConfig t) (UI None m a)
 
 data StickyConfig t = StickyConfig
   { _pushing :: Bool

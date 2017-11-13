@@ -6,12 +6,16 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Reflex.Dom.SemanticUI.Header where
 
 import Data.Default
 import Data.Text (Text)
 import Reflex
+import Reflex.Dom.Core (MonadWidget)
+import qualified Reflex.Dom.Core as Core
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
@@ -107,14 +111,14 @@ headerSizeText H5 = "tiny"
 data PageHeader t m a = PageHeader
   { _size :: HeaderSize
   , _config :: HeaderConfig t
-  , _content :: Component Header m a
+  , _content :: UI Header m a
   }
 
 data Header t m a = Header
   { _config :: HeaderConfig t
-  , _content :: Component Header m a
+  , _content :: UI Header m a
   }
 
-data SubHeader t m a = SubHeader
-  { _content :: Component Inline m a
+data SubHeader m a = SubHeader
+  { _content :: UI Inline m a
   }

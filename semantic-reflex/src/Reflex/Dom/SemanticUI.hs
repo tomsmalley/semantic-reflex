@@ -4,25 +4,22 @@
 module Reflex.Dom.SemanticUI
   ( module Reflex.Dom.Active
   , module Reflex.Dom.SemanticUI.Class
-  , module Reflex.Dom.SemanticUI.UI
   , module Reflex.Dom.SemanticUI.Common
   , module Reflex.Dom.SemanticUI.Lenses
   , module Components
 
-  , semanticMain
-  , semanticMainWithCss
   , module Reflex.Dom.Core
   ) where
 
 import Data.ByteString
 import Reflex.Dom.Active
-import Reflex.Dom.SemanticUI.UI
 import Reflex.Dom.SemanticUI.Class
-import Reflex.Dom.SemanticUI.Common (tshow, Color (..), Size (..), Floated(..), jQuery, consoleLog, consoleTime, consoleTimeEnd, catchJS, (|~), (|?~), HorizontalAttached (..), VerticalAttached (..), ExclusiveAttached(..), Aligned(..), zipActiveWith, DynShow(..), Classes(..), Style(..), Width(..), mapComponent, Component(..), None, activeText, Inline, staticText, widgetHold', display', Emphasis(..), countWithLast, Positive(..), Social(..), ToClassText(..), unComponent, reComponent, addClass, runComponent, Labeled(..), keyIs, HasHeader(..), HasDyn(..), Restricted(..))
+import Reflex.Dom.SemanticUI.Common -- (tshow, Color (..), Size (..), Floated(..), jQuery, consoleLog, consoleTime, consoleTimeEnd, catchJS, (|~), (|?~), HorizontalAttached (..), VerticalAttached (..), ExclusiveAttached(..), Aligned(..), zipActiveWith, DynShow(..), Classes(..), Style(..), Width(..), mapComponent, Component(..), None, activeText, Inline, staticText, Emphasis(..), countWithLast, Positive(..), Social(..), ToClassText(..), unComponent, reComponent, addClass, runComponent, Labeled(..), keyIs, HasHeader(..))
 import Reflex.Dom.SemanticUI.Lenses
 
 import Reflex.Dom.SemanticUI.Button     as Components
 import Reflex.Dom.SemanticUI.Checkbox   as Components
+import Reflex.Dom.SemanticUI.Container  as Components
 import Reflex.Dom.SemanticUI.Dimmer     as Components
 import Reflex.Dom.SemanticUI.Divider    as Components
 import Reflex.Dom.SemanticUI.Dropdown   as Components
@@ -47,19 +44,9 @@ import Reflex.Dom.Core hiding
   , HasSetValue (..), HasValue (..), HasAttributes (..)
   , Dropdown (..), DropdownConfig (..), dropdown_change, dropdown_value, Select
   , link, Link, Input, Drop
-  , divClass, text, tag, Error
-  , elAttr, elAttr'
+  , text, tag, Error
+  , element, element'
   , textInput, TextInput(..), TextInputConfig(..), keypress
   )
 import Language.Javascript.JSaddle (JSM)
 
-
---semanticMain :: MonadWidget t m => m () -> JSM ()
-semanticMain :: (forall x. Widget x ()) -> JSM ()
-semanticMain = mainWidget
---semanticMain = mainWidgetWithCss $(embedStringFile =<< makeRelativeToProject "lib/semantic.min.css")
-
---semanticMain :: MonadWidget t m => m () -> JSM ()
-semanticMainWithCss :: ByteString -> (forall x. Widget x ()) -> JSM ()
-semanticMainWithCss css = mainWidgetWithCss css
---semanticMainWithCss css = mainWidgetWithCss $ css `mappend` $(embedStringFile =<< makeRelativeToProject "lib/semantic.min.css")

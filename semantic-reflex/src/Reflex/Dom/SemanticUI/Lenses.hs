@@ -35,7 +35,6 @@ import Reflex.Dom.SemanticUI.Paragraph
 import Reflex.Dom.SemanticUI.Segment
 import Reflex.Dom.SemanticUI.Transition
 
-$(makeFieldsNoPrefix ''Button)
 $(makeFieldsNoPrefix ''AnimatedButton)
 $(makeFieldsNoPrefix ''ButtonConfig)
 $(makeFieldsNoPrefix ''LabeledButtonConfig)
@@ -47,7 +46,7 @@ $(makeFieldsNoPrefix ''InputConfig)
 $(makeFieldsNoPrefix ''TextInputConfig)
 $(makeFieldsNoPrefix ''TextInputResult)
 
-$(makeFieldsNoPrefix ''Checkbox)
+-- $(makeFieldsNoPrefix ''Checkbox)
 $(makeFieldsNoPrefix ''CheckboxResult)
 $(makeFieldsNoPrefix ''CheckboxConfig)
 

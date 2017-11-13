@@ -13,6 +13,7 @@ module Reflex.Dom.SemanticUI.Field where
 
 import Data.Default
 import Reflex
+import Reflex.Dom.Core (el, DomBuilder)
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
@@ -37,5 +38,8 @@ fieldConfigClasses FieldConfig {..} = activeClasses
 -- | Field UI Element.
 data Field t m a = Field
   { _config :: FieldConfig t
-  , _content :: Component Field m a
+  , _content :: UI Field m a
   }
+
+label :: DomBuilder t m => UI Inline m a -> UI Field m a
+label = UI . el "label" . runUI

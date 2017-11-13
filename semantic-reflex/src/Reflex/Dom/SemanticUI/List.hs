@@ -101,7 +101,7 @@ listConfigClasses ListConfig {..} = activeClasses
 -- https://semantic-ui.com/elements/list.html
 data List t m a = List
   { _config :: ListConfig t
-  , _content :: Component List m a
+  , _content :: UI List m a
   }
 
 listItemElement :: ListItemElement -> Text
@@ -132,15 +132,15 @@ listItemConfigClasses ListItemConfig {..} = activeClasses
 
 data ListItem t m a = ListItem
   { _config :: ListItemConfig t
-  , _content :: Component ListItem m a
+  , _content :: UI ListItem m a
   }
 
--- listHeader :: Component Inline m a -> Component ListItem m a
+-- listHeader :: UI Inline m a -> UI ListItem m a
 
 newtype ListHeader t m a = ListHeader
-  { _content :: Component Inline m a
+  { _content :: UI Inline m a
   }
 
 newtype ListDescription t m a = ListDescription
-  { _content :: Component Inline m a
+  { _content :: UI Inline m a
   }

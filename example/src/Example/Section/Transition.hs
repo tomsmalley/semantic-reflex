@@ -1,19 +1,12 @@
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE GADTs                #-}
-{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE QuasiQuotes          #-}
-{-# LANGUAGE RecursiveDo          #-}
-{-# LANGUAGE RecordWildCards      #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE PolyKinds      #-}
 
 module Example.Section.Transition where
 
 import Control.Lens
 import Data.Char (isUpper)
-import Data.Foldable (traverse_)
+import Data.Foldable (traverse_, for_)
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -32,13 +25,13 @@ animalUrl :: Text -> Active t Text
 animalUrl a = Static $ "images/animals/" <> a <> ".png"
 
 mkButton :: MonadWidget t m => TransitionType
-         -> Component Buttons m (Event t Transition)
+         -> UI Buttons m (Event t Transition)
 mkButton t = do
   run <- ui $ Button (def & fluid |~ True) $ do
     text $ Static $ T.pack $ spaceBeforeUpper $ show t
   return $ Transition t def <$ run
 
-mkImages :: MonadWidget t m => Text -> Event t Transition -> Component None m ()
+mkImages :: MonadWidget t m => Text -> Event t Transition -> UI None m ()
 mkImages animal evt = do
   ui $ Divider $ def & hidden |~ True
   let imgConfig =  def
@@ -50,17 +43,17 @@ mkImages animal evt = do
     & spaced |?~ LeftSpaced
     & transition ?~ (def & event .~ fmap (\(Transition t c) -> Transition t $ c & cancelling .~ True) evt)
 
-mkButtons :: MonadWidget t m => Text -> [TransitionType] -> Component None m ()
+mkButtons :: MonadWidget t m => Text -> [TransitionType] -> UI None m ()
 mkButtons _ [] = return ()
 mkButtons animal (transType:[]) = do
-  evt <- reComponent $ mkButton transType
+  evt <- reUI $ mkButton transType
   mkImages animal evt
 mkButtons animal types = do
   evt <- ui $ Buttons buttonsConfig $ leftmost <$> traverse mkButton types
   mkImages animal evt
   where buttonsConfig = def & width |?~ toEnum (length types) & size |?~ Small
 
-transitions :: forall t m. MonadWidget t m => Section t m
+transitions :: MonadWidget t m => Section t m
 transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/modules/transition.html") $ do
 
   ui $ Message (def & messageType |?~ InfoMessage) $ paragraph $ do
@@ -84,33 +77,29 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   ui $ Example "Animations" (def
     & subtitle ?~ text "An element can be animated to draw attention to it")
     [example|
-  let img (anim, animal) = divClass "center aligned column" $ do
+  divClass "ui six column vertically padded grid" $
+    for_ (zip [Jiggle .. Bounce] ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]) $
+      \(anim, animal) -> divClass "center aligned column" $ do
         run <- ui $ Button (def & style |~ Style ("margin-bottom" =: "1em")) $ do
           text $ Static $ T.pack $ show anim
         ui $ Image (animalUrl animal) $ def
           & size |?~ Small
           & shape |?~ Rounded
           & transition ?~ (def & event .~ (Animation anim def <$ run))
-
-  divClass "ui six column vertically padded grid" $
-    traverse_ img $ zip [Jiggle .. Bounce]
-      ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]
   |]
 
   ui $ Example "Cancelling Animations" (def
     & subtitle ?~ text "Transitions can cancel override queued transitions")
     [example|
-  let img (anim, animal) = divClass "center aligned column" $ do
+  divClass "ui six column vertically padded grid" $
+    for_ (zip [Jiggle .. Bounce] ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]) $
+      \(anim, animal) -> divClass "center aligned column" $ do
         run <- ui $ Button (def & style |~ Style ("margin-bottom" =: "1em")) $ do
           text $ Static $ T.pack $ show anim
         ui $ Image (animalUrl animal) $ def
           & size |?~ Small
           & shape |?~ Rounded
           & transition ?~ (def & event .~ (Animation anim (def & cancelling .~ True) <$ run))
-
-  divClass "ui six column vertically padded grid" $
-    traverse_ img $ zip [Jiggle .. Bounce]
-      ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]
   |]
 
   ui $ Example "Transitions" (def

@@ -22,15 +22,12 @@ module Reflex.Dom.SemanticUI.Transition
   , AnimationType (..)
   , Direction (..)
   , ActiveElConfig (..)
-  , elWithAnim
-  , elWithAnim'
-  , semEl
+  , element
+  , element'
   , elConfigTransition
   , elConfigAttributes
   , elConfigStyle
   , elConfigClasses
-  , divClass
-  , divClass'
   , SetValue' (..)
   , SetValue
   , flipDirection
@@ -50,7 +47,8 @@ import Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
 import Data.Text (Text)
 import Reflex
-import Reflex.Dom.Core hiding (Drop, HasAttributes, divClass, elAttr', SetValue)
+import Reflex.Dom.Core hiding
+  (Drop, HasAttributes, divClass, elAttr', SetValue, element', element)
 
 import Data.Time
 
@@ -389,13 +387,16 @@ instance Reflex t => Monoid (ActiveElConfig t) where
   mempty = def
   mappend = (<>)
 
-semEl
+element :: MonadWidget t m => Text -> ActiveElConfig t -> m a -> m a
+element el conf = fmap snd . element' el conf
+
+element'
   :: MonadWidget t m
   => Text
   -> ActiveElConfig t
   -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-semEl _element ActiveElConfig {..} child = do
+element' _element ActiveElConfig {..} child = do
   transAttrs <- traverse runTransition _transition
   case transAttrs of
     Nothing -> do
@@ -403,42 +404,14 @@ semEl _element ActiveElConfig {..} child = do
           mkAttrs c s attrs = classAttr c <> styleAttr s <> attrs
       elActiveAttr' _element activeAttrs child
 
-    Just (AnimationAttrs mDynClasses mDynStyle) -> do
+    Just (AnimationAttrs dynMClasses dynMStyle) -> do
 
-      let activeAttrs = mkAttrs <$> _classes <*> Dynamic mDynClasses
-                              <*> _style <*> Dynamic mDynStyle
-                              <*> _attrs
-
-          mkAttrs c mClasses s mStyle attrs
-            = classAttr (maybe c (<> c) mClasses)
-            <> styleAttr (maybe s (<> s) mStyle)
-            <> attrs
-
-      elActiveAttr' _element activeAttrs child
-
-
-elWithAnim :: MonadWidget t m => Text -> ActiveElConfig t -> Component r m a -> Component None m a
-elWithAnim elType conf = fmap snd . elWithAnim' elType conf
-
-elWithAnim'
-  :: MonadWidget t m
-  => Text
-  -> ActiveElConfig t
-  -> Component r m a
-  -> Component None m (Element EventResult (DomBuilderSpace m) t, a)
-elWithAnim' _element ActiveElConfig {..} (Component child) = Component $ do
-  transAttrs <- traverse runTransition _transition
-  case transAttrs of
-    Nothing -> do
-      let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
-          mkAttrs c s attrs = classAttr c <> styleAttr s <> attrs
-      elActiveAttr' _element activeAttrs child
-
-    Just (AnimationAttrs mDynClasses mDynStyle) -> do
-
-      let activeAttrs = mkAttrs <$> _classes <*> Dynamic mDynClasses
-                              <*> _style <*> Dynamic mDynStyle
-                              <*> _attrs
+      let activeAttrs = mkAttrs
+            <$> _classes
+            <*> Dynamic dynMClasses
+            <*> _style
+            <*> Dynamic dynMStyle
+            <*> _attrs
 
           mkAttrs c mClasses s mStyle attrs
             = classAttr (maybe c (<> c) mClasses)
@@ -446,12 +419,6 @@ elWithAnim' _element ActiveElConfig {..} (Component child) = Component $ do
             <> attrs
 
       elActiveAttr' _element activeAttrs child
-
-divClass :: MonadWidget t m => Active t Classes -> m a -> m a
-divClass c = fmap snd . divClass' c
-
-divClass' :: MonadWidget t m => Active t Classes -> m a -> m (El t, a)
-divClass' c = semEl "div" (def & elConfigClasses .~ c)
 
 -- Lenses
 

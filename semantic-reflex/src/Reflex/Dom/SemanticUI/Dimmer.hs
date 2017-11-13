@@ -59,5 +59,5 @@ dimmerConfigClasses DimmerConfig {..} = activeClasses
 -- | Dimmer UI Element.
 data Dimmer t m a = Dimmer
   { _config :: DimmerConfig t
-  , _content :: Component None m a
+  , _content :: UI None m a
   }

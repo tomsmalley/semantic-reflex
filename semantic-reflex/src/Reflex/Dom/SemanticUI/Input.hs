@@ -22,7 +22,7 @@ import Reflex.Dom.SemanticUI.Icon
 
 data Input t m a = Input
   { _config :: InputConfig t
-  , _contents :: Component Input m a
+  , _contents :: UI Input m a
   }
 
 data Action = LeftAction | RightAction
@@ -112,8 +112,8 @@ instance DynShow t (TextInputResult t) where
 -- | A wrapper around the reflex-dom 'textInput' which conforms to the style
 -- of this library
 textInput :: (DomBuilder t m, PostBuild t m, DomBuilderSpace m ~ GhcjsDomSpace)
-          => TextInputConfig t -> Component Input m (TextInputResult t)
-textInput TextInputConfig {..} = Component $ do
+          => TextInputConfig t -> UI Input m (TextInputResult t)
+textInput TextInputConfig {..} = UI $ do
   Reflex.TextInput {..} <- Reflex.textInput Reflex.TextInputConfig
     { _textInputConfig_attributes = attrs
     , _textInputConfig_setValue = fromMaybe never mSetValue
