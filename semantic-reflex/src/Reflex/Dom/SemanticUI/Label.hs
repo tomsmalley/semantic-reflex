@@ -1,23 +1,46 @@
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE CPP                      #-}
-{-# LANGUAGE DuplicateRecordFields                      #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE InstanceSigs     #-}
-{-# LANGUAGE JavaScriptFFI            #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE RecursiveDo              #-}
-{-# LANGUAGE ScopedTypeVariables      #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-module Reflex.Dom.SemanticUI.Label where
+module Reflex.Dom.SemanticUI.Label
+  (
 
+    label, label'
+  , detail, detail'
+  , LabelConfig (..)
+  , Ribbon (..)
+  , Pointing (..)
+  , TopCorner (..)
+  , LabelAttached (..)
+  , labelHasImage
+  , labelHidden
+  , labelBasic
+  , labelTag
+  , labelFloating
+  , labelHorizontal
+  , labelAttached
+  , labelColor
+  , labelPointing
+  , labelRibbon
+  , labelCorner
+  , labelLink
+  , labelElConfig
+
+  ) where
+
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Monad (void)
 import Data.Default
 import Data.Maybe (catMaybes)
+import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.Core hiding (fromJSString, divClass)
@@ -26,6 +49,15 @@ import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 
 import Reflex.Dom.SemanticUI.Transition
+
+data Pointing = LeftPointing | RightPointing | AbovePointing | BelowPointing
+  deriving (Eq, Show)
+
+instance ToClassText Pointing where
+  toClassText LeftPointing = "left pointing"
+  toClassText RightPointing = "right pointing"
+  toClassText AbovePointing = "pointing"
+  toClassText BelowPointing = "pointing below" -- Must be in this order
 
 data Ribbon
   = LeftRibbon
@@ -45,13 +77,6 @@ instance ToClassText TopCorner where
   toClassText LeftCorner = "left corner"
   toClassText RightCorner = "right corner"
 
-
--- Icon, Image, Detail
-
-data Label t m a = Label
-  { _config :: LabelConfig t
-  , _content :: UI Label m a
-  }
 
 -- | If a label is attached, it *must* be vertically attached in some way. There
 -- can't be a soley horizontally attached label.
@@ -76,62 +101,73 @@ instance ToClassText LabelAttached where
       hClass RightAttached = "right"
 
 data LabelConfig t = LabelConfig
-  { _attached :: Active t (Maybe LabelAttached)
-  , _color :: Active t (Maybe Color)
-  , _pointing :: Active t (Maybe Pointing)
-  , _ribbon :: Active t (Maybe Ribbon)
-  , _corner :: Active t (Maybe TopCorner)
-  , _image :: Active t Bool
-  , _hidden :: Active t Bool
-  , _basic :: Active t Bool
-  , _tag :: Active t Bool
-  , _floating :: Active t Bool
-  , _horizontal :: Active t Bool
-  , _link :: Bool
-  , _config :: ActiveElConfig t
+  { _labelHasImage :: Active t Bool
+  , _labelHidden :: Active t Bool
+  , _labelBasic :: Active t Bool
+  , _labelTag :: Active t Bool
+  , _labelFloating :: Active t Bool
+  , _labelHorizontal :: Active t Bool
+
+  , _labelAttached :: Active t (Maybe LabelAttached)
+  , _labelColor :: Active t (Maybe Color)
+  , _labelPointing :: Active t (Maybe Pointing)
+  , _labelRibbon :: Active t (Maybe Ribbon)
+  , _labelCorner :: Active t (Maybe TopCorner)
+
+  , _labelLink :: Bool
+  , _labelElConfig :: ActiveElConfig t
   }
+makeLensesWith (lensRules & simpleLenses .~ True) ''LabelConfig
 
 instance Reflex t => Default (LabelConfig t) where
   def = LabelConfig
-    { _attached = pure Nothing
-    , _color = pure Nothing
-    , _pointing = pure Nothing
-    , _ribbon = pure Nothing
-    , _corner = pure Nothing
-    , _image = pure False
-    , _hidden = pure False
-    , _basic = pure False
-    , _tag = pure False
-    , _floating = pure False
-    , _horizontal = pure False
-    , _link = False
-    , _config = def
+    { _labelAttached = pure Nothing
+    , _labelColor = pure Nothing
+    , _labelPointing = pure Nothing
+    , _labelRibbon = pure Nothing
+    , _labelCorner = pure Nothing
+    , _labelHasImage = pure False
+    , _labelHidden = pure False
+    , _labelBasic = pure False
+    , _labelTag = pure False
+    , _labelFloating = pure False
+    , _labelHorizontal = pure False
+    , _labelLink = False
+    , _labelElConfig = def
     }
 
 labelConfigClasses :: Reflex t => LabelConfig t -> Active t Classes
 labelConfigClasses LabelConfig {..} = activeClasses
   [ Static $ Just "ui label"
-  , fmap toClassText <$> _attached
-  , fmap toClassText <$> _color
-  , fmap toClassText <$> _pointing
-  , fmap toClassText <$> _ribbon
-  , fmap toClassText <$> _corner
-  , boolClass "hidden" _hidden
-  , boolClass "basic" _basic
-  , boolClass "tag" _tag
-  , boolClass "floating" _floating
-  , boolClass "horizontal" _horizontal
-  , boolClass "image" _image
+  , fmap toClassText <$> _labelAttached
+  , fmap toClassText <$> _labelColor
+  , fmap toClassText <$> _labelPointing
+  , fmap toClassText <$> _labelRibbon
+  , fmap toClassText <$> _labelCorner
+  , boolClass "hidden" _labelHidden
+  , boolClass "basic" _labelBasic
+  , boolClass "tag" _labelTag
+  , boolClass "floating" _labelFloating
+  , boolClass "horizontal" _labelHorizontal
+  , boolClass "image" _labelHasImage
   ]
 
 
-data Pointing = LeftPointing | RightPointing | AbovePointing | BelowPointing
-  deriving (Eq, Show)
+detail' :: MonadWidget t m => Active t Text -> m (El t)
+detail' = fmap fst . element' "div" elConf . activeText
+  where elConf = def { _classes = "detail" }
 
-instance ToClassText Pointing where
-  toClassText LeftPointing = "left pointing"
-  toClassText RightPointing = "right pointing"
-  toClassText AbovePointing = "pointing"
-  toClassText BelowPointing = "pointing below" -- Must be in this order
+detail :: MonadWidget t m => Active t Text -> m ()
+detail = void . detail'
 
-data Detail t = Detail (Active t Text) -- Text or Link
+label' :: MonadWidget t m => LabelConfig t -> m a -> m (El t, a)
+label' config@LabelConfig {..} = element' elType elConf
+  where
+    elConf = _labelElConfig <> def
+      { _classes = labelConfigClasses config
+      }
+    elType = if _labelLink then "a" else "div"
+
+label :: MonadWidget t m => LabelConfig t -> m a -> m a
+label c = fmap snd . label' c
+

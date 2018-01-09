@@ -1,6 +1,5 @@
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE CPP                      #-}
-{-# LANGUAGE DuplicateRecordFields                      #-}
 {-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
@@ -18,7 +17,9 @@
 
 module Reflex.Dom.SemanticUI.Icon where
 
+import Control.Monad (void)
 import Data.Default
+import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex.Dom.Core hiding (fromJSString)
 
@@ -26,16 +27,12 @@ import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
-data Flag t = Flag (Active t Text) (FlagConfig t)
-
 data FlagConfig t = FlagConfig
-  { _config :: ActiveElConfig t
+  { _flagElConfig :: ActiveElConfig t
   }
 
 instance Reflex t => Default (FlagConfig t) where
   def = FlagConfig def
-
-data Icon t = Icon (Active t Text) (IconConfig t)
 
 data Flipped = HorizontallyFlipped | VerticallyFlipped
   deriving (Eq, Ord, Read, Show, Enum, Bounded)
@@ -61,73 +58,107 @@ instance ToClassText Corner where
   toClassText BottomRight = "bottom right corner"
 
 data IconConfig t = IconConfig
-  { _disabled :: Active t Bool
-  , _loading :: Active t Bool
-  , _fitted :: Active t Bool
-  , _size :: Active t (Maybe Size)
-  , _link :: Active t Bool
-  , _flipped :: Active t (Maybe Flipped)
-  , _rotated :: Active t (Maybe Rotated)
-  , _circular :: Active t Bool
-  , _bordered :: Active t Bool
-  , _color :: Active t (Maybe Color)
-  , _inverted :: Active t Bool
-  , _corner :: Active t (Maybe Corner)
-  , _title :: Active t (Maybe Text)
-  , _config :: ActiveElConfig t
+  { _iconDisabled :: Active t Bool
+  , _iconLoading :: Active t Bool
+  , _iconFitted :: Active t Bool
+  , _iconSize :: Active t (Maybe Size)
+  , _iconLink :: Active t Bool
+  , _iconFlipped :: Active t (Maybe Flipped)
+  , _iconRotated :: Active t (Maybe Rotated)
+  , _iconCircular :: Active t Bool
+  , _iconBordered :: Active t Bool
+  , _iconColor :: Active t (Maybe Color)
+  , _iconInverted :: Active t Bool
+  , _iconCorner :: Active t (Maybe Corner)
+  , _iconTitle :: Active t (Maybe Text)
+  , _iconElConfig :: ActiveElConfig t
   }
 
 instance Reflex t => Default (IconConfig t) where
   def = IconConfig
-    { _disabled = pure False
-    , _loading = pure False
-    , _fitted = pure False
-    , _size = pure Nothing
-    , _link = pure False
-    , _flipped = pure Nothing
-    , _rotated = pure Nothing
-    , _circular = pure False
-    , _bordered = pure False
-    , _color = pure Nothing
-    , _inverted = pure False
-    , _corner = pure Nothing
-    , _title = pure Nothing
-    , _config = def
+    { _iconDisabled = pure False
+    , _iconLoading = pure False
+    , _iconFitted = pure False
+    , _iconSize = pure Nothing
+    , _iconLink = pure False
+    , _iconFlipped = pure Nothing
+    , _iconRotated = pure Nothing
+    , _iconCircular = pure False
+    , _iconBordered = pure False
+    , _iconColor = pure Nothing
+    , _iconInverted = pure False
+    , _iconCorner = pure Nothing
+    , _iconTitle = pure Nothing
+    , _iconElConfig = def
     }
 
 iconConfigClasses :: Reflex t => IconConfig t -> Active t Classes
 iconConfigClasses IconConfig {..} = activeClasses
   [ Static $ Just "icon"
-  , boolClass "disabled" _disabled
-  , boolClass "loading" _loading
-  , boolClass "fitted" _fitted
-  , fmap toClassText . nothingIf Medium <$> _size
-  , boolClass "link" _link
-  , fmap toClassText <$> _flipped
-  , fmap toClassText <$> _rotated
-  , boolClass "circular" _circular
-  , boolClass "bordered" _bordered
-  , fmap toClassText <$> _color
-  , boolClass "inverted" _inverted
-  , fmap toClassText <$> _corner
+  , boolClass "disabled" _iconDisabled
+  , boolClass "loading" _iconLoading
+  , boolClass "fitted" _iconFitted
+  , fmap toClassText . nothingIf Medium <$> _iconSize
+  , boolClass "link" _iconLink
+  , fmap toClassText <$> _iconFlipped
+  , fmap toClassText <$> _iconRotated
+  , boolClass "circular" _iconCircular
+  , boolClass "bordered" _iconBordered
+  , fmap toClassText <$> _iconColor
+  , boolClass "inverted" _iconInverted
+  , fmap toClassText <$> _iconCorner
   ]
 
-data Icons t m a = Icons (IconsConfig t) (UI Icons m a)
-
 data IconsConfig t = IconsConfig
-  { _size :: Active t (Maybe Size)
-  , _config :: ActiveElConfig t
+  { _iconsSize :: Active t (Maybe Size)
+  , _iconsElConfig :: ActiveElConfig t
   }
 
 instance Reflex t => Default (IconsConfig t) where
   def = IconsConfig
-    { _size = pure Nothing
-    , _config = def
+    { _iconsSize = pure Nothing
+    , _iconsElConfig = def
     }
 
-iconsConfigClasss :: Reflex t => IconsConfig t -> Active t Classes
-iconsConfigClasss IconsConfig {..} = activeClasses
+iconsConfigClasses :: Reflex t => IconsConfig t -> Active t Classes
+iconsConfigClasses IconsConfig {..} = activeClasses
   [ Static $ Just "icons"
-  , fmap toClassText <$> _size
+  , fmap toClassText <$> _iconsSize
   ]
+
+
+icon' :: MonadWidget t m => Active t Text -> IconConfig t -> m (El t)
+icon' activeIcon config@IconConfig {..}
+  = fst <$> element' "i" elConf blank
+  where
+    elConf = _iconElConfig <> def
+      { _classes = addClass <$> activeIcon <*> iconConfigClasses config
+      , _attrs = maybe mempty ("title" =:) <$> _iconTitle
+      }
+
+-- This is for inclusion in other element configs
+data Icon t = Icon (Active t Text) (IconConfig t)
+
+icon :: MonadWidget t m => Active t Text -> IconConfig t -> m ()
+icon i = void . icon' i
+
+icons' :: MonadWidget t m => IconsConfig t -> m a -> m (El t, a)
+icons' config@IconsConfig {..} = element' "i" elConf
+  where
+    elConf = _iconsElConfig <> def
+      { _classes = iconsConfigClasses config }
+
+icons :: MonadWidget t m => IconsConfig t -> m a -> m a
+icons config = fmap snd . icons' config
+
+
+flag' :: MonadWidget t m => Active t Text -> FlagConfig t -> m (El t)
+flag' flagActive FlagConfig {..}
+  = fst <$> element' "i" config blank
+  where
+    config = _flagElConfig
+      & elConfigClasses .~ (flip addClass "flag" <$> flagActive)
+
+flag :: MonadWidget t m => Active t Text -> FlagConfig t -> m ()
+flag f = void . flag' f
 

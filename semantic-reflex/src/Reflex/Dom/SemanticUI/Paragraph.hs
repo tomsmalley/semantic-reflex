@@ -1,4 +1,3 @@
-{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -10,58 +9,26 @@
 
 module Reflex.Dom.SemanticUI.Paragraph where
 
-import Control.Monad.Fix
 import Data.Default
 import Data.Text (Text)
+import Data.Map (Map)
 import Reflex
 import Reflex.Dom.Core hiding (element)
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
-import Reflex.Dom.SemanticUI.Transition hiding (divClass)
+import Reflex.Dom.SemanticUI.Transition
 
-import Reflex.Dom.SemanticUI.Button (Button)
-import Reflex.Dom.SemanticUI.Label (Label)
-import Reflex.Dom.SemanticUI.List (ListItem)
-import Reflex.Dom.SemanticUI.Divider (ContentDivider)
-import Reflex.Dom.SemanticUI.Header (Header)
-import Reflex.Dom.SemanticUI.Message (Message)
+paragraph :: MonadWidget t m => m a -> m a
+paragraph = element "p" def
 
-class PlainText (r :: k) t m where
-  text :: (MonadHold t m, MonadFix m, PostBuild t m, DomBuilder t m)
-       => Active t Text -> UI r m ()
-  text (Static t) = UI $ Reflex.Dom.Core.text t
-  text (Dynamic t) = UI $ dynText t
-
-instance PlainText None t m
-instance PlainText Inline t m
-instance PlainText Header t m
-instance PlainText ListItem t m
-instance PlainText ContentDivider t m
-instance PlainText Label t m
-instance PlainText Button t m
-
-class HasParagraph (r :: k) t m where
-  paragraph :: MonadWidget t m => UI Inline m a -> UI r m a
-  paragraph m = element "p" def $ reUI m
-
-instance HasParagraph None t m
-instance HasParagraph Message t m
-
-data Anchor t m a = Anchor (UI Inline m a) (AnchorConfig t)
-data AnchorConfig t = AnchorConfig
-  { _href :: Active t (Maybe Text)
-  , _config :: ActiveElConfig t
-  }
-
-instance Reflex t => Default (AnchorConfig t) where
-  def = AnchorConfig
-    { _href = pure Nothing
-    , _config = def
-    }
-
-data AnchorResult t a = AnchorResult
-  { _click :: Event t ()
-  , _content :: a
-  }
+hyperlink :: MonadWidget t m
+      => Active t (Maybe Text) -> Active t Text -> m (Event t ())
+hyperlink mUrl t = do
+  (e, _) <- element' "a" conf $ activeText t
+  return $ domEvent Click e
+    where conf = def { _attrs = fmap mkAttrs mUrl }
+          mkAttrs :: Maybe Text -> Map Text Text
+          mkAttrs Nothing = mempty
+          mkAttrs (Just url) = "href" =: url
 

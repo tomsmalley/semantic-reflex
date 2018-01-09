@@ -12,11 +12,8 @@
 
 module Reflex.Dom.SemanticUI.Common where
 
-import Control.Monad.Ref
 import Control.Monad.Fix (MonadFix)
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Reader
-import Control.Lens ((^.), set, ASetter, Unwrapped, Wrapped, _Wrapped', iso)
+import Control.Lens ((^.), set, ASetter)
 import Control.Monad (void, (<=<))
 import Data.String
 import Data.Semigroup
@@ -30,19 +27,9 @@ import qualified Data.Text as T
 import Language.Javascript.JSaddle hiding (Success)
 import Reflex.Dom.Core hiding (Link, Error, elAttr', DynamicWriterT)
 
-import Reflex.Host.Class
-
 import Reflex.Dom.Active
 
 -- JSaddle helpers
-
-class Dividable a where
-  type Divide t (m :: * -> *) a b = r | r -> t m a b
-  divider :: MonadWidget t m => Divide t m a b
-
-class HasHeader t m r where
-  type HeaderType t (m :: * -> *) r a = c | c -> t m r a
-  header :: MonadWidget t m => HeaderType t m r a
 
 -- | Javascript console.log
 consoleLog :: MonadJSM m => ToJSVal a => a -> m ()
@@ -90,6 +77,7 @@ imap f = go 0
 
 ------------------------------------------------------------------------------
 
+{-
 newtype UI r m a = UI
   { runUI :: m a }
   deriving
@@ -157,7 +145,7 @@ mapUI f = UI . f . runUI
 mapUI' :: forall r1 r2 m a b. Monad m
               => (m a -> m b) -> UI r1 m a -> UI r2 m b
 mapUI' f = UI . f . runUI
-
+-}
 
 --
 
@@ -198,20 +186,13 @@ justWhen True = Just
 justWhen False = const Nothing
 
 activeText :: (PostBuild t m, DomBuilder t m, MonadHold t m, MonadFix m)
-           => Active t Text -> UI None m ()
-activeText (Static t) = UI $ text t
-activeText (Dynamic t) = UI $ dynText t
+           => Active t Text -> m ()
+activeText (Static t) = text t
+activeText (Dynamic t) = dynText t
 
 activeMaybe :: (PostBuild t m, DomBuilder t m) => (a -> m ()) -> Active t (Maybe a) -> m ()
 activeMaybe f (Static ma) = maybe blank f ma
 activeMaybe f (Dynamic dma) = void $ dyn $ maybe blank f <$> dma
-
-{-
-runActive :: (UIion r a, MonadWidget t m, UI t m a)
-          => Active t a -> UI r m ()
-runActive (Dynamic a) = UI $ void $ dyn $ runUI . ui_ <$> a
-runActive (Static a) = ui_ a
--}
 
 zipActiveWith :: Reflex t => (a -> b -> c) -> Active t a -> Active t b -> Active t c
 zipActiveWith f a b = f <$> a <*> b
@@ -279,19 +260,11 @@ styleText (Style m)
 addStyle :: Text -> Text -> Style -> Style
 addStyle name v (Style m) = Style $ M.insert name v m
 
-staticText :: (DomBuilder t m, MonadHold t m, MonadFix m) => Text -> UI Inline m ()
-staticText t = UI $ text t
+staticText :: (DomBuilder t m, MonadHold t m, MonadFix m) => Text -> m ()
+staticText t = text t
 
 divClass' :: (DomBuilderSpace m ~ GhcjsDomSpace, DomBuilder t m) => Text -> m a -> m (El t, a)
 divClass' = elClass' "div"
-
--- dyn' = UI . dyn . fmap runUI
-
-display' :: (PostBuild t m, Show a, DomBuilder t m)
-         => Dynamic t a -> UI Inline m ()
-display' = UI . display
-
---type Attrs = Attrs $ Map Text Text
 
 data Inline
 data None

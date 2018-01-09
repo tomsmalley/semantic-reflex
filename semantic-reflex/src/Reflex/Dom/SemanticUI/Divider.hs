@@ -1,58 +1,88 @@
-{-# LANGUAGE DuplicateRecordFields    #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeApplications #-}
 
-module Reflex.Dom.SemanticUI.Divider where
+module Reflex.Dom.SemanticUI.Divider
+  (
 
+    divider, divider'
+  , DividerConfig (..)
+  , dividerInverted
+  , dividerFitted
+  , dividerHidden
+  , dividerSection
+  , dividerClearing
+  , dividerElConfig
+
+  ) where
+
+import Control.Lens (makeLenses)
+import Control.Monad (void)
 import Data.Default
+import Data.Semigroup ((<>))
 import Reflex.Dom.Core
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
-data Divider t = Divider
-  { _config :: DividerConfig t
-  }
-
--- | In semantic-ui terms, this is a horizontal divider. Vertical dividers are
--- not implemented due to them being broken:
--- https://github.com/Semantic-Org/Semantic-UI/issues/4342
-data ContentDivider t m a = ContentDivider
-  { _config :: DividerConfig t
-  , _content :: UI ContentDivider m a
-  }
-
 data DividerConfig t = DividerConfig
-  { _inverted :: Active t Bool
-  , _fitted :: Active t Bool
-  , _hidden :: Active t Bool
-  , _section :: Active t Bool
-  , _clearing :: Active t Bool
-  , _config :: ActiveElConfig t
+  { _dividerInverted :: Active t Bool
+  , _dividerFitted :: Active t Bool
+  , _dividerHidden :: Active t Bool
+  , _dividerSection :: Active t Bool
+  , _dividerClearing :: Active t Bool
+  , _dividerElConfig :: ActiveElConfig t
   }
+makeLenses 'DividerConfig
 
 instance Reflex t => Default (DividerConfig t) where
   def = DividerConfig
-    { _inverted = pure False
-    , _fitted = pure False
-    , _hidden = pure False
-    , _section = pure False
-    , _clearing = pure False
-    , _config = def
+    { _dividerInverted = pure False
+    , _dividerFitted = pure False
+    , _dividerHidden = pure False
+    , _dividerSection = pure False
+    , _dividerClearing = pure False
+    , _dividerElConfig = def
     }
 
 dividerConfigClasses :: Reflex t => DividerConfig t -> Active t Classes
 dividerConfigClasses DividerConfig {..} = activeClasses
   [ Static $ Just "ui divider"
-  , boolClass "inverted" _inverted
-  , boolClass "fitted" _fitted
-  , boolClass "hidden" _hidden
-  , boolClass "section" _section
-  , boolClass "clearing" _clearing
+  , boolClass "inverted" _dividerInverted
+  , boolClass "fitted" _dividerFitted
+  , boolClass "hidden" _dividerHidden
+  , boolClass "section" _dividerSection
+  , boolClass "clearing" _dividerClearing
   ]
+
+-- | In semantic-ui terms, this is a horizontal divider. Vertical dividers are
+-- not implemented due to them being broken:
+-- https://github.com/Semantic-Org/Semantic-UI/issues/4342
+divider' :: MonadWidget t m => DividerConfig t -> m (El t)
+divider' config@DividerConfig {..}
+  = fst <$> element' "div" elConf blank
+  where
+    elConf = _dividerElConfig <> def
+      { _classes = dividerConfigClasses config }
+
+-- | In semantic-ui terms, this is a horizontal divider. Vertical dividers are
+-- not implemented due to them being broken:
+-- https://github.com/Semantic-Org/Semantic-UI/issues/4342
+divider :: MonadWidget t m => DividerConfig t -> m ()
+divider = void . divider'
+
+contentDivider' :: MonadWidget t m => DividerConfig t -> m a -> m (El t, a)
+contentDivider' config@DividerConfig {..} content
+  = element' "div" elConf content
+  where
+    elConf = _dividerElConfig <> def
+      { _classes = addClass "horizontal" <$> dividerConfigClasses config }
+
+contentDivider :: MonadWidget t m => DividerConfig t -> m a -> m a
+contentDivider c = fmap snd . contentDivider' c
 

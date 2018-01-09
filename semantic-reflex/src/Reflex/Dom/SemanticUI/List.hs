@@ -1,4 +1,3 @@
-{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -10,14 +9,16 @@
 module Reflex.Dom.SemanticUI.List where
 
 import Data.Default
+import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex
+import Reflex.Dom.Core
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
-import Reflex.Dom.SemanticUI.Icon (Icon)
-import Reflex.Dom.SemanticUI.Image (Image)
-import Reflex.Dom.SemanticUI.Transition hiding (divClass)
+import Reflex.Dom.SemanticUI.Icon (Icon(Icon), icon)
+import Reflex.Dom.SemanticUI.Image (Image(Image), image)
+import Reflex.Dom.SemanticUI.Transition
 
 data ListType = Bulleted | Ordered
   deriving (Eq, Ord, Read, Show, Enum, Bounded)
@@ -43,66 +44,58 @@ instance ToClassText ListAligned where
 
 data ListConfig t = ListConfig
   { _listType   :: Active t (Maybe ListType)
-  , _link       :: Active t Bool
-  , _horizontal :: Active t Bool
-  , _inverted   :: Active t Bool
-  , _selection  :: Active t Bool
-  , _animated   :: Active t Bool
-  , _relaxed    :: Active t (Maybe Relaxed)
-  , _divided    :: Active t Bool
-  , _celled     :: Active t Bool
-  , _size       :: Active t (Maybe Size)
-  , _floated    :: Active t (Maybe Floated)
+  , _listLink       :: Active t Bool
+  , _listHorizontal :: Active t Bool
+  , _listInverted   :: Active t Bool
+  , _listSelection  :: Active t Bool
+  , _listAnimated   :: Active t Bool
+  , _listRelaxed    :: Active t (Maybe Relaxed)
+  , _listDivided    :: Active t Bool
+  , _listCelled     :: Active t Bool
+  , _listSize       :: Active t (Maybe Size)
+  , _listFloated    :: Active t (Maybe Floated)
 
-  , _aligned    :: Active t (Maybe ListAligned)
+  , _listAligned    :: Active t (Maybe ListAligned)
 
-  , _config     :: ActiveElConfig t
+  , _listElConfig     :: ActiveElConfig t
   }
 
 instance Reflex t => Default (ListConfig t) where
   def = ListConfig
     { _listType = pure Nothing
-    , _link = pure False
-    , _horizontal = pure False
-    , _inverted = pure False
-    , _selection = pure False
-    , _animated = pure False
-    , _relaxed = pure Nothing
-    , _divided = pure False
-    , _celled = pure False
-    , _size = pure Nothing
-    , _floated = pure Nothing
+    , _listLink = pure False
+    , _listHorizontal = pure False
+    , _listInverted = pure False
+    , _listSelection = pure False
+    , _listAnimated = pure False
+    , _listRelaxed = pure Nothing
+    , _listDivided = pure False
+    , _listCelled = pure False
+    , _listSize = pure Nothing
+    , _listFloated = pure Nothing
 
-    , _aligned = pure Nothing
+    , _listAligned = pure Nothing
 
-    , _config = def
+    , _listElConfig = def
     }
 
 listConfigClasses :: Reflex t => ListConfig t -> Active t Classes
 listConfigClasses ListConfig {..} = activeClasses
   [ Static $ Just "ui list"
   , fmap toClassText <$> _listType
-  , boolClass "link" _link
-  , boolClass "horizontal" _horizontal
-  , boolClass "inverted" _inverted
-  , boolClass "selection" _selection
-  , boolClass "animated" _animated
-  , fmap toClassText <$> _relaxed
-  , boolClass "divided" _divided
-  , boolClass "celled" _celled
-  , fmap toClassText <$> _size
-  , fmap toClassText <$> _floated
+  , boolClass "link" _listLink
+  , boolClass "horizontal" _listHorizontal
+  , boolClass "inverted" _listInverted
+  , boolClass "selection" _listSelection
+  , boolClass "animated" _listAnimated
+  , fmap toClassText <$> _listRelaxed
+  , boolClass "divided" _listDivided
+  , boolClass "celled" _listCelled
+  , fmap toClassText <$> _listSize
+  , fmap toClassText <$> _listFloated
 
-  , fmap toClassText <$> _aligned
+  , fmap toClassText <$> _listAligned
   ]
-
--- | Create a list.
---
--- https://semantic-ui.com/elements/list.html
-data List t m a = List
-  { _config :: ListConfig t
-  , _content :: UI List m a
-  }
 
 listItemElement :: ListItemElement -> Text
 listItemElement ListItemDiv = "div"
@@ -111,18 +104,18 @@ listItemElement ListItemLink = "a"
 data ListItemElement = ListItemDiv | ListItemLink
 
 data ListItemConfig t = ListItemConfig
-  { _icon :: Maybe (Icon t)
-  , _image :: Maybe (Image t)
-  , _as :: ListItemElement
-  , _config :: ActiveElConfig t
+  { _listItemIcon :: Maybe (Icon t)
+  , _listItemImage :: Maybe (Image t)
+  , _listItemElement :: ListItemElement
+  , _listItemElConfig :: ActiveElConfig t
   }
 
 instance Reflex t => Default (ListItemConfig t) where
   def = ListItemConfig
-    { _icon = Nothing
-    , _image = Nothing
-    , _as = ListItemDiv
-    , _config = def
+    { _listItemIcon = Nothing
+    , _listItemImage = Nothing
+    , _listItemElement = ListItemDiv
+    , _listItemElConfig = def
     }
 
 listItemConfigClasses :: Reflex t => ListItemConfig t -> Active t Classes
@@ -130,17 +123,49 @@ listItemConfigClasses ListItemConfig {..} = activeClasses
   [ Static $ Just "item"
   ]
 
-data ListItem t m a = ListItem
-  { _config :: ListItemConfig t
-  , _content :: UI ListItem m a
-  }
+-- | Create a list.
+--
+-- https://semantic-ui.com/elements/list.html
+list' :: MonadWidget t m => ListConfig t -> m a -> m (El t, a)
+list' config@ListConfig {..} widget
+  = element' "div" elConf widget
+  where
+    elConf = _listElConfig <> def
+      { _classes = listConfigClasses config }
 
--- listHeader :: UI Inline m a -> UI ListItem m a
+-- | Create a list.
+--
+-- https://semantic-ui.com/elements/list.html
+list :: MonadWidget t m => ListConfig t -> m a -> m a
+list c = fmap snd . list' c
 
-newtype ListHeader t m a = ListHeader
-  { _content :: UI Inline m a
-  }
+listItem' :: MonadWidget t m => ListItemConfig t -> m a -> m (El t, a)
+listItem' config@ListItemConfig {..} widget
+  = element' (listItemElement _listItemElement) elConf $ case _listItemImage of
+    Nothing -> case _listItemIcon of
+      Nothing -> widget
+      Just (Icon i c) -> do
+        icon i c
+        divClass "content" widget
+    Just (Image i c) -> do
+      image i c
+      divClass "content" widget
+  where
+    elConf = _listItemElConfig <> def
+      { _classes = listItemConfigClasses config }
 
-newtype ListDescription t m a = ListDescription
-  { _content :: UI Inline m a
-  }
+listItem :: MonadWidget t m => ListItemConfig t -> m a -> m a
+listItem c = fmap snd . listItem' c
+
+listHeader' :: MonadWidget t m => m a -> m (El t, a)
+listHeader' = divClass' "header"
+
+listHeader :: MonadWidget t m => m a -> m a
+listHeader = fmap snd . listHeader'
+
+listDescription' :: MonadWidget t m => m a -> m (El t, a)
+listDescription' = divClass' "description"
+
+listDescription :: MonadWidget t m => m a -> m a
+listDescription = fmap snd . listDescription'
+

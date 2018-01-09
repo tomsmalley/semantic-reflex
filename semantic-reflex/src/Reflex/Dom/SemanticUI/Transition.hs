@@ -1,14 +1,17 @@
-{-# LANGUAGE DuplicateRecordFields  #-}
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE OverloadedLists        #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE RecordWildCards        #-}
-{-# LANGUAGE RecursiveDo            #-}
-{-# LANGUAGE ScopedTypeVariables    #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE InstanceSigs           #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Semantic UI transitions. Pure reflex implementation is provided.
 -- https://semantic-ui.com/modules/transition.html
@@ -16,11 +19,23 @@ module Reflex.Dom.SemanticUI.Transition
   (
   -- * Transition
     Transition (..)
+
   , TransConfig (..)
+  , transConfigEvent
+  , transConfigInitialDirection
+  , transConfigForceVisible
+
   , TransitionType (..)
-  , TransitionConfig (..)
   , AnimationType (..)
+
+  , TransitionConfig (..)
+  , transitionDuration
+  , transitionDirection
+  , transitionCancelling
+
   , Direction (..)
+  , flipDirection
+
   , ActiveElConfig (..)
   , element
   , element'
@@ -28,9 +43,17 @@ module Reflex.Dom.SemanticUI.Transition
   , elConfigAttributes
   , elConfigStyle
   , elConfigClasses
+
+  , HasTransition (..)
+  , HasAttributes (..)
+  , HasStyle (..)
+  , HasClasses (..)
+  , HasElConfig (..)
+
+  -- * SetValue
   , SetValue' (..)
   , SetValue
-  , flipDirection
+  , initial, event
   ) where
 
 import Data.Align
@@ -38,6 +61,7 @@ import Data.These
 import Control.Concurrent
 import qualified Control.Concurrent.Thread.Delay as Concurrent
 import Control.Lens (Lens')
+import Control.Lens.TH (makeLenses, makeLensesWith, lensRules, simpleLenses)
 import Control.Monad (void)
 import Control.Monad.Trans (liftIO)
 import Data.Default (Default(..))
@@ -48,7 +72,7 @@ import qualified Data.IntMap as IM
 import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding
-  (Drop, HasAttributes, divClass, elAttr', SetValue, element', element)
+  (Drop, HasAttributes, divClass, elAttr', SetValue, element)
 
 import Data.Time
 
@@ -122,26 +146,9 @@ instance ToClassText Direction where
 -- | Returned by 'runTransition', controls the relavant animation / transition
 -- classes and styles.
 data AnimationAttrs t = AnimationAttrs
-  { _class :: Dynamic t (Maybe Classes)
-  , _style :: Dynamic t (Maybe Style)
+  { _animationAttrsClass :: Dynamic t (Maybe Classes)
+  , _animationAttrsStyle :: Dynamic t (Maybe Style)
   }
-
--- | Transition configuration for elements
-data TransConfig t = TransConfig
-  { _event :: Event t Transition
-  , _initialDirection :: Direction
-  , _forceVisible :: Bool
-  }
-
-instance Reflex t => Default (TransConfig t) where
-  def = TransConfig
-    { _event = never
-    , _initialDirection = In
-    , _forceVisible = False
-    }
-
-instance Reflex t => Semigroup (TransConfig t) where
-  TransConfig e1 i v <> TransConfig e2 _ _ = TransConfig (leftmost [e1, e2]) i v
 
 -- | Individual transition events
 data Transition
@@ -149,55 +156,74 @@ data Transition
   | Animation AnimationType TransitionConfig
 
 getDirection :: Transition -> Maybe Direction
-getDirection (Transition _ TransitionConfig{..}) = _direction
-getDirection (Animation _ TransitionConfig{..}) = _direction
+getDirection (Transition _ TransitionConfig{..}) = _transitionDirection
+getDirection (Animation _ TransitionConfig{..}) = _transitionDirection
 
 getDuration :: Transition -> NominalDiffTime
 getDuration (Transition Instant _) = 0
-getDuration (Transition _ TransitionConfig{..}) = _duration
-getDuration (Animation _ TransitionConfig{..}) = _duration
+getDuration (Transition _ TransitionConfig{..}) = _transitionDuration
+getDuration (Animation _ TransitionConfig{..}) = _transitionDuration
 
 isCancelling :: Transition -> Bool
-isCancelling (Transition _ TransitionConfig{..}) = _cancelling
-isCancelling (Animation _ TransitionConfig{..}) = _cancelling
+isCancelling (Transition _ TransitionConfig{..}) = _transitionCancelling
+isCancelling (Animation _ TransitionConfig{..}) = _transitionCancelling
 
 -- | Transition event configuration
 data TransitionConfig = TransitionConfig
-  { _duration :: NominalDiffTime
+  { _transitionDuration :: NominalDiffTime
   -- How long the css animation lasts for, ignored for 'Instant'
-  , _direction :: Maybe Direction
+  , _transitionDirection :: Maybe Direction
   -- The final state of the element after an animation, and the direction of a
   -- transition. 'Nothing' toggles the current state for 'Transition' and leaves
   -- the current state for 'Animation'.
-  , _cancelling :: Bool
+  , _transitionCancelling :: Bool
   -- Whether this transition event will override any that are queued or still
   -- occuring
   }
+makeLenses ''TransitionConfig
 
 instance Default TransitionConfig where
   def = TransitionConfig
-    { _duration = 0.75
-    , _direction = Nothing
-    , _cancelling = False
+    { _transitionDuration = 0.75
+    , _transitionDirection = Nothing
+    , _transitionCancelling = False
     }
+
+-- | Transition configuration for elements
+data TransConfig t = TransConfig
+  { _transConfigEvent :: Event t Transition
+  , _transConfigInitialDirection :: Direction
+  , _transConfigForceVisible :: Bool
+  }
+makeLensesWith (lensRules & simpleLenses .~ True) ''TransConfig
+
+instance Reflex t => Default (TransConfig t) where
+  def = TransConfig
+    { _transConfigEvent = never
+    , _transConfigInitialDirection = In
+    , _transConfigForceVisible = False
+    }
+
+instance Reflex t => Semigroup (TransConfig t) where
+  TransConfig e1 i v <> TransConfig e2 _ _ = TransConfig (leftmost [e1, e2]) i v
 
 -- | Queue of transitions
 data Queue = Queue
-  { canRun :: Bool
+  { _queueCanRun :: Bool
   -- ^ If the queue is ready to be run
-  , currentDirection :: Direction
+  , _queueCurrentDirection :: Direction
   -- ^ The direction that the element will be in before the next request
-  , lastKey :: Int
+  , _queueLastKey :: Int
   -- ^ Last id inserted
-  , lastCancel :: Int
+  , _queueLastCancel :: Int
   -- ^ Last id to cause a cancellation
-  , items :: IntMap QueueItem
+  , _queueItems :: IntMap QueueItem
   -- ^ The actual queue
   }
 
 -- | Get the first item from the queue along with its key
 firstItem :: Queue -> Maybe (Int, QueueItem)
-firstItem = fmap fst . IM.minViewWithKey . items
+firstItem = fmap fst . IM.minViewWithKey . _queueItems
 
 -- Get the transition / animation type
 getTransType :: Transition -> Either TransitionType AnimationType
@@ -207,10 +233,10 @@ getTransType (Animation t _) = Right t
 -- | 'QueueItem' is similar to 'Transition' but with a concrete start and end
 -- direction.
 data QueueItem = QueueItem
-  { transType :: Either TransitionType AnimationType
-  , duration :: NominalDiffTime
-  , startDirection :: Direction
-  , endDirection :: Direction
+  { _queueItemTransType :: Either TransitionType AnimationType
+  , _queueItemDuration :: NominalDiffTime
+  , _queueItemStartDirection :: Direction
+  , _queueItemEndDirection :: Direction
   }
 
 -- | Flip the given direction
@@ -229,11 +255,11 @@ determineEndDirection t oldDirection
 -- | Initial queue given the starting direction
 initialQueue :: Direction -> Queue
 initialQueue d = Queue
-  { canRun = False
-  , currentDirection = d
-  , lastKey = 0
-  , lastCancel = 0
-  , items = mempty
+  { _queueCanRun = False
+  , _queueCurrentDirection = d
+  , _queueLastKey = 0
+  , _queueLastCancel = 0
+  , _queueItems = mempty
   }
 
 -- | Update the queue when given 'This' 'Transition' (fired by the user) or a
@@ -241,32 +267,32 @@ initialQueue d = Queue
 updateQueue :: These Transition () -> Queue -> Queue
 updateQueue (This t) queue
   | isCancelling t = queue
-    { canRun = True -- Cancel events can always run
-    , currentDirection = newDir
-    , lastKey = newKey
-    , lastCancel = newKey
-    , items = IM.singleton newKey item
+    { _queueCanRun = True -- Cancel events can always run
+    , _queueCurrentDirection = newDir
+    , _queueLastKey = newKey
+    , _queueLastCancel = newKey
+    , _queueItems = IM.singleton newKey item
     }
   | otherwise = queue
-    { canRun = IM.null $ items queue -- Only run when the old queue is empty
-    , currentDirection = newDir
-    , lastKey = newKey
-    , items = IM.insert newKey item $ items queue
+    { _queueCanRun = IM.null $ _queueItems queue -- Only run when the old queue is empty
+    , _queueCurrentDirection = newDir
+    , _queueLastKey = newKey
+    , _queueItems = IM.insert newKey item $ _queueItems queue
     }
 
-  where newDir = determineEndDirection t $ currentDirection queue
-        newKey = lastKey queue + 1
+  where newDir = determineEndDirection t $ _queueCurrentDirection queue
+        newKey = _queueLastKey queue + 1
         item = QueueItem
-          { transType = getTransType t
-          , duration = getDuration t
-          , startDirection = currentDirection queue
-          , endDirection = newDir
+          { _queueItemTransType = getTransType t
+          , _queueItemDuration = getDuration t
+          , _queueItemStartDirection = _queueCurrentDirection queue
+          , _queueItemEndDirection = newDir
           }
 
 -- Delete the first item when a finish event comes in
 updateQueue (That ()) queue = queue
-  { canRun = True -- Allow the next item to run
-  , items = IM.deleteMin $ items queue
+  { _queueCanRun = True -- Allow the next item to run
+  , _queueItems = IM.deleteMin $ _queueItems queue
   }
 
 -- Do both updates
@@ -290,7 +316,7 @@ runTransition (TransConfig eTransition initDirection forceVisible) = do
     -- Fires when queue is updated and is able to run
     -- Contains the key and transition to run
     let eStart = fmapMaybe firstItem
-               $ ffilter canRun
+               $ ffilter _queueCanRun
                $ updated dTransitionQueue
 
     -- This allows time for the class to update when an animation is finished,
@@ -303,20 +329,20 @@ runTransition (TransConfig eTransition initDirection forceVisible) = do
     -- Delay the queue events by their duration, to signal when the transitions
     -- have ended
     eFinal <- performEventAsync $ ffor eStart $
-      \(lastCancelledKey, item) cb -> case transType item of
+      \(lastCancelledKey, item) cb -> case _queueItemTransType item of
         Left Instant -> liftIO $ void $ forkIO $ do
           -- Delay Instant items by the minDuration
           Concurrent.delay $ ceiling $ minDuration * 1000000
-          cb (lastCancelledKey, endDirection item)
+          cb (lastCancelledKey, _queueItemEndDirection item)
         _ -> liftIO $ void $ forkIO $ do
             -- Delay other items by at least minDuration
             Concurrent.delay $ ceiling $
-              (max minDuration $ duration item) * 1000000
-            cb (lastCancelledKey, endDirection item)
+              1000000 * max minDuration (_queueItemDuration item)
+            cb (lastCancelledKey, _queueItemEndDirection item)
 
     -- Filter the finish events to remove animations which have been cancelled
     let filterCancelled queue (key, direction)
-          = if lastCancel queue > key then Nothing else Just direction
+          = if _queueLastCancel queue > key then Nothing else Just direction
         eFinalFiltered = attachWithMaybe filterCancelled
                         (current dTransitionQueue) eFinal
 
@@ -327,12 +353,12 @@ runTransition (TransConfig eTransition initDirection forceVisible) = do
   -- new animation classes. Instant transitions are removed because they have
   -- no animation classes.
   eAnimStart <- delay (minDuration / 2)
-              $ ffilter (\item -> transType item /= Left Instant)
+              $ ffilter (\item -> _queueItemTransType item /= Left Instant)
               $ fmap snd eStart
 
   mClasses <- holdDyn (finalClasses forceVisible initDirection) $ leftmost
     -- Clear the possible existing classes by setting to the start direction
-    [ finalClasses forceVisible . startDirection . snd <$> eStart
+    [ finalClasses forceVisible . _queueItemStartDirection . snd <$> eStart
     -- Set any animating classes
     , animatingClasses forceVisible <$> eAnimStart
     -- Set the final classes
@@ -378,6 +404,54 @@ instance Reflex t => Default (ActiveElConfig t) where
     , _transition = Nothing
     }
 
+-- Lenses
+
+elConfigTransition :: Lens' (ActiveElConfig t) (Maybe (TransConfig t))
+elConfigTransition f (ActiveElConfig c s at t)
+  = ActiveElConfig c s at <$> f t
+
+elConfigAttributes :: Lens' (ActiveElConfig t) (Active t (Map Text Text))
+elConfigAttributes f (ActiveElConfig c s at t)
+  = (\at' -> ActiveElConfig c s at' t) <$> f at
+
+elConfigStyle :: Lens' (ActiveElConfig t) (Active t Style)
+elConfigStyle f (ActiveElConfig c s at t)
+  = (\s' -> ActiveElConfig c s' at t) <$> f s
+
+elConfigClasses :: Lens' (ActiveElConfig t) (Active t Classes)
+elConfigClasses f (ActiveElConfig c s at t)
+  = (\c' -> ActiveElConfig c' s at t) <$> f c
+
+class HasTransition t a | a -> t where
+  transition :: Lens' a (Maybe (TransConfig t))
+
+class HasAttributes t a | a -> t where
+  attrs :: Lens' a (Active t (Map Text Text))
+
+class HasStyle t a | a -> t where
+  style :: Lens' a (Active t Style)
+
+class HasClasses t a | a -> t where
+  classes :: Lens' a (Active t Classes)
+
+class HasElConfig t a | a -> t where
+  elConfig :: Lens' a (ActiveElConfig t)
+
+instance HasElConfig t (ActiveElConfig t) where
+  elConfig = id
+
+instance HasElConfig t a => HasAttributes t a where
+  attrs = elConfig . elConfigAttributes
+
+instance HasElConfig t a => HasStyle t a where
+  style = elConfig . elConfigStyle
+
+instance HasElConfig t a => HasClasses t a where
+  classes = elConfig . elConfigClasses
+
+instance HasElConfig t a => HasTransition t a where
+  transition = elConfig . elConfigTransition
+
 -- | Left biased
 instance Reflex t => Semigroup (ActiveElConfig t) where
   ActiveElConfig a b c d <> ActiveElConfig a' b' c' d'
@@ -388,7 +462,7 @@ instance Reflex t => Monoid (ActiveElConfig t) where
   mappend = (<>)
 
 element :: MonadWidget t m => Text -> ActiveElConfig t -> m a -> m a
-element el conf = fmap snd . element' el conf
+element elTag conf = fmap snd . element' elTag conf
 
 element'
   :: MonadWidget t m
@@ -401,7 +475,7 @@ element' _element ActiveElConfig {..} child = do
   case transAttrs of
     Nothing -> do
       let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
-          mkAttrs c s attrs = classAttr c <> styleAttr s <> attrs
+          mkAttrs c s as = classAttr c <> styleAttr s <> as
       elActiveAttr' _element activeAttrs child
 
     Just (AnimationAttrs dynMClasses dynMStyle) -> do
@@ -413,36 +487,19 @@ element' _element ActiveElConfig {..} child = do
             <*> Dynamic dynMStyle
             <*> _attrs
 
-          mkAttrs c mClasses s mStyle attrs
+          mkAttrs c mClasses s mStyle as
             = classAttr (maybe c (<> c) mClasses)
             <> styleAttr (maybe s (<> s) mStyle)
-            <> attrs
+            <> as
 
       elActiveAttr' _element activeAttrs child
-
--- Lenses
-
-elConfigTransition :: Lens' (ActiveElConfig t) (Maybe (TransConfig t))
-elConfigTransition f (ActiveElConfig c s at t)
-  = fmap (\t' -> ActiveElConfig c s at t') $ f t
-
-elConfigAttributes :: Lens' (ActiveElConfig t) (Active t (Map Text Text))
-elConfigAttributes f (ActiveElConfig c s at t)
-  = fmap (\at' -> ActiveElConfig c s at' t) $ f at
-
-elConfigStyle :: Lens' (ActiveElConfig t) (Active t Style)
-elConfigStyle f (ActiveElConfig c s at t)
-  = fmap (\s' -> ActiveElConfig c s' at t) $ f s
-
-elConfigClasses :: Lens' (ActiveElConfig t) (Active t Classes)
-elConfigClasses f (ActiveElConfig c s at t)
-  = fmap (\c' -> ActiveElConfig c' s at t) $ f c
 
 
 data SetValue' t a b = SetValue
   { _initial :: a
   , _event :: Maybe (Event t b)
   }
+makeLenses ''SetValue'
 
 type SetValue t a = SetValue' t a a
 
@@ -453,3 +510,4 @@ instance Reflex t => Semigroup (SetValue' t a b) where
       mCombined (Just e1) (Just e2) = Just $ leftmost [e1, e2]
       mCombined (Just e1) Nothing = Just e1
       mCombined Nothing (Just e2) = Just e2
+

@@ -5,7 +5,6 @@
 -- app.
 module Reflex.Dom.SemanticUI.Warp where
 
-import Debug.Trace
 import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (unpack)
 import Control.Lens ((^.))
@@ -34,7 +33,7 @@ daemon port css app mstatic = do
 
 -- | We serve the standard jsaddle-warp app but with a static server for the
 -- javascript, css, and theme folder.
-runApp :: ByteString -> Int -> JSM () -> Maybe FilePath -> Middleware -> JSM ()-> IO ()
+runApp :: ByteString -> Int -> JSM () -> Maybe FilePath -> Middleware -> JSM () -> IO ()
 runApp css port mainApp mUserFilePath middleware preApp = do
   jsaddle <- jsaddleWithAppOr defaultConnectionOptions
     (preApp >> app) (middleware static)
@@ -42,7 +41,7 @@ runApp css port mainApp mUserFilePath middleware preApp = do
   where
     settings = setPort port $ setTimeout 3600 defaultSettings
     app = makeHead css >> mainApp >> syncPoint
-    static = staticApp $ (defaultFileServerSettings $ traceShowId
+    static = staticApp $ (defaultFileServerSettings
       $(strToExp =<< makeRelativeToProject "data/static"))
         { ss404Handler = mUserStatic }
     mUserStatic = fmap (staticApp . defaultFileServerSettings) mUserFilePath

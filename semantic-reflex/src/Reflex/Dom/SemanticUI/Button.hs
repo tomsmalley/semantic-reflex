@@ -1,93 +1,154 @@
-{-# LANGUAGE DuplicateRecordFields    #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE RecordWildCards          #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module Reflex.Dom.SemanticUI.Button where
+module Reflex.Dom.SemanticUI.Button
+  (
 
+  -- * Normal buttons
+    button, button'
+  , ButtonTag (..)
+  , ButtonConfig (..)
+  , buttonColor
+  , buttonSize
+  , buttonEmphasis
+  , buttonPositive
+  , buttonSocial
+  , buttonFloated
+  , buttonDisabled
+  , buttonCompact
+  , buttonBasic
+  , buttonIcon
+  , buttonInverted
+  , buttonLoading
+  , buttonFluid
+  , buttonCircular
+  , buttonLabeledIcon
+  , buttonAttached
+  , buttonAnimated
+  , buttonTag
+  , buttonElConfig
+
+  -- * Labeled buttons
+  , labeledButton, labeledButton'
+  , LabeledButtonConfig (..)
+  , labeledButtonSide
+  , labeledButtonElConfig
+
+  -- * Conditionals
+  , conditional, conditional'
+  , conditionalWithText, conditionalWithText'
+
+  -- * Animated button config
+  , AnimatedButtonType (..)
+  , AnimatedButton (..)
+  , animatedButtonHiddenContent
+  , animatedButtonType
+
+  -- * Groups of buttons
+  , buttons, buttons'
+  , ButtonsConfig (..)
+  , buttonsColor
+  , buttonsSize
+  , buttonsBasic
+  , buttonsIcon
+  , buttonsLabeledIcon
+  , buttonsVertical
+  , buttonsCompact
+  , buttonsAttached
+  , buttonsWidth
+  , buttonsFloated
+  , buttonsElConfig
+
+  ) where
+
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Monad (void)
 import Data.Default
 import Data.Semigroup hiding (First)
 import Data.Text (Text)
 import Reflex
+import Reflex.Dom.Core hiding (Error, button)
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
-data Conditional t = Conditional (ConditionalConfig t)
-data ConditionalConfig t = ConditionalConfig
-  { _dataText :: Active t (Maybe Text)
-  }
-instance Reflex t => Default (ConditionalConfig t) where
-  def = ConditionalConfig
-    { _dataText = pure Nothing
-    }
-
-data Buttons t m a = Buttons (ButtonsConfig t) (UI Buttons m a)
-
 data ButtonsConfig t = ButtonsConfig
-  { _color :: Active t (Maybe Color)
-  , _size :: Active t (Maybe Size)
-  , _basic :: Active t Bool
-  , _icon :: Active t Bool
-  , _labeledIcon :: Active t Bool
-  , _vertical :: Active t Bool
-  , _compact :: Active t Bool
-  , _attached :: Active t (Maybe VerticalAttached)
-  , _width :: Active t (Maybe Width)
-  , _floated :: Active t (Maybe Floated)
-  , _config :: ActiveElConfig t
+  { _buttonsBasic :: Active t Bool
+  , _buttonsIcon :: Active t Bool
+  , _buttonsLabeledIcon :: Active t Bool
+  , _buttonsVertical :: Active t Bool
+  , _buttonsCompact :: Active t Bool
+
+  , _buttonsColor :: Active t (Maybe Color)
+  , _buttonsSize :: Active t (Maybe Size)
+  , _buttonsAttached :: Active t (Maybe VerticalAttached)
+  , _buttonsWidth :: Active t (Maybe Width)
+  , _buttonsFloated :: Active t (Maybe Floated)
+
+  , _buttonsElConfig :: ActiveElConfig t
   }
+makeLensesWith (lensRules & simpleLenses .~ True) ''ButtonsConfig
+
+instance HasElConfig t (ButtonsConfig t) where
+  elConfig = buttonsElConfig
 
 instance Reflex t => Default (ButtonsConfig t) where
   def = ButtonsConfig
-    { _color = pure Nothing
-    , _size = pure Nothing
-    , _basic = pure False
-    , _icon = pure False
-    , _labeledIcon = pure False
-    , _vertical = pure False
-    , _compact = pure False
-    , _attached = pure Nothing
-    , _width = pure Nothing
-    , _floated = pure Nothing
-    , _config = def
+    { _buttonsBasic = pure False
+    , _buttonsIcon = pure False
+    , _buttonsLabeledIcon = pure False
+    , _buttonsVertical = pure False
+    , _buttonsCompact = pure False
+
+    , _buttonsColor = pure Nothing
+    , _buttonsSize = pure Nothing
+    , _buttonsAttached = pure Nothing
+    , _buttonsWidth = pure Nothing
+    , _buttonsFloated = pure Nothing
+
+    , _buttonsElConfig = def
     }
 
 buttonsConfigClasses :: Reflex t => ButtonsConfig t -> Active t Classes
 buttonsConfigClasses ButtonsConfig {..} = activeClasses
   [ Static $ Just "ui buttons"
-  , boolClass "basic" _basic
-  , boolClass "icon" _icon
-  , boolClass "labeled icon" _labeledIcon
-  , boolClass "vertical" _vertical
-  , boolClass "compact" _compact
-  , fmap toClassText <$> _color
-  , fmap toClassText <$> _size
-  , fmap toClassText <$> _attached
-  , fmap toClassText <$> _width
-  , fmap toClassText <$> _floated
+
+  , boolClass "basic" _buttonsBasic
+  , boolClass "icon" _buttonsIcon
+  , boolClass "labeled icon" _buttonsLabeledIcon
+  , boolClass "vertical" _buttonsVertical
+  , boolClass "compact" _buttonsCompact
+
+  , fmap toClassText <$> _buttonsColor
+  , fmap toClassText <$> _buttonsSize
+  , fmap toClassText <$> _buttonsAttached
+  , fmap toClassText <$> _buttonsWidth
+  , fmap toClassText <$> _buttonsFloated
   ]
 
-
-data Button t m = Button (ButtonConfig t m) (UI Button m ())
-
-data LabeledButton t m = LabeledButton (LabeledButtonConfig t) (UI LabeledButton m ())
-
 data LabeledButtonConfig t = LabeledButtonConfig
-  { _labeled :: Active t Labeled
-  , _config :: ActiveElConfig t
+  { _labeledButtonSide :: Active t Labeled
+  , _labeledButtonElConfig :: ActiveElConfig t
   }
+makeLensesWith (lensRules & simpleLenses .~ True) ''LabeledButtonConfig
+
+instance HasElConfig t (LabeledButtonConfig t) where
+  elConfig = labeledButtonElConfig
 
 instance Reflex t => Default (LabeledButtonConfig t) where
   def = LabeledButtonConfig
-    { _labeled = pure RightLabeled
-    , _config = def
+    { _labeledButtonSide = pure RightLabeled
+    , _labeledButtonElConfig = def
     }
 
 labeledButtonConfigClasses :: Reflex t => LabeledButtonConfig t -> Active t Classes
 labeledButtonConfigClasses LabeledButtonConfig {..} = activeClasses
   [ Static $ Just "ui button"
-  , Just . toClassText <$> _labeled
+  , Just . toClassText <$> _labeledButtonSide
   ]
 
 data AnimatedButtonType = Animated | VerticalAnimated | AnimatedFade
@@ -99,67 +160,77 @@ instance ToClassText AnimatedButtonType where
   toClassText AnimatedFade = "animated fade"
 
 data AnimatedButton t m = AnimatedButton
-  { _animatedType :: Active t AnimatedButtonType
-  , _content :: UI Button m ()
+  { _animatedButtonType :: Active t AnimatedButtonType
+  , _animatedButtonHiddenContent :: m ()
   }
+makeLensesWith (lensRules & simpleLenses .~ True) ''AnimatedButton
 
 instance Monad m => Default (AnimatedButton t m) where
   def = AnimatedButton
-    { _animatedType = Static Animated
-    , _content = pure ()
+    { _animatedButtonType = Static Animated
+    , _animatedButtonHiddenContent = pure ()
     }
 
-data ButtonConfig t m = ButtonConfig
-  { _color :: Active t (Maybe Color)
-  , _size :: Active t (Maybe Size)
-  , _emphasis :: Active t (Maybe Emphasis)
-  , _positive :: Active t (Maybe Positive)
-  , _social :: Active t (Maybe Social)
-  , _floated :: Active t (Maybe Floated)
-  , _disabled :: Active t Bool
-  , _compact :: Active t Bool
-  , _basic :: Active t Bool
-  , _icon :: Active t Bool
-  , _inverted :: Active t Bool
-  , _loading :: Active t Bool
-  , _fluid :: Active t Bool
-  , _circular :: Active t Bool
-  , _labeledIcon :: Active t (Maybe Labeled)
-  , _attached :: Active t (Maybe ExclusiveAttached)
-  , _animated :: Maybe (AnimatedButton t m)
-  , _tag :: Maybe ButtonTag
-  , _config :: ActiveElConfig t
-  }
-
-data ButtonTag = LinkButton | DivButton
+-- | HTML tags that can be used for buttons
+data ButtonTag = SubmitButton | LinkButton | DivButton
 
 toTagText :: Maybe ButtonTag -> Text
 toTagText Nothing = "button"
+toTagText (Just SubmitButton) = "button"
 toTagText (Just LinkButton) = "a"
 toTagText (Just DivButton) = "div"
 
+data ButtonConfig t m = ButtonConfig
+  { _buttonDisabled     :: Active t Bool
+  , _buttonCompact      :: Active t Bool
+  , _buttonBasic        :: Active t Bool
+  , _buttonIcon      :: Active t Bool
+  , _buttonInverted     :: Active t Bool
+  , _buttonLoading      :: Active t Bool
+  , _buttonFluid        :: Active t Bool
+  , _buttonCircular     :: Active t Bool
+
+  , _buttonColor        :: Active t (Maybe Color)
+  , _buttonSize         :: Active t (Maybe Size)
+  , _buttonEmphasis     :: Active t (Maybe Emphasis)
+  , _buttonPositive     :: Active t (Maybe Positive)
+  , _buttonSocial       :: Active t (Maybe Social)
+  , _buttonFloated      :: Active t (Maybe Floated)
+  , _buttonLabeledIcon  :: Active t (Maybe Labeled)
+  , _buttonAttached     :: Active t (Maybe ExclusiveAttached)
+
+  , _buttonAnimated     :: Maybe (AnimatedButton t m)
+  , _buttonTag          :: Maybe ButtonTag
+  , _buttonElConfig     :: ActiveElConfig t
+  }
+makeLensesWith (lensRules & simpleLenses .~ True) ''ButtonConfig
+
+instance HasElConfig t (ButtonConfig t m) where
+  elConfig = buttonElConfig
+
 instance Reflex t => Default (ButtonConfig t m) where
   def = ButtonConfig
-    { _color = pure Nothing
-    , _size = pure Nothing
-    , _emphasis = pure Nothing
-    , _positive = pure Nothing
-    , _social = pure Nothing
-    , _floated = pure Nothing
-    , _disabled = pure False
-    , _compact = pure False
-    , _basic = pure False
-    , _icon = pure False
-    , _inverted = pure False
-    , _loading = pure False
-    , _fluid = pure False
-    , _circular = pure False
-    , _labeledIcon = pure Nothing
---    , _icon = NeverRender
-    , _attached = pure Nothing
-    , _animated = Nothing
-    , _tag = Nothing
-    , _config = def
+    { _buttonDisabled = pure False
+    , _buttonCompact = pure False
+    , _buttonBasic = pure False
+    , _buttonIcon = pure False
+    , _buttonInverted = pure False
+    , _buttonLoading = pure False
+    , _buttonFluid = pure False
+    , _buttonCircular = pure False
+
+    , _buttonColor = pure Nothing
+    , _buttonSize = pure Nothing
+    , _buttonEmphasis = pure Nothing
+    , _buttonPositive = pure Nothing
+    , _buttonSocial = pure Nothing
+    , _buttonFloated = pure Nothing
+    , _buttonLabeledIcon = pure Nothing
+    , _buttonAttached = pure Nothing
+
+    , _buttonAnimated = Nothing
+    , _buttonTag = Nothing
+    , _buttonElConfig = def
     }
 
 -- | Change success to positive and error to negative, since button does not
@@ -173,21 +244,83 @@ filterPositive Error = Negative
 buttonConfigClasses :: Reflex t => ButtonConfig t m -> Active t Classes
 buttonConfigClasses ButtonConfig {..} = activeClasses
   [ Static $ Just "ui button"
-  , boolClass "disabled" _disabled
-  , boolClass "compact" _compact
-  , boolClass "basic" _basic
-  , boolClass "icon" _icon
-  , boolClass "inverted" _inverted
-  , boolClass "loading" _loading
-  , boolClass "fluid" _fluid
-  , boolClass "circular" _circular
-  , fmap ((<> " icon") . toClassText) <$> _labeledIcon
-  , fmap toClassText <$> _color
-  , fmap toClassText <$> _size
-  , fmap toClassText <$> _emphasis
-  , fmap (toClassText . filterPositive) <$> _positive
-  , fmap toClassText <$> _social
-  , fmap toClassText <$> _floated
-  , fmap toClassText <$> _attached
-  , traverse (fmap toClassText . _animatedType) _animated
+  , boolClass "disabled" _buttonDisabled
+  , boolClass "compact" _buttonCompact
+  , boolClass "basic" _buttonBasic
+  , boolClass "icon" _buttonIcon
+  , boolClass "inverted" _buttonInverted
+  , boolClass "loading" _buttonLoading
+  , boolClass "fluid" _buttonFluid
+  , boolClass "circular" _buttonCircular
+  , fmap ((<> " icon") . toClassText) <$> _buttonLabeledIcon
+  , fmap toClassText <$> _buttonColor
+  , fmap toClassText <$> _buttonSize
+  , fmap toClassText <$> _buttonEmphasis
+  , fmap (toClassText . filterPositive) <$> _buttonPositive
+  , fmap toClassText <$> _buttonSocial
+  , fmap toClassText <$> _buttonFloated
+  , fmap toClassText <$> _buttonAttached
+  , traverse (fmap toClassText . _animatedButtonType) _buttonAnimated
   ]
+
+
+buttons' :: MonadWidget t m => ButtonsConfig t -> m a -> m (El t, a)
+buttons' config@ButtonsConfig {..} = element' "div" elConf
+  where
+   elConf = _buttonsElConfig <> def
+      { _classes = buttonsConfigClasses config }
+
+buttons :: MonadWidget t m => ButtonsConfig t -> m a -> m a
+buttons c = fmap snd . buttons' c
+
+conditionalWithText' :: MonadWidget t m => Active t Text -> m (El t)
+conditionalWithText' dataText
+  = fst <$> element' "div" config blank
+  where
+    config = def
+      & elConfigClasses |~ "or"
+      & elConfigAttributes .~ fmap ("data-text" =:) dataText
+
+conditionalWithText :: MonadWidget t m => Active t Text -> m ()
+conditionalWithText = void . conditionalWithText'
+
+conditional' :: MonadWidget t m => m (El t)
+conditional' = fst <$> element' "div" config blank
+  where config = def & elConfigClasses |~ "or"
+
+conditional :: MonadWidget t m => m ()
+conditional = void conditional'
+
+button' :: MonadWidget t m => ButtonConfig t m -> m () -> m (El t, Event t ())
+button' config@ButtonConfig {..} content = do
+  (e, _) <- element' (toTagText _buttonTag) elConf $ case _buttonAnimated of
+    Just (AnimatedButton _ hiddenContent) -> do
+      divClass "visible content" content
+      divClass "hidden content" hiddenContent
+    Nothing -> content
+  pure (e, domEvent Click e)
+  where
+    elConf = _buttonElConfig <> def
+      { _classes = buttonConfigClasses config
+      , _attrs = Static $ case _buttonTag of
+        Nothing -> "type" =: "button"
+        Just SubmitButton -> "type" =: "submit"
+        _ -> mempty
+      }
+
+button :: MonadWidget t m => ButtonConfig t m -> m () -> m (Event t ())
+button c = fmap snd . button' c
+
+labeledButton'
+  :: MonadWidget t m => LabeledButtonConfig t -> m a -> m (El t, Event t ())
+labeledButton' config@LabeledButtonConfig{..} content = do
+  (e, _) <- element' "div" elConf content
+  pure (e, domEvent Click e)
+  where
+    elConf = _labeledButtonElConfig <> def
+      { _classes = labeledButtonConfigClasses config }
+
+labeledButton
+  :: MonadWidget t m => LabeledButtonConfig t -> m a -> m (Event t ())
+labeledButton c = fmap snd . labeledButton' c
+

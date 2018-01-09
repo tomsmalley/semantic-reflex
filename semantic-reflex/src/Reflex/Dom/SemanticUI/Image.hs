@@ -1,17 +1,36 @@
-{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Reflex.Dom.SemanticUI.Image where
+module Reflex.Dom.SemanticUI.Image
+  (
 
+    image, image'
+  , Image (..)
+  , ImageConfig (..)
+  , imageInline
+  , imageSize
+  , imageShape
+  , imageFloated
+  , imageTitle
+  , imageSpaced
+  , imageComponent
+  , imageElConfig
+
+  ) where
+
+import Control.Lens (makeLenses)
+import Control.Monad (void)
 import Data.Default
+import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex
+import Reflex.Dom.Core
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
@@ -32,46 +51,90 @@ instance ToClassText Spaced where
   toClassText RightSpaced = "right spaced"
 
 data ImageConfig t = ImageConfig
-  { _size :: Active t (Maybe Size)
-  , _shape :: Active t (Maybe ImageShape)
-  , _floated :: Active t (Maybe Floated)
-  , _component :: Bool
-  , _title :: Active t (Maybe Text)
-  , _spaced :: Active t (Maybe Spaced)
-  , _inline :: Active t Bool
-  , _config :: ActiveElConfig t
+  { _imageInline :: Active t Bool
+
+  , _imageSize :: Active t (Maybe Size)
+  , _imageShape :: Active t (Maybe ImageShape)
+  , _imageFloated :: Active t (Maybe Floated)
+  , _imageTitle :: Active t (Maybe Text)
+  , _imageSpaced :: Active t (Maybe Spaced)
+
+  , _imageComponent :: Bool
+  , _imageElConfig :: ActiveElConfig t
   }
+makeLenses ''ImageConfig
 
 instance Reflex t => Default (ImageConfig t) where
   def = ImageConfig
-    { _size = Static Nothing
-    , _shape = Static Nothing
-    , _floated = Static Nothing
-    , _component = False
-    , _title = Static Nothing
-    , _spaced = Static Nothing
-    , _inline = Static False
-    , _config = def
+    { _imageSize = Static Nothing
+    , _imageShape = Static Nothing
+    , _imageFloated = Static Nothing
+    , _imageComponent = False
+    , _imageTitle = Static Nothing
+    , _imageSpaced = Static Nothing
+    , _imageInline = Static False
+    , _imageElConfig = def
     }
 
 imageConfigClasses :: Reflex t => ImageConfig t -> Active t Classes
 imageConfigClasses ImageConfig {..} = activeClasses
-  [ Static $ justWhen (not _component) "ui image"
-  , fmap toClassText <$> _size
-  , fmap toClassText <$> _shape
-  , fmap toClassText <$> _floated
-  , fmap toClassText <$> _spaced
-  , boolClass "inline" _inline
+  [ Static $ justWhen (not _imageComponent) "ui image"
+  , fmap toClassText <$> _imageSize
+  , fmap toClassText <$> _imageShape
+  , fmap toClassText <$> _imageFloated
+  , fmap toClassText <$> _imageSpaced
+  , boolClass "inline" _imageInline
   ]
 
 data Image t = Image
-  { _src :: Active t Text
-  , _config :: ImageConfig t
+  { _imageSrc :: Active t Text
+  , _imageConfig :: ImageConfig t
   }
 
 data ContentImage t m a = ContentImage
-  { _src :: Active t Text
-  , _config :: ImageConfig t
-  , _content :: UI Image m a
+  { _contentImageSrc :: Active t Text
+  , _contentImageConfig :: ImageConfig t
+  , _contentImageContent :: m a
   }
+
+image' :: MonadWidget t m => Active t Text -> ImageConfig t -> m (El t)
+image' src config@ImageConfig {..} = fst <$> element' "img" elConf blank
+  where
+    elConf = _imageElConfig <> def
+      { _classes = imageConfigClasses config
+      , _attrs = mkAttrs <$> src <*> _imageTitle
+      }
+    mkAttrs s t = "src" =: s <> maybe mempty ("title" =:) t
+
+image :: MonadWidget t m => Active t Text -> ImageConfig t -> m ()
+image i = void . image' i
+
+contentImage'
+  :: MonadWidget t m => Active t Text -> ImageConfig t -> m a -> m (El t, a)
+contentImage' src config@ImageConfig {..} content
+  = element' "div" elConf $ do
+    a <- content
+    void $ element' "img" imgConfig blank
+    return a
+  where
+    elConf = _imageElConfig <> def
+      { _classes = imageConfigClasses config }
+    imgConfig = def { _attrs = mkAttrs <$> src <*> _imageTitle
+                    , _classes = imageConfigClasses config }
+    mkAttrs s t = "src" =: s <> maybe mempty ("title" =:) t
+
+contentImage :: MonadWidget t m => Active t Text -> ImageConfig t -> m a -> m a
+contentImage i config = fmap snd . contentImage' i config
+
+{-
+-- | Images in labels *must* be some form of spaced if they are not an 'Avatar',
+-- or they will cause a line break. Default to spacing both sides allowing user
+-- override to 'LeftSpaced' or 'RightSpaced'.
+instance t ~ t' => Render t' m (Image t) where
+  type Return t' m (Image t) = ()
+  ui' (Image url conf@ImageConfig{..}) = ui' $ Image url conf'
+    where conf' = conf { _spaced = mkSpaced <$> _shape <*> _spaced }
+          mkSpaced mShape mSpaced = if mShape == Just Avatar then mSpaced
+                                    else Just $ fromMaybe Spaced mSpaced
+-}
 

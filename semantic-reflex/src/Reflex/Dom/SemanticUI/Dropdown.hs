@@ -1,8 +1,9 @@
-{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Reflex.Dom.SemanticUI.Dropdown where
@@ -17,7 +18,6 @@ import Reflex
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
-import Reflex.Dom.SemanticUI.Menu
 
 import qualified Reflex.Dom.Core as Core
 
@@ -48,16 +48,16 @@ instance ToClassText DropdownStyle where
 
 -- | Config for new semantic dropdowns
 data DropdownConfig t a = DropdownConfig
-  { _value :: SetValue t a
-  , _placeholder :: Active t Text
-  , _search :: Active t Bool
-  , _selection :: Active t Bool
-  , _compact :: Active t Bool
-  , _fluid :: Active t Bool
-  , _item :: Active t Bool
-  , _inline :: Active t Bool
-  , _as :: Active t (Maybe DropdownStyle)
-  , _config :: ActiveElConfig t
+  { _dropdownValue :: SetValue t a
+  , _dropdownPlaceholder :: Active t Text
+  , _dropdownSearch :: Active t Bool
+  , _dropdownSelection :: Active t Bool
+  , _dropdownCompact :: Active t Bool
+  , _dropdownFluid :: Active t Bool
+  , _dropdownItem :: Active t Bool
+  , _dropdownInline :: Active t Bool
+  , _dropdownAs :: Active t (Maybe DropdownStyle)
+  , _dropdownElConfig :: ActiveElConfig t
   }
 --  , _textOnly :: Bool
 --  , _maxSelections :: Maybe Int
@@ -67,53 +67,53 @@ data DropdownConfig t a = DropdownConfig
 
 mkDropdownConfig :: Reflex t => a -> DropdownConfig t a
 mkDropdownConfig a = DropdownConfig
-  { _value = SetValue a Nothing
-  , _placeholder = pure mempty
-  , _search = pure False
-  , _selection = pure False
-  , _compact = pure False
-  , _fluid = pure False
-  , _item = pure False
-  , _inline = pure False
-  , _as = pure Nothing
-  , _config = def
+  { _dropdownValue = SetValue a Nothing
+  , _dropdownPlaceholder = pure mempty
+  , _dropdownSearch = pure False
+  , _dropdownSelection = pure False
+  , _dropdownCompact = pure False
+  , _dropdownFluid = pure False
+  , _dropdownItem = pure False
+  , _dropdownInline = pure False
+  , _dropdownAs = pure Nothing
+  , _dropdownElConfig = def
   }
 
 dropdownConfigClasses :: Reflex t => DropdownConfig t a -> Active t Classes
 dropdownConfigClasses DropdownConfig {..} = activeClasses
   [ Static $ Just "ui dropdown"
-  , boolClass "search" _search
-  , boolClass "compact" _compact
-  , boolClass "fluid" _fluid
-  , boolClass "selection" _selection
-  , boolClass "item" _item
-  , boolClass "inline" _inline
-  , fmap toClassText <$> _as
+  , boolClass "search" _dropdownSearch
+  , boolClass "compact" _dropdownCompact
+  , boolClass "fluid" _dropdownFluid
+  , boolClass "selection" _dropdownSelection
+  , boolClass "item" _dropdownItem
+  , boolClass "inline" _dropdownInline
+  , fmap toClassText <$> _dropdownAs
   ]
 
 data MenuDropdown f t m a = MenuDropdown
-  { _config :: DropdownConfig t (f a)
-  , _items :: UI Menu (ReaderT (Dynamic t (f a)) (EventWriterT t (First a) m)) ()
+  { _menuDropdownConfig :: DropdownConfig t (f a)
+  , _menuItems :: ReaderT (Dynamic t (f a)) (EventWriterT t (First a) m) ()
   }
 
 
 data SelectionDropdown f t m a = SelectionDropdown
-  { _config :: DropdownConfig t (f a)
-  , _preItems :: UI SelectionDropdown m ()
-  , _items :: Active t [DropdownItem m a]
+  { _selectionDropdownConfig :: DropdownConfig t (f a)
+  , _selectionDropdownPreItems :: m ()
+  , _selectionDropdownItems :: Active t [DropdownItem m a]
   }
 
 data DropdownItem m a = DropdownItem
-  { _value :: a
-  , _config :: DropdownItemConfig m
+  { _dropdownItemValue :: a
+  , _dropdownItemConfig :: DropdownItemConfig m
   }
 
 simpleItem :: (Core.DomBuilder t m, Show a) => a -> DropdownItem m a
-simpleItem a = DropdownItem a $ def { _render = UI (Core.text $ tshow a) }
+simpleItem a = DropdownItem a $ def { _dropdownItemRender = Core.text $ tshow a }
 
 data DropdownItemConfig m = DropdownItemConfig
-  { _render :: UI DropdownItem m ()
-  , _altRender :: Maybe (UI DropdownItem m ())
+  { _dropdownItemRender :: m ()
+  , _dropdownItemAltRender :: Maybe (m ())
   }
 
 instance Monad m => Default (DropdownItemConfig m) where
@@ -221,7 +221,7 @@ getItemAt i items = toValues items !? i
 
 -- | Custom Dropdown item configuration
 data DropdownItemConfig t = DropdownItemConfig
-  { _icon :: Maybe (Icon t)
+  { _dropdownItemIcon :: Maybe (Icon t)
   , _image :: Maybe (Image t)
   , _dataText :: Maybe Text
   , _flag :: Maybe (Flag t)
@@ -232,7 +232,7 @@ data DropdownItemConfig t = DropdownItemConfig
 --  }
 instance Default (DropdownItemConfig t) where
   def = DropdownItemConfig
-    { _icon = Nothing
+    { _dropdownItemIcon = Nothing
     , _image = Nothing
     , _dataText = Nothing
     , _flag = Nothing
@@ -240,7 +240,7 @@ instance Default (DropdownItemConfig t) where
 
 data DropdownItem t m a where
   DropdownItem :: a -> Text -> (DropdownItemConfig t) -> DropdownItem t m a
-  Content :: (UI t m b, ToDropdownItem b) => b -> DropdownItem t m a
+  Content :: (m b, ToDropdownItem b) => b -> DropdownItem t m a
   Items :: Text -> [DropdownItem t m a] -> DropdownItem t m a
 
 class ToDropdownItem a where
@@ -248,9 +248,11 @@ class ToDropdownItem a where
 
 data Divider = Divider
 
+{-
 instance UI t m Divider where
   type Return t m Divider = ()
   ui' Divider = elClass' "div" "divider" blank
+-}
 
 instance ToDropdownItem (Header t m a) where
   toDropdownItem (Header size content config) = Header size content $
@@ -284,7 +286,7 @@ putItems items = void $ go 0 items
               | _textOnly = "data-text" =: t
               | otherwise = mempty
         elAttr "div" attrs $ do
-          maybe blank ui_ _icon
+          maybe blank ui_ _dropdownItemIcon
           maybe blank ui_ _image
           maybe blank ui_ _flag
           text t
@@ -306,6 +308,7 @@ data Dropdown f t m a = Dropdown
   , _config :: DropdownConfig t (f a)
   }
 
+{-
 instance (t ~ t', m ~ m', Eq a) => UI t' m' (Dropdown Maybe t m a) where
   type Return t' m' (Dropdown Maybe t m a) = Dynamic t (Maybe a)
   ui' (Dropdown items config@DropdownConfig{..}) = do
@@ -375,5 +378,139 @@ dropdownInternal items isMulti conf@DropdownConfig {..} = do
     classes = "ui" : "dropdown" : (if isMulti then "multiple" else "") : dropdownConfigClasses conf
     getIndices :: Foldable f => f a -> [Int]
     getIndices vs = L.findIndices (`elem` vs) $ toValues items
-
 -}
+
+--------------------------------------------------------------------------------
+-- Dropdown instances
+
+instance (Ord (f a), Ord a, m ~ m', Foldable f
+         , MonadReader (Dynamic t (f a)) m, EventWriter t (First a) m)
+  => Render t m' (DropdownItem m a) where
+  type Return t m' (DropdownItem m a) = Event t (a, m ())
+  ui' (DropdownItem value config@DropdownItemConfig {..}) = do
+
+    undefined
+--    isSelected <- UI $ asks $ Dynamic . fmap (elem value)
+--    (e, _) <- element' "div" (elConfig isSelected) $
+--      reUI _render
+--    return (e, (value, _render) <$ domEvent Click e)
+--      where
+--        elConfig active = def
+--          & classes .~ "item" <> ((\b -> if b then "active" else "") <$> active)
+
+instance (Ord (f a), Ord a, t ~ t', m ~ m', Selectable f)
+  => Render t' m' (SelectionDropdown f t m a) where
+  type Return t' m' (SelectionDropdown f t m a) = Dynamic t (f a)
+  ui' (SelectionDropdown config@DropdownConfig {..} preItems items) = do
+-}
+
+--    undefined
+{-
+    let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
+          & initialAttributes .~ constAttrs
+        constAttrs = "type" =: "hidden"
+
+        elConfig = _config <> def
+          { _classes = dropdownConfigClasses config
+          , _attrs = Static $ "tabindex" =: "0" }
+
+    rec
+      isOpen <- holdDyn False $ leftmost
+        [ True <$ gate (not <$> current isOpen) (domEvent Click divEl)
+        , False <$ domEvent Blur divEl
+        ]
+
+      let menuConfig = mkMenuConfig (_value ^. initial)
+            & component .~ True
+            & value . event .~ _value ^. event
+            & transition ?~ (def & initialDirection .~ Out
+                                 & forceVisible .~ True
+                                 & event .~ evt)
+
+          evt = ffor (updated isOpen) $ \case
+                  True -> mkTransition (Just In)
+                  False -> mkTransition (Just Out)
+
+          mkTransition d = Transition SlideDown $ def
+            & cancelling .~ True & duration .~ 0.2 & direction .~ d
+
+      (divEl, result) <- element' "div" elConfig $ do
+        element "input" cfg blank
+        ui $ Icon "dropdown" def
+        element' "div" menuConfig $ do
+          preItems
+          evts <- traverse ui items
+          leftmost evts
+
+    return (divEl, fst result)
+-}
+
+
+
+--instance (Ord (f a), Ord a, t ~ t', m ~ m', Selectable f)
+--  => Render t' m' (MenuDropdown f t m a) where
+--  type Return t' m' (MenuDropdown f t m a) = Dynamic t (f a)
+{-
+menuDropdown' :: DropdownConfig t a -> m a -> m (El t, a)
+menuDropdown' config@DropdownConfig {..} items = do
+
+  let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
+        & initialAttributes .~ constAttrs
+      constAttrs = "type" =: "hidden"
+
+      elConfig = _config <> def
+        { _classes = dropdownConfigClasses config
+        , _attrs = Static $ "tabindex" =: "0" }
+
+  rec
+    isOpen <- holdDyn False $ leftmost
+      [ True <$ gate (not <$> current isOpen) (domEvent Click divEl)
+      , False <$ domEvent Blur divEl
+      ]
+
+    let menuConfig = mkMenuConfig (_value ^. initial)
+          & component .~ True
+          & value . event .~ _value ^. event
+          & transition ?~ trans
+
+        trans = (def :: TransConfig t)
+          & transConfigInitialDirection .~ Out
+          & transConfigForceVisible .~ True
+          & transConfigEvent .~ tcEvent
+
+        tcEvent = ffor (updated isOpen) $ \case
+                True -> mkTransition (Just In)
+                False -> mkTransition (Just Out)
+
+        mkTransition d = Transition SlideDown $ def
+          & transitionCancelling .~ True
+          & transitionDuration .~ 0.2
+          & transitionDirection .~ d
+
+    (divEl, result) <- element' "div" elConfig $ do
+      Reflex.Dom.Core.element "input" cfg blank
+      divClass "text" $ activeText _placeholder
+      icon "dropdown" def
+      ui $ Menu menuConfig items
+
+  return (divEl, fst result)
+-}
+{-
+instance ( Ord a, t ~ t', m ~ m'
+         , EventWriter t (First a) m
+         , MonadReader (Dynamic t (Identity a)) m
+         )
+  => Render t' m' (MenuDropdown Identity t m a) where
+  type Return t' m' (MenuDropdown Identity t m a) = ()
+  ui' (MenuDropdown config@DropdownConfig {..} items) = do
+
+    selected <- ask
+    let dropdownConfig = config
+          & item |~ True
+--          & value . event ?~ updated selected
+
+    (e, selection) <- ui' $ MenuDropdown dropdownConfig items
+    tellEvent $ ffor (updated selection) $ First . runIdentity
+    return (e, ())
+-}
+

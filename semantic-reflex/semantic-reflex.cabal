@@ -31,7 +31,6 @@ library
     Reflex.Dom.SemanticUI
     Reflex.Dom.SemanticUI.Button
     Reflex.Dom.SemanticUI.Checkbox
-    Reflex.Dom.SemanticUI.Class
     Reflex.Dom.SemanticUI.Common
     Reflex.Dom.SemanticUI.Container
     Reflex.Dom.SemanticUI.Dimmer
@@ -39,14 +38,12 @@ library
     Reflex.Dom.SemanticUI.Dropdown
     Reflex.Dom.SemanticUI.Field
     Reflex.Dom.SemanticUI.Form
-    Reflex.Dom.SemanticUI.Functions
     Reflex.Dom.SemanticUI.Header
     Reflex.Dom.SemanticUI.Icon
     Reflex.Dom.SemanticUI.Image
     Reflex.Dom.SemanticUI.Input
     Reflex.Dom.SemanticUI.Label
     Reflex.Dom.SemanticUI.List
-    Reflex.Dom.SemanticUI.Lenses
     Reflex.Dom.SemanticUI.Menu
     Reflex.Dom.SemanticUI.Message
     Reflex.Dom.SemanticUI.Modal
@@ -55,7 +52,6 @@ library
     Reflex.Dom.SemanticUI.Segment
     Reflex.Dom.SemanticUI.Sticky
     Reflex.Dom.SemanticUI.Transition
-    Reflex.Dom.SemanticUI.TH
   if !impl(ghcjs)
     exposed-modules: Reflex.Dom.SemanticUI.Warp
 

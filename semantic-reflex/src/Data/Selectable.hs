@@ -59,6 +59,8 @@ instance Selectable Seq where
   selectElement a (viewl -> a' :< as)
     | a == a' = as
     | otherwise = a' <| selectElement a as
+  -- this pattern is required since GHC can't tell the view patterns are total
+  selectElement _ _ = error "impossible"
 
 
 data LimitedSeq a = LimitedSeq

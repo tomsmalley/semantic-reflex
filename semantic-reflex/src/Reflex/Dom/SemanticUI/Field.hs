@@ -1,32 +1,42 @@
-{-# LANGUAGE DuplicateRecordFields  #-}
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE RecordWildCards        #-}
-{-# LANGUAGE ScopedTypeVariables    #-}
-{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- | Semantic UI fields.
 -- https://semantic-ui.com/collections/form.html
-module Reflex.Dom.SemanticUI.Field where
+module Reflex.Dom.SemanticUI.Field
+  (
 
+  -- * Field
+    field, field'
+  , FieldConfig (..)
+  , fieldElConfig
+
+  ) where
+
+import Control.Lens (makeLenses)
 import Data.Default
+import Data.Semigroup ((<>))
 import Reflex
-import Reflex.Dom.Core (el, DomBuilder)
+import Reflex.Dom.Core
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data FieldConfig t = FieldConfig
-  { _config :: ActiveElConfig t
-  -- ^ Config
+  { _fieldElConfig :: ActiveElConfig t
   }
+makeLenses ''FieldConfig
+
+instance HasElConfig t (FieldConfig t) where
+  elConfig = fieldElConfig
 
 instance Reflex t => Default (FieldConfig t) where
   def = FieldConfig
-    { _config = def
+    { _fieldElConfig = def
     }
 
 -- | Make the field div classes from the configuration
@@ -36,10 +46,14 @@ fieldConfigClasses FieldConfig {..} = activeClasses
   ]
 
 -- | Field UI Element.
-data Field t m a = Field
-  { _config :: FieldConfig t
-  , _content :: UI Field m a
-  }
+field' :: MonadWidget t m => FieldConfig t -> m a -> m (El t, a)
+field' config@FieldConfig {..} content
+  = element' "div" elConf content
+  where
+    elConf = _fieldElConfig <> def
+      { _classes = fieldConfigClasses config }
 
-label :: DomBuilder t m => UI Inline m a -> UI Field m a
-label = UI . el "label" . runUI
+-- | Field UI Element.
+field :: MonadWidget t m => FieldConfig t -> m a -> m a
+field config = fmap snd . field' config
+
