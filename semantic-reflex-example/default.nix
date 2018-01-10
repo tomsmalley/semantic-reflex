@@ -7,7 +7,7 @@
 }:
 let ghcjs = ghc.isGhcjs or false;
 in mkDerivation rec {
-  pname = "example";
+  pname = "semantic-reflex-example";
   version = "0.1";
   src = builtins.filterSource (path: type: !(builtins.elem (baseNameOf path)
     [ "makedocs.sh" "dist" "dist-newstyle" ]

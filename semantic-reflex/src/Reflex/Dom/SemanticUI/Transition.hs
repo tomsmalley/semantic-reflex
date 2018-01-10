@@ -37,8 +37,8 @@ module Reflex.Dom.SemanticUI.Transition
   , flipDirection
 
   , ActiveElConfig (..)
-  , element
-  , element'
+  , uiElement
+  , uiElement'
   , elConfigTransition
   , elConfigAttributes
   , elConfigStyle
@@ -72,7 +72,7 @@ import qualified Data.IntMap as IM
 import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding
-  (Drop, HasAttributes, divClass, elAttr', SetValue, element)
+  (Drop, HasAttributes, divClass, elAttr', SetValue)
 
 import Data.Time
 
@@ -461,22 +461,22 @@ instance Reflex t => Monoid (ActiveElConfig t) where
   mempty = def
   mappend = (<>)
 
-element :: MonadWidget t m => Text -> ActiveElConfig t -> m a -> m a
-element elTag conf = fmap snd . element' elTag conf
+uiElement :: MonadWidget t m => Text -> ActiveElConfig t -> m a -> m a
+uiElement elTag conf = fmap snd . uiElement' elTag conf
 
-element'
+uiElement'
   :: MonadWidget t m
   => Text
   -> ActiveElConfig t
   -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-element' _element ActiveElConfig {..} child = do
+uiElement' elTag ActiveElConfig {..} child = do
   transAttrs <- traverse runTransition _transition
   case transAttrs of
     Nothing -> do
       let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
           mkAttrs c s as = classAttr c <> styleAttr s <> as
-      elActiveAttr' _element activeAttrs child
+      elActiveAttr' elTag activeAttrs child
 
     Just (AnimationAttrs dynMClasses dynMStyle) -> do
 
@@ -492,7 +492,7 @@ element' _element ActiveElConfig {..} child = do
             <> styleAttr (maybe s (<> s) mStyle)
             <> as
 
-      elActiveAttr' _element activeAttrs child
+      elActiveAttr' elTag activeAttrs child
 
 
 data SetValue' t a b = SetValue

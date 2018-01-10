@@ -8,11 +8,11 @@
 
   overrides = self: super: {
     semantic-reflex = self.callPackage ./semantic-reflex/default.nix { };
-    example = self.callPackage ./example/default.nix { inherit runCC; };
+    semantic-reflex-example = self.callPackage ./semantic-reflex-example/default.nix { inherit runCC; };
   };
 
   shells = {
-    ghc = ["semantic-reflex" "example"];
-    ghcjs = ["semantic-reflex" "example"];
+    ghc = ["semantic-reflex" "semantic-reflex-example"];
+    ghcjs = ["semantic-reflex" "semantic-reflex-example"];
   };
 })

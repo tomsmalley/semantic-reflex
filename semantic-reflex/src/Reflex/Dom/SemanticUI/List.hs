@@ -3,11 +3,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Reflex.Dom.SemanticUI.List where
 
+import Control.Lens.TH (makeLenses)
 import Data.Default
 import Data.Semigroup ((<>))
 import Data.Text (Text)
@@ -59,6 +61,7 @@ data ListConfig t = ListConfig
 
   , _listElConfig     :: ActiveElConfig t
   }
+makeLenses ''ListConfig
 
 instance Reflex t => Default (ListConfig t) where
   def = ListConfig
@@ -97,9 +100,9 @@ listConfigClasses ListConfig {..} = activeClasses
   , fmap toClassText <$> _listAligned
   ]
 
-listItemElement :: ListItemElement -> Text
-listItemElement ListItemDiv = "div"
-listItemElement ListItemLink = "a"
+listItemElementText :: ListItemElement -> Text
+listItemElementText ListItemDiv = "div"
+listItemElementText ListItemLink = "a"
 
 data ListItemElement = ListItemDiv | ListItemLink
 
@@ -109,6 +112,10 @@ data ListItemConfig t = ListItemConfig
   , _listItemElement :: ListItemElement
   , _listItemElConfig :: ActiveElConfig t
   }
+makeLenses ''ListItemConfig
+
+instance HasElConfig t (ListItemConfig t) where
+  elConfig = listItemElConfig
 
 instance Reflex t => Default (ListItemConfig t) where
   def = ListItemConfig
@@ -128,7 +135,7 @@ listItemConfigClasses ListItemConfig {..} = activeClasses
 -- https://semantic-ui.com/elements/list.html
 list' :: MonadWidget t m => ListConfig t -> m a -> m (El t, a)
 list' config@ListConfig {..} widget
-  = element' "div" elConf widget
+  = uiElement' "div" elConf widget
   where
     elConf = _listElConfig <> def
       { _classes = listConfigClasses config }
@@ -141,15 +148,16 @@ list c = fmap snd . list' c
 
 listItem' :: MonadWidget t m => ListItemConfig t -> m a -> m (El t, a)
 listItem' config@ListItemConfig {..} widget
-  = element' (listItemElement _listItemElement) elConf $ case _listItemImage of
-    Nothing -> case _listItemIcon of
-      Nothing -> widget
-      Just (Icon i c) -> do
-        icon i c
+  = uiElement' (listItemElementText _listItemElement) elConf $
+    case _listItemImage of
+      Nothing -> case _listItemIcon of
+        Nothing -> widget
+        Just (Icon i c) -> do
+          icon i c
+          divClass "content" widget
+      Just (Image i c) -> do
+        image i c
         divClass "content" widget
-    Just (Image i c) -> do
-      image i c
-      divClass "content" widget
   where
     elConf = _listItemElConfig <> def
       { _classes = listItemConfigClasses config }

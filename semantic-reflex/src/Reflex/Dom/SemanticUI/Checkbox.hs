@@ -17,7 +17,7 @@
 module Reflex.Dom.SemanticUI.Checkbox where
 
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-import Control.Lens
+import Control.Lens hiding (element)
 import Control.Monad ((<=<))
 import Data.Default
 import Data.Foldable (for_)
@@ -129,8 +129,8 @@ checkbox' label config@CheckboxConfig {..} = do
         & elementConfig_eventSpec %~ addEventSpecFlags
             (Proxy @(DomBuilderSpace m)) Click (const stopPropagation)
 
-  (divEl, inputEl) <- element' "div" divAttrs $ do
-    (inputEl, _) <- Reflex.Dom.Core.element "input" cfg blank
+  (divEl, inputEl) <- uiElement' "div" divAttrs $ do
+    (inputEl, _) <- element "input" cfg blank
     el "label" $ activeText label
     return inputEl
 

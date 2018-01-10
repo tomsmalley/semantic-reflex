@@ -48,7 +48,7 @@ fieldConfigClasses FieldConfig {..} = activeClasses
 -- | Field UI Element.
 field' :: MonadWidget t m => FieldConfig t -> m a -> m (El t, a)
 field' config@FieldConfig {..} content
-  = element' "div" elConf content
+  = uiElement' "div" elConf content
   where
     elConf = _fieldElConfig <> def
       { _classes = fieldConfigClasses config }

@@ -11,8 +11,11 @@ module Reflex.Dom.SemanticUI.Image
   (
 
     image, image'
+  , contentImage, contentImage'
   , Image (..)
   , ImageConfig (..)
+  , ImageShape (..)
+  , Spaced (..)
   , imageInline
   , imageSize
   , imageShape
@@ -64,6 +67,9 @@ data ImageConfig t = ImageConfig
   }
 makeLenses ''ImageConfig
 
+instance HasElConfig t (ImageConfig t) where
+  elConfig = imageElConfig
+
 instance Reflex t => Default (ImageConfig t) where
   def = ImageConfig
     { _imageSize = Static Nothing
@@ -98,7 +104,7 @@ data ContentImage t m a = ContentImage
   }
 
 image' :: MonadWidget t m => Active t Text -> ImageConfig t -> m (El t)
-image' src config@ImageConfig {..} = fst <$> element' "img" elConf blank
+image' src config@ImageConfig {..} = fst <$> uiElement' "img" elConf blank
   where
     elConf = _imageElConfig <> def
       { _classes = imageConfigClasses config
@@ -112,9 +118,9 @@ image i = void . image' i
 contentImage'
   :: MonadWidget t m => Active t Text -> ImageConfig t -> m a -> m (El t, a)
 contentImage' src config@ImageConfig {..} content
-  = element' "div" elConf $ do
+  = uiElement' "div" elConf $ do
     a <- content
-    void $ element' "img" imgConfig blank
+    void $ uiElement' "img" imgConfig blank
     return a
   where
     elConf = _imageElConfig <> def

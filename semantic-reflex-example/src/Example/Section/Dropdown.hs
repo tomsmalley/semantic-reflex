@@ -24,6 +24,7 @@ import Control.Monad ((<=<), void)
 import Data.Foldable (for_)
 import Data.Text (Text)
 import Reflex.Dom.SemanticUI
+import Reflex.Dom.Core (text)
 
 import Example.QQ
 import Example.Common
@@ -33,35 +34,35 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
 
   hscode $(printDefinition id stripParens ''DropdownConfig)
 
-  ui_ $ PageHeader H3 def $ text "Dropdown"
+  pageHeader H3 def $ text "Dropdown"
   hscode $(printDefinition id stripParens ''MenuDropdown)
   hscode $(printDefinition id stripParens ''SelectionDropdown)
 
-  togg <- toggle False <=< ui $ Button def $ text "reset"
+  togg <- toggle False <=< button def $ text "reset"
 --  ui_ $ Example "Dropdown" (def & subtitle ?~ text "A simple dropdown" & dynamic ?~ dynCode)
 --    [resetExample|
 --  \resetEvent -> do
-  ui $ MenuDropdown (mkDropdownConfig Nothing) $ do
-    ui $ Header (def & icon ?~ Icon "tag" def) $ text "Filter by tag"
-    ui $ Divider def
-    ui $ MenuItem "important" def $ text "Important"
-    ui $ MenuItem "announcement" def $ text "Announcement"
-    ui_ $ MenuItem "discussion" def $ text "Discussion"
-    void $ dyn $ ffor togg $ \case
-      True -> ui $ MenuItem "A" def $ text "A"
-      False -> ui $ MenuItem "B" def $ text "B"
+--  ui $ MenuDropdown (mkDropdownConfig Nothing) $ do
+--    ui $ Header (def & icon ?~ Icon "tag" def) $ text "Filter by tag"
+--    ui $ Divider def
+--    ui $ MenuItem "important" def $ text "Important"
+--    ui $ MenuItem "announcement" def $ text "Announcement"
+--    ui_ $ MenuItem "discussion" def $ text "Discussion"
+--    void $ dyn $ ffor togg $ \case
+--      True -> ui $ MenuItem "A" def $ text "A"
+--      False -> ui $ MenuItem "B" def $ text "B"
 --  |]
 
-  ui_ $ Divider def
-
-  ddval <- ui $ MenuDropdown (mkDropdownConfig Nothing & selection |~ True) $
-    for_ [1..100] $ \i -> ui $ MenuItem i def $ text $ Static $ tshow i
-
-  ui_ $ Divider $ def & hidden |~ True
-
-  display ddval
-
-  ui_ $ Divider def
+--  ui_ $ Divider def
+--
+--  ddval <- ui $ MenuDropdown (mkDropdownConfig Nothing & selection |~ True) $
+--    for_ [1..100] $ \i -> ui $ MenuItem i def $ text $ Static $ tshow i
+--
+--  ui_ $ Divider $ def & hidden |~ True
+--
+--  display ddval
+--
+--  ui_ $ Divider def
 
 --  ddval <- ui $ SelectionDropdown (mkDropdownConfig Nothing & selection |~ True) (return ()) $
 --    Static $ for [1..100] $ \i -> simpleItem i

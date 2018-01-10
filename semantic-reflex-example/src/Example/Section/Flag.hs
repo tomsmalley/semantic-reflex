@@ -13,6 +13,7 @@ import Control.Lens
 import Data.Foldable (for_)
 import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
+import Reflex.Dom.Core (text)
 
 import Example.QQ
 import Example.Common
@@ -23,16 +24,16 @@ flags = LinkedSection "Flag" (text "A flag is used to represent a political stat
 
   paragraph $ do
     text "For available flag types, see "
-    ui_ $ Anchor (text "the Semantic UI docs") $ def
-      & href |?~ "https://semantic-ui.com/elements/flag.html"
+    let url = "https://semantic-ui.com/elements/flag.html"
+    hyperlink (pure $ Just url) (pure "the Semantic UI docs")
     text "."
 
-  hscode $ $(printDefinition id id ''Flag)
-
-  ui_ $ Example "Flag" (def
+  mkExample "Flag" (def
     & subtitle ?~ text "A flag can use the two digit country code, the full name, or a common alias")
     [example|
   for_ [minBound .. maxBound :: CountryEnum] $
-    ui_ . flip Flag def . Static . T.toLower . T.pack . show
+    flip flag def . Static . T.toLower . T.pack . show
   |]
+
+  return ()
 

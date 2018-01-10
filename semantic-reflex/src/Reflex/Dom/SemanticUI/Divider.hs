@@ -10,6 +10,7 @@ module Reflex.Dom.SemanticUI.Divider
   (
 
     divider, divider'
+  , contentDivider, contentDivider'
   , DividerConfig (..)
   , dividerInverted
   , dividerFitted
@@ -40,6 +41,9 @@ data DividerConfig t = DividerConfig
   }
 makeLenses 'DividerConfig
 
+instance HasElConfig t (DividerConfig t) where
+  elConfig = dividerElConfig
+
 instance Reflex t => Default (DividerConfig t) where
   def = DividerConfig
     { _dividerInverted = pure False
@@ -65,7 +69,7 @@ dividerConfigClasses DividerConfig {..} = activeClasses
 -- https://github.com/Semantic-Org/Semantic-UI/issues/4342
 divider' :: MonadWidget t m => DividerConfig t -> m (El t)
 divider' config@DividerConfig {..}
-  = fst <$> element' "div" elConf blank
+  = fst <$> uiElement' "div" elConf blank
   where
     elConf = _dividerElConfig <> def
       { _classes = dividerConfigClasses config }
@@ -78,7 +82,7 @@ divider = void . divider'
 
 contentDivider' :: MonadWidget t m => DividerConfig t -> m a -> m (El t, a)
 contentDivider' config@DividerConfig {..} content
-  = element' "div" elConf content
+  = uiElement' "div" elConf content
   where
     elConf = _dividerElConfig <> def
       { _classes = addClass "horizontal" <$> dividerConfigClasses config }

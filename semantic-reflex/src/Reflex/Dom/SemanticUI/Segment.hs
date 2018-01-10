@@ -135,7 +135,7 @@ segmentConfigClasses SegmentConfig {..} = activeClasses
 
 -- | Segment UI Element.
 segment' :: MonadWidget t m => SegmentConfig t -> m a -> m (El t, a)
-segment' config@SegmentConfig{..} = element' "div" elConf
+segment' config@SegmentConfig{..} = uiElement' "div" elConf
   where
     elConf = _segmentElConfig <> def { _classes = segmentConfigClasses config }
 

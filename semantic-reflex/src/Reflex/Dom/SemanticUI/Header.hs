@@ -12,7 +12,7 @@ module Reflex.Dom.SemanticUI.Header
   -- * Header
     header, header'
   , pageHeader, pageHeader'
-  , subheader, subheader'
+  , subHeader, subHeader'
   , HeaderSize (..)
   , HeaderConfig (..)
   , headerLargeIcon
@@ -138,7 +138,7 @@ headerConfigClasses HeaderConfig {..} = activeClasses
 pageHeader'
   :: MonadWidget t m => HeaderSize -> HeaderConfig t -> m a -> m (El t, a)
 pageHeader' size config@HeaderConfig {..} widget
-  = element' (headerSizeEl size) elConf $ case _headerImage of
+  = uiElement' (headerSizeEl size) elConf $ case _headerImage of
     Nothing -> case _headerIcon of
       Nothing -> widget
       Just (Icon i c) -> do
@@ -157,7 +157,7 @@ pageHeader s c = fmap snd . pageHeader' s c
 -- https://semantic-ui.com/elements/header.html
 header' :: MonadWidget t m => HeaderConfig t -> m a -> m (El t, a)
 header' config@HeaderConfig {..} widget
-  = element' "div" elConf $ case _headerImage of
+  = uiElement' "div" elConf $ case _headerImage of
     Nothing -> case _headerIcon of
       Nothing -> widget
       Just (Icon i c) -> do
@@ -176,9 +176,9 @@ header' config@HeaderConfig {..} widget
 header :: MonadWidget t m => HeaderConfig t -> m a -> m a
 header c = fmap snd . header' c
 
-subheader' :: MonadWidget t m => m a -> m (El t, a)
-subheader' = divClass' "sub header"
+subHeader' :: MonadWidget t m => m a -> m (El t, a)
+subHeader' = divClass' "sub header"
 
-subheader :: MonadWidget t m => m a -> m a
-subheader = fmap snd . subheader'
+subHeader :: MonadWidget t m => m a -> m a
+subHeader = fmap snd . subHeader'
 

@@ -120,7 +120,7 @@ runSticky pushing sticky = do
 sticky' :: MonadWidget t m => StickyConfig t -> m a -> m (El t, a)
 sticky' config@StickyConfig{..} content = do
 
-  (stickyEl, a) <- element' "div" elConf content
+  (stickyEl, a) <- uiElement' "div" elConf content
 
   liftJSM $ runSticky _stickyPushing (_element_raw stickyEl)
 

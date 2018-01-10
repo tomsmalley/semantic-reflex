@@ -9,7 +9,7 @@ module Reflex.Dom.SemanticUI.Button
 
   -- * Normal buttons
     button, button'
-  , ButtonTag (..)
+  , ButtonElement (..)
   , ButtonConfig (..)
   , buttonColor
   , buttonSize
@@ -28,7 +28,7 @@ module Reflex.Dom.SemanticUI.Button
   , buttonLabeledIcon
   , buttonAttached
   , buttonAnimated
-  , buttonTag
+  , buttonElement
   , buttonElConfig
 
   -- * Labeled buttons
@@ -172,9 +172,9 @@ instance Monad m => Default (AnimatedButton t m) where
     }
 
 -- | HTML tags that can be used for buttons
-data ButtonTag = SubmitButton | LinkButton | DivButton
+data ButtonElement = SubmitButton | LinkButton | DivButton
 
-toTagText :: Maybe ButtonTag -> Text
+toTagText :: Maybe ButtonElement -> Text
 toTagText Nothing = "button"
 toTagText (Just SubmitButton) = "button"
 toTagText (Just LinkButton) = "a"
@@ -200,7 +200,7 @@ data ButtonConfig t m = ButtonConfig
   , _buttonAttached     :: Active t (Maybe ExclusiveAttached)
 
   , _buttonAnimated     :: Maybe (AnimatedButton t m)
-  , _buttonTag          :: Maybe ButtonTag
+  , _buttonElement          :: Maybe ButtonElement
   , _buttonElConfig     :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''ButtonConfig
@@ -229,7 +229,7 @@ instance Reflex t => Default (ButtonConfig t m) where
     , _buttonAttached = pure Nothing
 
     , _buttonAnimated = Nothing
-    , _buttonTag = Nothing
+    , _buttonElement = Nothing
     , _buttonElConfig = def
     }
 
@@ -265,7 +265,7 @@ buttonConfigClasses ButtonConfig {..} = activeClasses
 
 
 buttons' :: MonadWidget t m => ButtonsConfig t -> m a -> m (El t, a)
-buttons' config@ButtonsConfig {..} = element' "div" elConf
+buttons' config@ButtonsConfig {..} = uiElement' "div" elConf
   where
    elConf = _buttonsElConfig <> def
       { _classes = buttonsConfigClasses config }
@@ -275,7 +275,7 @@ buttons c = fmap snd . buttons' c
 
 conditionalWithText' :: MonadWidget t m => Active t Text -> m (El t)
 conditionalWithText' dataText
-  = fst <$> element' "div" config blank
+  = fst <$> uiElement' "div" config blank
   where
     config = def
       & elConfigClasses |~ "or"
@@ -285,7 +285,7 @@ conditionalWithText :: MonadWidget t m => Active t Text -> m ()
 conditionalWithText = void . conditionalWithText'
 
 conditional' :: MonadWidget t m => m (El t)
-conditional' = fst <$> element' "div" config blank
+conditional' = fst <$> uiElement' "div" config blank
   where config = def & elConfigClasses |~ "or"
 
 conditional :: MonadWidget t m => m ()
@@ -293,16 +293,17 @@ conditional = void conditional'
 
 button' :: MonadWidget t m => ButtonConfig t m -> m () -> m (El t, Event t ())
 button' config@ButtonConfig {..} content = do
-  (e, _) <- element' (toTagText _buttonTag) elConf $ case _buttonAnimated of
-    Just (AnimatedButton _ hiddenContent) -> do
-      divClass "visible content" content
-      divClass "hidden content" hiddenContent
-    Nothing -> content
+  (e, _) <- uiElement' (toTagText _buttonElement) elConf $
+    case _buttonAnimated of
+      Just (AnimatedButton _ hiddenContent) -> do
+        divClass "visible content" content
+        divClass "hidden content" hiddenContent
+      Nothing -> content
   pure (e, domEvent Click e)
   where
     elConf = _buttonElConfig <> def
       { _classes = buttonConfigClasses config
-      , _attrs = Static $ case _buttonTag of
+      , _attrs = Static $ case _buttonElement of
         Nothing -> "type" =: "button"
         Just SubmitButton -> "type" =: "submit"
         _ -> mempty
@@ -314,7 +315,7 @@ button c = fmap snd . button' c
 labeledButton'
   :: MonadWidget t m => LabeledButtonConfig t -> m a -> m (El t, Event t ())
 labeledButton' config@LabeledButtonConfig{..} content = do
-  (e, _) <- element' "div" elConf content
+  (e, _) <- uiElement' "div" elConf content
   pure (e, domEvent Click e)
   where
     elConf = _labeledButtonElConfig <> def

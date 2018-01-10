@@ -1,22 +1,19 @@
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE CPP                      #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE InstanceSigs     #-}
-{-# LANGUAGE JavaScriptFFI            #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE OverloadedLists          #-}
-{-# LANGUAGE RecordWildCards          #-}
-{-# LANGUAGE RecursiveDo              #-}
-{-# LANGUAGE ScopedTypeVariables      #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeApplications         #-}
-{-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Reflex.Dom.SemanticUI.Icon where
 
+import Control.Lens.TH (makeLenses, makeLensesWith, lensRules, simpleLenses)
 import Control.Monad (void)
 import Data.Default
 import Data.Semigroup ((<>))
@@ -30,6 +27,7 @@ import Reflex.Dom.SemanticUI.Transition
 data FlagConfig t = FlagConfig
   { _flagElConfig :: ActiveElConfig t
   }
+makeLensesWith (lensRules & simpleLenses .~ True) ''FlagConfig
 
 instance Reflex t => Default (FlagConfig t) where
   def = FlagConfig def
@@ -73,6 +71,10 @@ data IconConfig t = IconConfig
   , _iconTitle :: Active t (Maybe Text)
   , _iconElConfig :: ActiveElConfig t
   }
+makeLensesWith (lensRules & simpleLenses .~ True) ''IconConfig
+
+instance HasElConfig t (IconConfig t) where
+  elConfig = iconElConfig
 
 instance Reflex t => Default (IconConfig t) where
   def = IconConfig
@@ -113,6 +115,7 @@ data IconsConfig t = IconsConfig
   { _iconsSize :: Active t (Maybe Size)
   , _iconsElConfig :: ActiveElConfig t
   }
+makeLensesWith (lensRules & simpleLenses .~ True) ''IconsConfig
 
 instance Reflex t => Default (IconsConfig t) where
   def = IconsConfig
@@ -129,7 +132,7 @@ iconsConfigClasses IconsConfig {..} = activeClasses
 
 icon' :: MonadWidget t m => Active t Text -> IconConfig t -> m (El t)
 icon' activeIcon config@IconConfig {..}
-  = fst <$> element' "i" elConf blank
+  = fst <$> uiElement' "i" elConf blank
   where
     elConf = _iconElConfig <> def
       { _classes = addClass <$> activeIcon <*> iconConfigClasses config
@@ -143,7 +146,7 @@ icon :: MonadWidget t m => Active t Text -> IconConfig t -> m ()
 icon i = void . icon' i
 
 icons' :: MonadWidget t m => IconsConfig t -> m a -> m (El t, a)
-icons' config@IconsConfig {..} = element' "i" elConf
+icons' config@IconsConfig {..} = uiElement' "i" elConf
   where
     elConf = _iconsElConfig <> def
       { _classes = iconsConfigClasses config }
@@ -154,7 +157,7 @@ icons config = fmap snd . icons' config
 
 flag' :: MonadWidget t m => Active t Text -> FlagConfig t -> m (El t)
 flag' flagActive FlagConfig {..}
-  = fst <$> element' "i" config blank
+  = fst <$> uiElement' "i" config blank
   where
     config = _flagElConfig
       & elConfigClasses .~ (flip addClass "flag" <$> flagActive)

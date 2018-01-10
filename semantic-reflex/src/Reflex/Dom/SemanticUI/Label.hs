@@ -16,11 +16,7 @@ module Reflex.Dom.SemanticUI.Label
     label, label'
   , detail, detail'
   , LabelConfig (..)
-  , Ribbon (..)
-  , Pointing (..)
-  , TopCorner (..)
-  , LabelAttached (..)
-  , labelHasImage
+  , labelImage
   , labelHidden
   , labelBasic
   , labelTag
@@ -34,9 +30,16 @@ module Reflex.Dom.SemanticUI.Label
   , labelLink
   , labelElConfig
 
+  , Ribbon (..)
+  , Pointing (..)
+  , TopCorner (..)
+  , LabelAttached (..)
+  , vertically
+  , horizontally
+
   ) where
 
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.TH (makeLenses, makeLensesWith, lensRules, simpleLenses)
 import Control.Monad (void)
 import Data.Default
 import Data.Maybe (catMaybes)
@@ -84,6 +87,7 @@ data LabelAttached = LabelAttached
   { _vertically :: VerticalAttached
   , _horizontally :: Maybe HorizontalAttached
   }
+makeLenses ''LabelAttached
 
 instance Default LabelAttached where
   def = LabelAttached TopAttached Nothing
@@ -101,7 +105,7 @@ instance ToClassText LabelAttached where
       hClass RightAttached = "right"
 
 data LabelConfig t = LabelConfig
-  { _labelHasImage :: Active t Bool
+  { _labelImage :: Active t Bool
   , _labelHidden :: Active t Bool
   , _labelBasic :: Active t Bool
   , _labelTag :: Active t Bool
@@ -119,6 +123,9 @@ data LabelConfig t = LabelConfig
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''LabelConfig
 
+instance HasElConfig t (LabelConfig t) where
+  elConfig = labelElConfig
+
 instance Reflex t => Default (LabelConfig t) where
   def = LabelConfig
     { _labelAttached = pure Nothing
@@ -126,7 +133,7 @@ instance Reflex t => Default (LabelConfig t) where
     , _labelPointing = pure Nothing
     , _labelRibbon = pure Nothing
     , _labelCorner = pure Nothing
-    , _labelHasImage = pure False
+    , _labelImage = pure False
     , _labelHidden = pure False
     , _labelBasic = pure False
     , _labelTag = pure False
@@ -149,19 +156,19 @@ labelConfigClasses LabelConfig {..} = activeClasses
   , boolClass "tag" _labelTag
   , boolClass "floating" _labelFloating
   , boolClass "horizontal" _labelHorizontal
-  , boolClass "image" _labelHasImage
+  , boolClass "image" _labelImage
   ]
 
 
 detail' :: MonadWidget t m => Active t Text -> m (El t)
-detail' = fmap fst . element' "div" elConf . activeText
+detail' = fmap fst . uiElement' "div" elConf . activeText
   where elConf = def { _classes = "detail" }
 
 detail :: MonadWidget t m => Active t Text -> m ()
 detail = void . detail'
 
 label' :: MonadWidget t m => LabelConfig t -> m a -> m (El t, a)
-label' config@LabelConfig {..} = element' elType elConf
+label' config@LabelConfig {..} = uiElement' elType elConf
   where
     elConf = _labelElConfig <> def
       { _classes = labelConfigClasses config

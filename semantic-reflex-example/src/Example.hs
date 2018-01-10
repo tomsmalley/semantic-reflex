@@ -22,19 +22,20 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
+import Reflex.Dom.Core (text)
 import Language.Javascript.JSaddle hiding ((!!))
 
 import Example.QQ
 import Example.Common
 
-import Example.Section.Buttons (buttons)
+import Example.Section.Buttons (buttonSection)
 import Example.Section.Checkbox (checkboxes)
 import Example.Section.Dimmer (dimmers)
 import Example.Section.Divider (dividers)
 import Example.Section.Dropdown (dropdowns)
 import Example.Section.Flag (flags)
 import Example.Section.Header
-import Example.Section.Icon (icons)
+import Example.Section.Icon (iconSection)
 import Example.Section.Input (inputs)
 import Example.Section.Label (labels)
 import Example.Section.List (lists)
@@ -73,22 +74,17 @@ setLocationHash hash = do
     hash' = if "#" `T.isPrefixOf` hash then hash else "#" <> hash
 
 
-intro :: MonadWidget t m => UI None m ()
+intro :: MonadWidget t m => m ()
 intro = do
-  ui $ PageHeader H2 def $ text "Introduction"
+  pageHeader H2 def $ text "Introduction"
   paragraph $ do
     text "This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the "
-    ui $ Anchor (text "reflex-dom-semui") $ def
-      & href |?~ "https://github.com/reflex-frp/reflex-dom-semui"
+    httpLink "https://github.com/reflex-frp/reflex-dom-semui" $
+      text "reflex-dom-semui"
     text " library."
   paragraph $ text "This page serves to provide an example of the library and components in use. Examples are shown along with the code that generated them."
 
-  ui $ PageHeader H3 def $ text "Overview"
-  paragraph $ text "The library exposes components in the form of data types. The convention is to have a record with all parts required to specify a component, with the last being a config type that contains the optional or unnecessary parts. All of the component types have overloaded field lenses so they can be modified concisely."
-  paragraph $ do
-    text "Components can be rendered using the function "
-    hsCodeInline $(printDefinition oneline id 'ui)
-    text "."
+  pageHeader H3 def $ text "Overview"
 
   paragraph $ text "To avoid having lots of unnecessary dynamics in config types, we use the type:"
   hscode $(printDefinition oneline id ''Active)
@@ -96,22 +92,23 @@ intro = do
   hscode $(printDefinition oneline id '(|?~))
   hscode $(printDefinition oneline id '(|~))
 
-putSections :: MonadWidget t m => [Section t m] -> UI None m ()
+putSections :: MonadWidget t m => [Section t m] -> m ()
 putSections sections = do
   pb :: Event t () <- delay 0.1 =<< getPostBuild
   onLoadEvent <- performEvent $ liftJSM getLocationHash <$ pb
   performEvent_ $ liftJSM . scrollIntoView <$> fmapMaybe id onLoadEvent
 
-  element "div" (def
+  uiElement "div" (def
     & elConfigAttributes |~ ("id" =: "main")
     & elConfigClasses |~ "ui container") $ do
 
     rec
 
       -- Menu
+      {-
       divClass "ui dividing right rail" $
-        ui_ $ Sticky def $ do
-          ui_ $ PageHeader H4 def $ text "Components"
+        sticky def $ do
+          pageHeader H4 def $ text "Components"
           --divClass "ui vertical following fluid accordion text menu" $ do
 
           let conf = def
@@ -129,18 +126,19 @@ putSections sections = do
             liftJSM $ setLocationHash id
             liftJSM $ scrollIntoView id
             ) $ fmapMaybe id $ updated selected
+      -}
 
       -- Sections
       (contextEl, _) <- divClass' "context" $ do
         intro
         for_ sections $ \(LinkedSection heading subHeading child) -> do
           let hConf = def
-                & dividing |~ True
+                & headerDividing |~ True
                 & style |~ Style ("margin-top" =: "3em")
-                & attributes |~ ("id" =: toId heading)
-          ui $ PageHeader H2 hConf $ do
-            text $ Static heading
-            ui $ SubHeader subHeading
+                & attrs |~ ("id" =: toId heading)
+          pageHeader H2 hConf $ do
+            text heading
+            subHeader subHeading
           child
 
   {-
@@ -168,29 +166,34 @@ main = catchJS $ mainWidget runWithLoader
 runWithLoader :: MonadWidget t m => m ()
 runWithLoader = do
   pb <- delay 0 =<< getPostBuild
-  rec runUI $ loadingDimmer pb'
+  rec loadingDimmer pb'
       liftJSM syncPoint
-      pb' <- runUI $ fmap updated $ widgetHold blank $ main' <$ pb
+      pb' <- fmap updated $ widgetHold blank $ main' <$ pb
   return ()
 
-loadingDimmer :: MonadWidget t m => Event t () -> UI None m ()
+loadingDimmer :: MonadWidget t m => Event t () -> m ()
 loadingDimmer evt =
-  ui $ Dimmer (def & page .~ True & transition ?~ (def & event .~ (Transition Fade def <$ evt))) $
+  dimmer (def & dimmerPage .~ True & transition ?~ (def & transConfigEvent .~ (Transition Fade def <$ evt))) $
     divClass "ui huge text loader" $ text "Loading semantic-reflex docs..."
 
-main' :: MonadWidget t m => UI None m ()
+main' :: MonadWidget t m => m ()
 main' = do
 
-  ui $ Segment (def & attributes |~ ("id" =: "masthead") & vertical |~ True) $
+  segment (def & attrs |~ ("id" =: "masthead") & segmentVertical |~ True) $
     divClass "ui container" $ do
       let semanticLogo = Image "https://semantic-ui.com/images/logo.png" $ def
-            & shape |?~ Rounded
-      ui $ PageHeader H1 (def & image ?~ semanticLogo) $ do
+            & imageShape |?~ Rounded
+      pageHeader H1 (def & headerImage ?~ semanticLogo) $ do
         text "Semantic UI for Reflex Dom"
-        ui $ SubHeader $ text "Documentation and examples"
-      ui $ Button (def & tag ?~ LinkButton & disabled |~ True) $ text "Hackage"
-      ui $ Button (def & tag ?~ LinkButton & color |?~ Teal & attributes |~ ("href" =: "https://github.com/tomsmalley/semantic-reflex")) $ do
-        ui $ Icon "github" def
+        subHeader $ text "Documentation and examples"
+      button (def & buttonElement ?~ LinkButton & buttonDisabled |~ True) $
+        text "Hackage"
+      button (def
+        & buttonElement ?~ LinkButton
+        & buttonColor |?~ Teal
+        & attrs |~ ("href" =: "https://github.com/tomsmalley/semantic-reflex"))
+        $ do
+        icon "github" def
         text "GitHub"
 
   putSections
@@ -198,12 +201,12 @@ main' = do
     , dropdowns
     , menu
     , dimmers
-    , buttons
+    , buttonSection
     , checkboxes
     , dividers
     , flags
     , headers
-    , icons
+    , iconSection
     , labels
     , lists
     , menu

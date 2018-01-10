@@ -67,12 +67,12 @@ printDefinition postproc preproc name = do
       runIO $ putStrLn $ stripModules $ pprint info
       fail str'
 
-hscode :: MonadWidget t m => String -> UI None m ()
-hscode = UI . void . elActiveAttr "code" (Static $ "class" =: "haskell")
+hscode :: MonadWidget t m => String -> m ()
+hscode = void . elActiveAttr "code" (Static $ "class" =: "haskell")
        . elDynHtml' "pre" . constDyn . hscolour
 
-hsCodeInline :: MonadWidget t m => String -> UI Inline m ()
-hsCodeInline = UI . void . elActiveAttr "code" (Static $ "class" =: "haskell inline")
+hsCodeInline :: MonadWidget t m => String -> m ()
+hsCodeInline = void . elActiveAttr "code" (Static $ "class" =: "haskell inline")
              . elDynHtml' "pre" . constDyn . hscolour
 
 hscolour :: String -> Text
@@ -155,19 +155,7 @@ example = QuasiQuoter
 resetExample :: QuasiQuoter
 resetExample = example { quoteExp = \ex -> [|(ex, $(return $ toExp $ Exts.fromParseResult $ Exts.parseExpWithMode mymode $ "Right $ do\n" ++ ex))|] }
 
-mkExample :: QuasiQuoter
-mkExample = QuasiQuoter
-  { quoteExp = \ex -> [|(ex, $(return $ toExp $ Exts.fromParseResult $ Exts.parseExpWithMode mymode $ "do\n" ++ ex))|]
-  , quotePat = const $ error "ex: not an expression"
-  , quoteType = const $ error "ex: not an expression"
-  , quoteDec = const $ error "ex: not an expression"
-  }
-
 str :: QuasiQuoter
-str = mkExample
+str = example
   { quoteExp = \ex -> [|ex|] }
 
-mkResetExample :: QuasiQuoter
-mkResetExample = mkExample
-  { quoteExp = \ex -> [|(ex, $(eitherQ id $ parseExp $ "\resetEvent -> do\n" ++ ex))|]
-  }

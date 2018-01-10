@@ -52,7 +52,7 @@ containerConfigClasses ContainerConfig {..} = activeClasses
     ]
 
 container' :: MonadWidget t m => ContainerConfig t -> m a -> m (El t, a)
-container' config@ContainerConfig {..} = element' "div" elConf
+container' config@ContainerConfig {..} = uiElement' "div" elConf
     where
       elConf = _containerElConfig <> def
         { _classes = containerConfigClasses config }

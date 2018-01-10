@@ -10,13 +10,15 @@ module Reflex.Dom.SemanticUI.Input
 
     input, input'
   , InputConfig (..)
+  , InputIcon (..)
+  , Action (..)
   , inputLoading
   , inputDisabled
-  , inputHasError
+  , inputError
   , inputTransparent
   , inputInverted
   , inputFluid
-  , inputIconSide
+  , inputIcon
   , inputLabeled
   , inputAction
   , inputSize
@@ -60,12 +62,12 @@ instance ToClassText InputIcon where
 data InputConfig t = InputConfig
   { _inputLoading     :: Active t Bool
   , _inputDisabled    :: Active t Bool
-  , _inputHasError    :: Active t Bool
+  , _inputError    :: Active t Bool
   , _inputTransparent :: Active t Bool
   , _inputInverted    :: Active t Bool
   , _inputFluid       :: Active t Bool
 
-  , _inputIconSide    :: Active t (Maybe InputIcon)
+  , _inputIcon    :: Active t (Maybe InputIcon)
   , _inputLabeled     :: Active t (Maybe Labeled)
   , _inputAction      :: Active t (Maybe Action)
   , _inputSize        :: Active t (Maybe Size)
@@ -78,8 +80,8 @@ instance Reflex t => Default (InputConfig t) where
   def = InputConfig
     { _inputLoading = pure False
     , _inputDisabled = pure False
-    , _inputHasError = pure False
-    , _inputIconSide = pure Nothing
+    , _inputError = pure False
+    , _inputIcon = pure Nothing
     , _inputLabeled = pure Nothing
     , _inputAction = pure Nothing
     , _inputTransparent = pure False
@@ -94,8 +96,8 @@ inputConfigClasses InputConfig {..} = activeClasses
   [ Static $ Just "ui input"
   , boolClass "loading" _inputLoading
   , boolClass "disabled" _inputDisabled
-  , boolClass "error" _inputHasError
-  , fmap toClassText <$> _inputIconSide
+  , boolClass "error" _inputError
+  , fmap toClassText <$> _inputIcon
   , fmap toClassText <$> _inputLabeled
   , fmap toClassText <$> _inputAction
   , boolClass "transparent" _inputTransparent
@@ -105,7 +107,6 @@ inputConfigClasses InputConfig {..} = activeClasses
   , fmap (\s -> toClassText $ if s == Tiny then Mini else s) <$> _inputSize
   ]
 
-{-
 instance DynShow t (TextInput t) where
   dynShow TextInput {..} = do
     input <- countWithLast _textInput_input
@@ -114,15 +115,14 @@ instance DynShow t (TextInput t) where
     keyup <- countWithLast _textInput_keyup
     return $ mconcat
       [ pure "TextInputResult"
-      , (("\n  { _value = " <>) . show) <$> _textInput_value
-      , (("\n  , _input = " <>) . show) <$> input
-      , (("\n  , _keypress = " <>) . show) <$> keypress
-      , (("\n  , _keydown = " <>) . show) <$> keydown
-      , (("\n  , _keyup = " <>) . show) <$> keyup
-      , (("\n  , _focus = " <>) . show) <$> _textInput_focus
+      , (("\n  { _textInput_value = " <>) . show) <$> _textInput_value
+      , (("\n  , _textInput_input = " <>) . show) <$> input
+      , (("\n  , _textInput_keypress = " <>) . show) <$> keypress
+      , (("\n  , _textInput_keydown = " <>) . show) <$> keydown
+      , (("\n  , _textInput_keyup = " <>) . show) <$> keyup
+      , (("\n  , _textInput_hasFocus = " <>) . show) <$> _textInput_hasFocus
       , pure "\n  }"
       ]
--}
 
 -- | A wrapper around the reflex-dom 'textInput' which conforms to the style
 -- of this library
@@ -163,7 +163,7 @@ instance Reflex t => Default (TextInputConfig t) where
     }
 
 input' :: MonadWidget t m => InputConfig t -> m a -> m (El t, a)
-input' config@InputConfig {..} = element' "div" elConf
+input' config@InputConfig {..} = uiElement' "div" elConf
   where elConf = _inputElConfig <> def { _classes = inputConfigClasses config }
 
 input :: MonadWidget t m => InputConfig t -> m a -> m a

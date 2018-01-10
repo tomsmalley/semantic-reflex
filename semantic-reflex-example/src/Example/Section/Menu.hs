@@ -18,6 +18,7 @@ import qualified Data.Sequence as Seq
 import qualified Data.Set as S
 import Data.Text (Text)
 import Reflex.Dom.SemanticUI
+import Reflex.Dom.Core (text)
 import GHC.Tuple
 
 import Data.Selectable
@@ -36,13 +37,13 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
 
   paragraph $ text "In Semantic UI menus are just exposed as styling elements and any active state must be managed by you. Here the state is managed for you."
 
-  hscode $(printDefinition id stripParens ''Menu)
 --  hscode $(printDefinition id stripParens ''MenuDef)
 --  hscode $(printDefinition id id ''MenuItems)
 
   hscode $(printDefinition id stripParens ''MenuConfig)
   hscode $(printDefinition id stripParens ''MenuItemConfig)
 
+{-
 
   ui_ $ Example "Identity Menu" (def & subtitle ?~ text "A menu can have a single definite value" & dynamic ?~ dynCode)
    [resetExample|
@@ -283,3 +284,4 @@ menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") 
     return $ (,) <$> selected <*> view value search
  |]
 
+-}

@@ -3,17 +3,17 @@ docs: ghcjs
 	cp -r result/dist/js docs
 	cp result/dist/semantic.min.css docs
 	cp -r result/dist/themes docs
-	cp -r example/resources/* docs
+	cp -r semantic-reflex-example/resources/* docs
 
 docs-nocc: ghcjs-nocc
 	chmod -R +w docs
 	cp -r result/dist/js docs
 	cp result/dist/semantic.min.css docs
 	cp -r result/dist/themes docs
-	cp -r example/resources/* docs
+	cp -r semantic-reflex-example/resources/* docs
 
-ghcjs: semantic-reflex example
-	nix-build --attr ghcjs.example
+ghcjs: semantic-reflex semantic-reflex-example
+	nix-build --attr ghcjs.semantic-reflex-example
 
-ghcjs-nocc: semantic-reflex example
-	nix-build --attr ghcjs.example --arg runCC false
+ghcjs-nocc: semantic-reflex semantic-reflex-example
+	nix-build --attr ghcjs.semantic-reflex-example --arg runCC false

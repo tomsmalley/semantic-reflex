@@ -112,7 +112,7 @@ message'
 message' config@MessageConfig{..} content = do
 
   case _messageDismissable of
-    Nothing -> element' "div" (elConf id) $ case _messageIcon of
+    Nothing -> uiElement' "div" (elConf id) $ case _messageIcon of
       Just (Icon i c) -> do
         icon i c
         divClass "content" content
@@ -130,7 +130,7 @@ message' config@MessageConfig{..} content = do
         let elConfig' = elConf $ set transition $ Just $ def
               & transConfigEvent .~ closeEvent
 
-        (divEl, (result, closeEvent)) <- element' "div" elConfig' $
+        (divEl, (result, closeEvent)) <- uiElement' "div" elConfig' $
           case _messageIcon of
             Just (Icon i c) -> do
               icon i c

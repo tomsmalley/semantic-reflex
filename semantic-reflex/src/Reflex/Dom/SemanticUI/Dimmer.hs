@@ -1,16 +1,31 @@
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE RecordWildCards        #-}
-{-# LANGUAGE RecursiveDo    #-}
-{-# LANGUAGE ScopedTypeVariables    #-}
-{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -- | Semantic UI dimmers. Pure reflex implementation is provided.
 -- https://semantic-ui.com/modules/dimmers.html
-module Reflex.Dom.SemanticUI.Dimmer where
+module Reflex.Dom.SemanticUI.Dimmer
+  (
 
+    dimmer, dimmer'
+  , DimmerConfig (..)
+  , dimmerInverted
+  , dimmerPage
+  , dimmerDimmed
+  , dimmerTransitionType
+  , dimmerDuration
+  , dimmerCloseOnClick
+  , dimmerElConfig
+
+  ) where
+
+import Control.Applicative (liftA2)
 import Control.Lens
 import Control.Monad ((<=<))
 import Data.Default
@@ -34,13 +49,17 @@ data DimmerConfig t = DimmerConfig
   -- ^ Dimmer state control
   , _dimmerTransitionType :: Active t TransitionType
   -- ^ Type of transition to use
-  , _dimmerSpeed :: Active t NominalDiffTime
-  -- ^ Speed of transition
+  , _dimmerDuration :: Active t NominalDiffTime
+  -- ^ Duration of transition
   , _dimmerCloseOnClick :: Active t Bool
   -- ^ User can click out of a dimmer
   , _dimmerElConfig :: ActiveElConfig t
   -- ^ Config
   }
+makeLenses ''DimmerConfig
+
+instance HasElConfig t (DimmerConfig t) where
+  elConfig = dimmerElConfig
 
 instance Reflex t => Default (DimmerConfig t) where
   def = DimmerConfig
@@ -48,7 +67,7 @@ instance Reflex t => Default (DimmerConfig t) where
     , _dimmerPage = False
     , _dimmerDimmed = SetValue Out Nothing
     , _dimmerTransitionType = pure Fade
-    , _dimmerSpeed = pure 0.75
+    , _dimmerDuration = pure 0.75
     , _dimmerCloseOnClick = pure True
     , _dimmerElConfig = def
     }
@@ -74,7 +93,7 @@ dimmer' config@DimmerConfig {..} content = do
           [ fromMaybe never $ _dimmerDimmed ^. event
           , Just Out <$ click ]
 
-    (e, a) <- element' "div" (mkElConfig $ updated dDir) content
+    (e, a) <- uiElement' "div" (mkElConfig $ updated dDir) content
 
   pure (e, a)
 
@@ -87,11 +106,14 @@ dimmer' config@DimmerConfig {..} content = do
 
     mkTransConfig eDir = def
       & transConfigInitialDirection .~ _dimmerDimmed ^. initial
-      & transConfigEvent .~ fmap mkTransition eDir
+      & transConfigEvent .~ case _dimmerDuration of
+        Static dur -> mkTransition dur <$> eDir
+        Dynamic dDur -> uncurry mkTransition <$> attachPromptlyDyn dDur eDir
 
-    mkTransition dir = Transition Fade $ def
+    mkTransition dur dir = Transition Fade $ def
       & transitionCancelling .~ True
       & transitionDirection ?~ dir
+      & transitionDuration .~ dur
 
 dimmer :: MonadWidget t m => DimmerConfig t -> m a -> m a
 dimmer c = fmap snd . dimmer' c
