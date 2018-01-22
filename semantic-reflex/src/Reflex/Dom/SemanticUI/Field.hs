@@ -12,6 +12,7 @@ module Reflex.Dom.SemanticUI.Field
   -- * Field
     field, field'
   , FieldConfig (..)
+  , fieldError
   , fieldElConfig
 
   ) where
@@ -27,7 +28,8 @@ import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data FieldConfig t = FieldConfig
-  { _fieldElConfig :: ActiveElConfig t
+  { _fieldError :: Active t Bool
+  , _fieldElConfig :: ActiveElConfig t
   }
 makeLenses ''FieldConfig
 
@@ -36,13 +38,15 @@ instance HasElConfig t (FieldConfig t) where
 
 instance Reflex t => Default (FieldConfig t) where
   def = FieldConfig
-    { _fieldElConfig = def
+    { _fieldError = pure False
+    , _fieldElConfig = def
     }
 
 -- | Make the field div classes from the configuration
 fieldConfigClasses :: Reflex t => FieldConfig t -> Active t Classes
 fieldConfigClasses FieldConfig {..} = activeClasses
   [ Static $ Just "ui field"
+  , boolClass "error" _fieldError
   ]
 
 -- | Field UI Element.

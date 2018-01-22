@@ -66,6 +66,9 @@ data CheckboxConfig t = CheckboxConfig
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''CheckboxConfig
 
+instance HasElConfig t (CheckboxConfig t) where
+  elConfig = checkboxElConfig
+
 instance Reflex t => Default (CheckboxConfig t) where
   def = CheckboxConfig
     { _checkboxSetValue = SetValue False Nothing
@@ -162,31 +165,34 @@ checkbox' label config@CheckboxConfig {..} = do
   rec
 
     -- Events from the UI
-    let trigger = domEvent Change inputEl <> domEvent Click divEl
-    uiEvent <- fmap (fmapMaybe id) $ performEvent $ ffor trigger $ \_ -> do
+    let eFlip = domEvent Change inputEl <> domEvent Click divEl
+        eReset = domEvent Reset inputEl
+        trigger = leftmost [True <$ eReset, False <$ eFlip]
+    uiEvent <- fmap (fmapMaybe id) $ performEvent $ ffor trigger $ \reset -> do
 
       -- If the checkbox is disabled we do nothing
       disabled <- Input.getDisabled e
-      if disabled
-      then return Nothing
-      else do
+      case (disabled, reset) of
+        (True, _) -> pure Nothing
+        (_, True) -> pure $ Just (False, False)
+        _ -> do
 
-        -- This seems to be the only way to get the values from *before* the
-        -- user interacted with the checkbox.
-        oldValue <- sample $ current value
-        oldIndeterminate <- sample $ current indeterminate
+          -- This seems to be the only way to get the values from *before* the
+          -- user interacted with the checkbox.
+          oldValue <- sample $ current value
+          oldIndeterminate <- sample $ current indeterminate
 
-        -- If the checkbox was indeterminate we always set checked to true,
-        -- otherwise we toggle the value.
-        -- This matches the Semantic UI visual behaviour
-        let newValue = oldIndeterminate || not oldValue
-        -- Always clear the indeterminate state
-            newIndeterminate = False
+          -- If the checkbox was indeterminate we always set checked to true,
+          -- otherwise we toggle the value.
+          -- This matches the Semantic UI visual behaviour
+          let newValue = oldIndeterminate || not oldValue
+          -- Always clear the indeterminate state
+              newIndeterminate = False
 
-        Input.setChecked e newValue
-        Input.setIndeterminate e newIndeterminate
+          Input.setChecked e newValue
+          Input.setIndeterminate e newIndeterminate
 
-        return $ Just (newValue, newIndeterminate)
+          return $ Just (newValue, newIndeterminate)
 
     indeterminate <- holdDyn (_initial _checkboxSetIndeterminate) $ leftmost
       $ fmap snd uiEvent

@@ -3,13 +3,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Reflex.Dom.SemanticUI.Button
   (
 
   -- * Normal buttons
     button, button'
-  , ButtonElement (..)
+  , ButtonType (..)
   , ButtonConfig (..)
   , buttonColor
   , buttonSize
@@ -28,7 +29,7 @@ module Reflex.Dom.SemanticUI.Button
   , buttonLabeledIcon
   , buttonAttached
   , buttonAnimated
-  , buttonElement
+  , buttonType
   , buttonElConfig
 
   -- * Labeled buttons
@@ -172,19 +173,26 @@ instance Monad m => Default (AnimatedButton t m) where
     }
 
 -- | HTML tags that can be used for buttons
-data ButtonElement = SubmitButton | LinkButton | DivButton
+data ButtonType
+  = ButtonButton
+  | ResetButton
+  | SubmitButton
+  | LinkButton
+  | DivButton
 
-toTagText :: Maybe ButtonElement -> Text
-toTagText Nothing = "button"
-toTagText (Just SubmitButton) = "button"
-toTagText (Just LinkButton) = "a"
-toTagText (Just DivButton) = "div"
+toTagText :: ButtonType -> Text
+toTagText = \case
+  SubmitButton -> "button"
+  ButtonButton -> "button"
+  ResetButton -> "button"
+  LinkButton -> "a"
+  DivButton -> "div"
 
 data ButtonConfig t m = ButtonConfig
   { _buttonDisabled     :: Active t Bool
   , _buttonCompact      :: Active t Bool
   , _buttonBasic        :: Active t Bool
-  , _buttonIcon      :: Active t Bool
+  , _buttonIcon         :: Active t Bool
   , _buttonInverted     :: Active t Bool
   , _buttonLoading      :: Active t Bool
   , _buttonFluid        :: Active t Bool
@@ -200,7 +208,7 @@ data ButtonConfig t m = ButtonConfig
   , _buttonAttached     :: Active t (Maybe ExclusiveAttached)
 
   , _buttonAnimated     :: Maybe (AnimatedButton t m)
-  , _buttonElement          :: Maybe ButtonElement
+  , _buttonType         :: ButtonType
   , _buttonElConfig     :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''ButtonConfig
@@ -229,7 +237,7 @@ instance Reflex t => Default (ButtonConfig t m) where
     , _buttonAttached = pure Nothing
 
     , _buttonAnimated = Nothing
-    , _buttonElement = Nothing
+    , _buttonType = ButtonButton
     , _buttonElConfig = def
     }
 
@@ -293,7 +301,7 @@ conditional = void conditional'
 
 button' :: MonadWidget t m => ButtonConfig t m -> m () -> m (El t, Event t ())
 button' config@ButtonConfig {..} content = do
-  (e, _) <- uiElement' (toTagText _buttonElement) elConf $
+  (e, _) <- uiElement' (toTagText _buttonType) elConf $
     case _buttonAnimated of
       Just (AnimatedButton _ hiddenContent) -> do
         divClass "visible content" content
@@ -303,9 +311,10 @@ button' config@ButtonConfig {..} content = do
   where
     elConf = _buttonElConfig <> def
       { _classes = buttonConfigClasses config
-      , _attrs = Static $ case _buttonElement of
-        Nothing -> "type" =: "button"
-        Just SubmitButton -> "type" =: "submit"
+      , _attrs = Static $ case _buttonType of
+        SubmitButton -> "type" =: "submit"
+        ButtonButton -> "type" =: "button"
+        ResetButton  -> "type" =: "reset"
         _ -> mempty
       }
 

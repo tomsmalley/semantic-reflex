@@ -61,7 +61,7 @@ makeHead css = do
   semanticCSS <- document ^. js1 "createElement" "link"
   semanticCSS ^. jss "rel" "stylesheet"
   semanticCSS ^. jss "type" "text/css"
-  semanticCSS ^. jss "href" "semantic.min.css"
+  semanticCSS ^. jss "href" "/semantic.min.css"
   void $ document ^. js "head" ^. js1 "appendChild" semanticCSS
 
 {-
