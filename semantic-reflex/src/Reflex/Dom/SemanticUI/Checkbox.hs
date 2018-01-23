@@ -18,7 +18,8 @@ module Reflex.Dom.SemanticUI.Checkbox where
 
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Control.Lens hiding (element)
-import Control.Monad ((<=<))
+import Control.Monad ((<=<), void)
+import Control.Monad.Trans.Maybe
 import Data.Default
 import Data.Foldable (for_)
 import Data.Functor.Misc (WrapArg(..))
@@ -26,6 +27,9 @@ import Data.Proxy
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Data.Traversable (for)
+import GHCJS.DOM (currentDocument)
+import GHCJS.DOM.DocumentOrShadowRoot (getActiveElement)
+import GHCJS.DOM.Types (castTo, HTMLElement(..), Element(..))
 import Reflex
 import Reflex.Dom.Core hiding (CheckboxConfig, Checkbox, SetValue)
 
@@ -33,6 +37,7 @@ import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
+import qualified GHCJS.DOM.HTMLElement as HTMLElement
 import qualified GHCJS.DOM.Types as DOM
 import qualified GHCJS.DOM.HTMLInputElement as Input
 import Language.Javascript.JSaddle (liftJSM)
@@ -193,6 +198,12 @@ checkbox' label config@CheckboxConfig {..} = do
           Input.setIndeterminate e newIndeterminate
 
           return $ Just (newValue, newIndeterminate)
+
+    performEvent_ $ ffor (keydown Escape inputEl) $ \_ -> void $ runMaybeT $ do
+      document <- MaybeT currentDocument
+      activeElement <- MaybeT $ getActiveElement document
+      htmlElement <- MaybeT $ castTo HTMLElement activeElement
+      HTMLElement.blur htmlElement
 
     indeterminate <- holdDyn (_initial _checkboxSetIndeterminate) $ leftmost
       $ fmap snd uiEvent

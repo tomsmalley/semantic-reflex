@@ -14,7 +14,7 @@ module Reflex.Dom.SemanticUI.Common where
 
 import Control.Monad.Fix (MonadFix)
 import Control.Lens ((^.), set, ASetter)
-import Control.Monad (void, (<=<))
+import Control.Monad (void, (<=<), guard)
 import Data.String
 import Data.Semigroup
 import Data.Map (Map)
@@ -28,6 +28,13 @@ import Language.Javascript.JSaddle hiding (Success)
 import Reflex.Dom.Core hiding (Link, Error, elAttr', DynamicWriterT)
 
 import Reflex.Dom.Active
+
+-- | Like 'keypress'
+keydown
+  :: (Reflex t, HasDomEvent t e 'KeydownTag, DomEventType e 'KeydownTag ~ Word)
+  => Key -> e -> Event t ()
+keydown k = fmapMaybe (\n -> guard $ keyCodeLookup (fromIntegral n) == k)
+          . domEvent Keydown
 
 -- JSaddle helpers
 

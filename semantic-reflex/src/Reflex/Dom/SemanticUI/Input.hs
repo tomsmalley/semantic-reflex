@@ -4,6 +4,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Reflex.Dom.SemanticUI.Input
   (
@@ -35,13 +36,20 @@ module Reflex.Dom.SemanticUI.Input
   ) where
 
 import Control.Lens (makeLenses)
+import Control.Monad (void, guard)
+import Control.Monad.Trans.Maybe
 import Data.Default
 import Data.Map (Map)
 import Data.Maybe (fromMaybe)
 import Data.Semigroup ((<>))
 import Data.Text (Text)
+import GHCJS.DOM (currentDocument)
+import GHCJS.DOM.DocumentOrShadowRoot (getActiveElement)
+import GHCJS.DOM.Types (castTo, HTMLElement(..), Element(..))
 import Reflex.Dom.Core hiding (Input, SetValue, TextInputConfig, textInput)
+
 import qualified Reflex.Dom.Core as Reflex
+import qualified GHCJS.DOM.HTMLElement as HTMLElement
 
 import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
@@ -126,15 +134,21 @@ instance DynShow t (TextInput t) where
 
 -- | A wrapper around the reflex-dom 'textInput' which conforms to the style
 -- of this library
-textInput :: (DomBuilder t m, PostBuild t m, DomBuilderSpace m ~ GhcjsDomSpace)
-          => TextInputConfig t -> m (TextInput t)
-textInput TextInputConfig {..}
-  = Reflex.textInput Reflex.TextInputConfig
+textInput :: MonadWidget t m => TextInputConfig t -> m (TextInput t)
+textInput TextInputConfig {..} = do
+  ti <- Reflex.textInput Reflex.TextInputConfig
     { _textInputConfig_attributes = a
     , _textInputConfig_setValue = fromMaybe never mSetValue
     , _textInputConfig_initialValue = initialValue
     , _textInputConfig_inputType = inputTypeText _textInputType
     }
+  -- Blur on escape
+  performEvent_ $ ffor (keydown Escape ti) $ \_ -> void $ runMaybeT $ do
+    document <- MaybeT currentDocument
+    activeElement <- MaybeT $ getActiveElement document
+    htmlElement <- MaybeT $ castTo HTMLElement activeElement
+    HTMLElement.blur htmlElement
+  pure ti
   where a = (\p -> ("placeholder" =: p <>)) <$> _textInputPlaceholder <*> _textInputAttrs
         SetValue initialValue mSetValue = _textInputValue
 

@@ -70,6 +70,7 @@ library
     , ref-tf
     , template-haskell
     , text
+    , transformers
     , th-abstraction
     , these
     , time
