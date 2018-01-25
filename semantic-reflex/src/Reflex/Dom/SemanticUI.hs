@@ -35,7 +35,7 @@ import Reflex.Dom.Core hiding
   , checkbox, Checkbox (..), checkbox_value, checkbox_change
   , CheckboxConfig (..), checkboxConfig_attributes, checkboxConfig_setValue
   , HasSetValue (..), HasValue (..), HasAttributes (..)
-  , Dropdown (..), DropdownConfig (..), dropdown_change, dropdown_value, Select
+  , dropdown, Dropdown (..), DropdownConfig (..), dropdown_change, dropdown_value, Select
   , link, Link, Input, Drop
   , text, tag, Error
   , element

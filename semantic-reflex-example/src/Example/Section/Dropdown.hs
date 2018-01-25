@@ -16,8 +16,6 @@ import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import Example.StateEnum
-import Example.CountryEnum
 -}
 import Control.Lens
 import Control.Monad ((<=<), void)
@@ -25,9 +23,16 @@ import Data.Foldable (for_)
 import Data.Text (Text)
 import Reflex.Dom.SemanticUI
 import Reflex.Dom.Core (text)
+import Data.Map.Lazy (Map)
+import Data.Semigroup ((<>))
 
 import Example.QQ
 import Example.Common
+import Example.StateEnum
+import Example.CountryEnum
+
+import qualified Data.Map.Lazy as M
+import qualified Data.Text as T
 
 dropdowns :: MonadWidget t m => Section t m
 dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/modules/dropdown.html") $ do
@@ -35,14 +40,57 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
   hscode $(printDefinition id stripParens ''DropdownConfig)
 
   pageHeader H3 def $ text "Dropdown"
-  hscode $(printDefinition id stripParens ''MenuDropdown)
-  hscode $(printDefinition id stripParens ''SelectionDropdown)
 
-  togg <- toggle False <=< button def $ text "reset"
---  ui_ $ Example "Dropdown" (def & subtitle ?~ text "A simple dropdown" & dynamic ?~ dynCode)
---    [resetExample|
---  \resetEvent -> do
---  ui $ MenuDropdown (mkDropdownConfig Nothing) $ do
+  mkExample "Dropdown" (def
+    & dynamic ?~ dynCode
+    & subtitle ?~ text "A standard dropdown")
+    [resetExample|
+  \resetEvent -> do
+    let countries = [minBound .. maxBound] :: [CountryEnum]
+        render = pure $ M.fromList
+          [ (c, flag (pure $ T.toLower $ tshow c) def >> text (countryText c))
+          | c <- countries ]
+    dropdown def Nothing render
+  |]
+
+  --search = pure $ [ (countryText c, c) | c <- countries ]
+  --             <> [ (tshow c, c) | c <- countries ]
+
+  mkExample "Dropdown" (def
+    & dynamic ?~ dynCode
+    & subtitle ?~ text "A standard dropdown")
+    [resetExample|
+  \resetEvent -> do
+    dropdown def Nothing $ pure $ 1 =: (text "one") <> 2 =: (text "two")
+  |]
+
+  mkExample "Dropdown" (def
+    & dynamic ?~ dynCode
+    & subtitle ?~ text "A standard dropdown")
+    [resetExample|
+  \resetEvent -> do
+    dropdown def (Just 1) $ pure $ 1 =: (text "one") <> 2 =: (text "two")
+  |]
+
+  mkExample "Dropdown" (def
+    & dynamic ?~ dynCode
+    & subtitle ?~ text "A standard dropdown")
+    [resetExample|
+  \resetEvent -> do
+    dropdown def (Identity 1) $ pure $ 1 =: (text "one") <> 2 =: (text "two")
+  |]
+
+  mkExample "Dropdown" (def
+    & dynamic ?~ dynCode
+    & subtitle ?~ text "A standard dropdown")
+    [resetExample|
+  \resetEvent -> do
+    dropdown def [2] $ pure $ 1 =: (text "one") <> 2 =: (text "two")
+  |]
+
+{-
+  ui_ $ Example "Dropdown" (def & subtitle ?~ text "A simple dropdown" & dynamic ?~ dynCode)
+    [resetExample|
 --    ui $ Header (def & icon ?~ Icon "tag" def) $ text "Filter by tag"
 --    ui $ Divider def
 --    ui $ MenuItem "important" def $ text "Important"
@@ -51,7 +99,8 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
 --    void $ dyn $ ffor togg $ \case
 --      True -> ui $ MenuItem "A" def $ text "A"
 --      False -> ui $ MenuItem "B" def $ text "B"
---  |]
+  |]
+-}
 
 --  ui_ $ Divider def
 --

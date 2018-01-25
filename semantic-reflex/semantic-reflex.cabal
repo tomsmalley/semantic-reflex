@@ -59,6 +59,7 @@ library
       base              >= 4.8 && < 4.10
     , bytestring
     , containers
+    -- >= 0.5.9
     , data-default
     , file-embed        >= 0.0.10 && < 0.1
     , ghcjs-dom

@@ -33,8 +33,8 @@ buttonSection = LinkedSection "Button" (text "") $ do
   mkExample "Button" (def & subtitle ?~ text "A standard button")
     [example|
   button def $ text "Button"
-  button (def & buttonElement ?~ DivButton) $ text "Div Button"
-  button (def & buttonElement ?~ LinkButton) $ text "Link Button"
+  button (def & buttonType .~ DivButton) $ text "Div Button"
+  button (def & buttonType .~ LinkButton) $ text "Link Button"
   |]
 
   mkExample "Emphasis" (def
@@ -256,7 +256,7 @@ buttonSection = LinkedSection "Button" (text "") $ do
     & subtitle ?~ text "A button can be attached to the top or bottom of other content"
     & inbetween ?~ upstreamIssue 5851 "Attached 'Button' elements are incorrectly sized, use an alternate tag until this is fixed upstream.")
     [example|
-  let conf = def & buttonElement ?~ DivButton
+  let conf = def & buttonType .~ DivButton
   button (conf & buttonAttached |?~ Vertically TopAttached) $ text "Top"
   segment (def & segmentAttached |?~ Attached) $ text "Segment"
   button (conf & buttonAttached |?~ Vertically BottomAttached) $ text "Bottom"

@@ -186,15 +186,17 @@ main' = do
       pageHeader H1 (def & headerImage ?~ semanticLogo) $ do
         text "Semantic UI for Reflex Dom"
         subHeader $ text "Documentation and examples"
-      button (def & buttonElement ?~ LinkButton & buttonDisabled |~ True) $
+      button (def & buttonType .~ LinkButton & buttonDisabled |~ True) $
         text "Hackage"
       button (def
-        & buttonElement ?~ LinkButton
+        & buttonType .~ LinkButton
         & buttonColor |?~ Teal
         & attrs |~ ("href" =: "https://github.com/tomsmalley/semantic-reflex"))
         $ do
         icon "github" def
         text "GitHub"
+
+  putSections [dropdowns]
 
   putSections
     [ inputs

@@ -9,6 +9,9 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Reflex.Dom.SemanticUI.Common where
 
@@ -29,12 +32,19 @@ import Reflex.Dom.Core hiding (Link, Error, elAttr', DynamicWriterT)
 
 import Reflex.Dom.Active
 
--- | Like 'keypress'
+{-# INLINABLE keydown #-}
 keydown
   :: (Reflex t, HasDomEvent t e 'KeydownTag, DomEventType e 'KeydownTag ~ Word)
   => Key -> e -> Event t ()
-keydown k = fmapMaybe (\n -> guard $ keyCodeLookup (fromIntegral n) == k)
-          . domEvent Keydown
+keydown key = fmapMaybe (\n -> guard $ keyCodeLookup (fromIntegral n) == key)
+            . domEvent Keydown
+
+{-# INLINABLE keyup #-}
+keyup
+  :: (Reflex t, HasDomEvent t e 'KeyupTag, DomEventType e 'KeyupTag ~ Word)
+  => Key -> e -> Event t ()
+keyup key = fmapMaybe (\n -> guard $ keyCodeLookup (fromIntegral n) == key)
+          . domEvent Keyup
 
 -- JSaddle helpers
 
@@ -206,13 +216,8 @@ zipActiveWith f a b = f <$> a <*> b
 
 -- Attrs
 
-boolClass :: Reflex t => Text -> Active t Bool -> Active t (Maybe Text)
-boolClass t = fmap f
-  where f True = Just t
-        f False = Nothing
-
-boolClass' :: Reflex t => Text -> Active t Bool -> Active t (Maybe Text)
-boolClass' t = fmap (\p -> if p then Just t else Nothing)
+boolClass :: Functor f => Text -> f Bool -> f (Maybe Text)
+boolClass t = fmap $ \case True -> Just t; False -> Nothing
 
 activeClasses :: Reflex t => [ Active t (Maybe Text) ] -> Active t Classes
 activeClasses = fmap (Classes . S.fromList . catMaybes) . sequenceA
