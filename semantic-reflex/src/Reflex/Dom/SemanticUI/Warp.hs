@@ -9,6 +9,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (unpack)
 import Control.Lens ((^.))
 import Control.Monad (void)
+import Data.Text (Text)
 import Language.Javascript.JSaddle
 import Language.Javascript.JSaddle.WebSockets
 import Network.Wai.Handler.Warp
@@ -51,25 +52,16 @@ runApp css port mainApp mUserFilePath middleware preApp = do
 makeHead :: ByteString -> JSM ()
 makeHead css = do
 
-  document <- jsg "document"
+  document <- jsg ("document" :: Text)
 
   -- Push the css into a style tag
-  style <- document ^. js1 "createElement" "style"
-  style ^. jss "innerText" (unpack css)
-  void $ document ^. js "head" ^. js1 "appendChild" style
+  style <- document ^. js1 ("createElement" :: Text) ("style" :: Text)
+  style ^. jss ("innerText" :: Text) (unpack css)
+  void $ document ^. js ("head" :: Text) ^. js1 ("appendChild" :: Text) style
 
-  semanticCSS <- document ^. js1 "createElement" "link"
-  semanticCSS ^. jss "rel" "stylesheet"
-  semanticCSS ^. jss "type" "text/css"
-  semanticCSS ^. jss "href" "/semantic.min.css"
-  void $ document ^. js "head" ^. js1 "appendChild" semanticCSS
+  semanticCSS <- document ^. js1 ("createElement" :: Text) ("link" :: Text)
+  semanticCSS ^. jss ("rel" :: Text) ("stylesheet" :: Text)
+  semanticCSS ^. jss ("type" :: Text) ("text/css" :: Text)
+  semanticCSS ^. jss ("href" :: Text) ("/semantic.min.css" :: Text)
+  void $ document ^. js ("head" :: Text) ^. js1 ("appendChild" :: Text) semanticCSS
 
-{-
-  jquery <- document ^. js1 "createElement" "script"
-  jquery ^. jss "src" "js/jquery.min.js"
-  void $ document ^. js "head" ^. js1 "appendChild" jquery
-
-  semantic <- document ^. js1 "createElement" "script"
-  semantic ^. jss "src" "js/semantic.min.js"
-  void $ document ^. js "head" ^. js1 "appendChild" semantic
--}

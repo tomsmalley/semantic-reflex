@@ -1,12 +1,5 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies #-}
 
 -- | Semantic UI checkboxes. Pure reflex implementation is provided.
 -- https://semantic-ui.com/modules/checkbox.html
@@ -18,22 +11,20 @@ module Reflex.Dom.SemanticUI.Checkbox where
 
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Control.Lens hiding (element)
-import Control.Monad ((<=<), void)
+import Control.Monad ((<=<), void, guard)
 import Control.Monad.Trans.Maybe
 import Data.Default
 import Data.Foldable (for_)
 import Data.Functor.Misc (WrapArg(..))
 import Data.Proxy
 import Data.Semigroup ((<>))
-import Data.Text (Text)
 import Data.Traversable (for)
 import GHCJS.DOM (currentDocument)
 import GHCJS.DOM.DocumentOrShadowRoot (getActiveElement)
 import GHCJS.DOM.Types (castTo, HTMLElement(..), Element(..))
 import Reflex
-import Reflex.Dom.Core hiding (CheckboxConfig, Checkbox, SetValue)
+import Reflex.Dom.Core hiding (CheckboxConfig, Checkbox, SetValue(..))
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -59,11 +50,11 @@ data CheckboxConfig t = CheckboxConfig
   , _checkboxSetIndeterminate :: SetValue t Bool
   -- ^ Control over indeterminate state
 
-  , _checkboxType :: Active t (Maybe CheckboxType)
+  , _checkboxType :: Dynamic t (Maybe CheckboxType)
   -- ^ Checkbox type, e.g. slider
-  , _checkboxFitted :: Active t Bool
+  , _checkboxFitted :: Dynamic t Bool
   -- ^ Checkbox is fitted
-  , _checkboxDisabled :: Active t Bool
+  , _checkboxDisabled :: Dynamic t Bool
   -- ^ Checkbox is disabled
 
   , _checkboxElConfig :: ActiveElConfig t
@@ -74,21 +65,24 @@ makeLensesWith (lensRules & simpleLenses .~ True) ''CheckboxConfig
 instance HasElConfig t (CheckboxConfig t) where
   elConfig = checkboxElConfig
 
-instance Reflex t => Default (CheckboxConfig t) where
+instance Reflex t
+  => Default (CheckboxConfig t) where
   def = CheckboxConfig
     { _checkboxSetValue = SetValue False Nothing
     , _checkboxSetIndeterminate = SetValue False Nothing
 
-    , _checkboxType = Static Nothing
-    , _checkboxFitted = Static False
-    , _checkboxDisabled = Static False
+    , _checkboxType = pure Nothing
+    , _checkboxFitted = pure False
+    , _checkboxDisabled = pure False
     , _checkboxElConfig = def
     }
 
 -- | Make the checkbox div classes from the configuration
-checkboxConfigClasses :: Reflex t => CheckboxConfig t -> Active t Classes
-checkboxConfigClasses CheckboxConfig {..} = activeClasses
-  [ Static $ Just "ui checkbox"
+checkboxConfigClasses
+  :: Reflex t
+  => CheckboxConfig t -> Dynamic t Classes
+checkboxConfigClasses CheckboxConfig {..} = dynClasses
+  [ pure $ Just "ui checkbox"
   , fmap toClassText <$> _checkboxType
   , boolClass "fitted" _checkboxFitted
   , boolClass "disabled" _checkboxDisabled
@@ -107,50 +101,34 @@ data Checkbox t = Checkbox
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''Checkbox
 
-instance DynShow t (Checkbox t) where
-  dynShow Checkbox {..} = do
-    change <- countWithLast _checkboxChange
-    return $ mconcat
-      [ pure "Checkbox"
-      , (("\n  { _checkboxValue = " <>) . show) <$> _checkboxValue
-      , (("\n  , _checkboxChange = " <>) . show) <$> change
-      , (("\n  , _checkboxIsIndeterminate = " <>) . show) <$> _checkboxIsIndeterminate
-      , (("\n  , _checkboxHasFocus = " <>) . show) <$> _checkboxHasFocus
-      , pure "\n  }"
-      ]
-
 -- | Checkbox UI Element. The minimum useful checkbox only needs a label and a
 -- default configuration.
-checkbox
-  :: MonadWidget t m => Active t Text -> CheckboxConfig t -> m (Checkbox t)
-checkbox c = fmap snd . checkbox' c
+checkbox :: MonadWidget t m => m () -> CheckboxConfig t -> m (Checkbox t)
+checkbox m = fmap snd . checkbox' m
 
 -- | Checkbox UI Element. The minimum useful checkbox only needs a label and a
 -- default configuration.
 checkbox'
   :: forall t m. MonadWidget t m
-  => Active t Text -> CheckboxConfig t -> m (El t, Checkbox t)
-checkbox' label config@CheckboxConfig {..} = do
+  => m () -> CheckboxConfig t -> m (El t, Checkbox t)
+checkbox' content config@CheckboxConfig {..} = do
 
   let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
         & initialAttributes .~ constAttrs
         & elementConfig_eventSpec %~ addEventSpecFlags
-            (Proxy @(DomBuilderSpace m)) Click (const stopPropagation)
+          (Proxy :: Proxy (DomBuilderSpace m)) Click (const stopPropagation)
 
   (divEl, inputEl) <- uiElement' "div" divAttrs $ do
     (inputEl, _) <- element "input" cfg blank
-    el "label" $ activeText label
+    el "label" content
     return inputEl
 
   let e = DOM.uncheckedCastTo DOM.HTMLInputElement $ _element_raw inputEl
 
-  case _checkboxDisabled of
-    Static d -> Input.setDisabled e d
-    Dynamic d -> do
-      -- Set initial value
-      Input.setDisabled e <=< sample $ current d
-      -- Set future values
-      performEvent_ $ ffor (updated d) $ Input.setDisabled e
+  -- Set initial disabled
+  Input.setDisabled e <=< sample $ current _checkboxDisabled
+  -- Set future disabled
+  performEvent_ $ ffor (updated _checkboxDisabled) $ Input.setDisabled e
 
   -- Set initial value
   Input.setChecked e $ _initial _checkboxSetValue
@@ -159,7 +137,7 @@ checkbox' label config@CheckboxConfig {..} = do
     \setValue -> performEvent $ ffor setValue $ \newValue -> do
       oldValue <- liftJSM $ Input.getChecked e
       Input.setChecked e newValue
-      return $ justWhen (newValue /= oldValue) newValue
+      return $ newValue <$ guard (newValue /= oldValue)
 
   -- Set initial indeterminate
   Input.setIndeterminate e $ _initial _checkboxSetIndeterminate

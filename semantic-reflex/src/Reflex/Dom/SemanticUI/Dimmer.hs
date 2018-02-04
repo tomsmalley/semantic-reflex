@@ -1,12 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
 
 -- | Semantic UI dimmers. Pure reflex implementation is provided.
 -- https://semantic-ui.com/modules/dimmers.html
@@ -25,8 +18,8 @@ module Reflex.Dom.SemanticUI.Dimmer
 
   ) where
 
-import Control.Applicative (liftA2)
-import Control.Lens
+import Control.Lens ((^.), (?~))
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Control.Monad ((<=<))
 import Data.Default
 import Data.Maybe (fromMaybe)
@@ -36,27 +29,26 @@ import Reflex.Dom.Core
 
 import Data.Time (NominalDiffTime)
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data DimmerConfig t = DimmerConfig
-  { _dimmerInverted :: Active t Bool
+  { _dimmerInverted :: Dynamic t Bool
   -- ^ Dimmers can be inverted
   , _dimmerPage :: Bool
   -- ^ Dimmers can dim the whole page
   , _dimmerDimmed :: SetValue' t Direction (Maybe Direction)
   -- ^ Dimmer state control
-  , _dimmerTransitionType :: Active t TransitionType
+  , _dimmerTransitionType :: Dynamic t TransitionType
   -- ^ Type of transition to use
-  , _dimmerDuration :: Active t NominalDiffTime
+  , _dimmerDuration :: Dynamic t NominalDiffTime
   -- ^ Duration of transition
-  , _dimmerCloseOnClick :: Active t Bool
+  , _dimmerCloseOnClick :: Dynamic t Bool
   -- ^ User can click out of a dimmer
   , _dimmerElConfig :: ActiveElConfig t
   -- ^ Config
   }
-makeLenses ''DimmerConfig
+makeLensesWith (lensRules & simpleLenses .~ True) ''DimmerConfig
 
 instance HasElConfig t (DimmerConfig t) where
   elConfig = dimmerElConfig
@@ -73,11 +65,11 @@ instance Reflex t => Default (DimmerConfig t) where
     }
 
 -- | Make the dimmer div classes from the configuration
-dimmerConfigClasses :: Reflex t => DimmerConfig t -> Active t Classes
-dimmerConfigClasses DimmerConfig {..} = activeClasses
-  [ Static $ Just "ui active dimmer"
+dimmerConfigClasses :: Reflex t => DimmerConfig t -> Dynamic t Classes
+dimmerConfigClasses DimmerConfig {..} = dynClasses
+  [ pure $ Just "ui active dimmer"
   , boolClass "inverted" _dimmerInverted
-  , Static $ if _dimmerPage then Just "page" else Nothing
+  , pure $ if _dimmerPage then Just "page" else Nothing
   ]
 
 -- | Dimmer UI Element.
@@ -85,7 +77,7 @@ dimmer' :: forall t m a. MonadWidget t m => DimmerConfig t -> m a -> m (El t, a)
 dimmer' config@DimmerConfig {..} content = do
   rec
 
-    let click = ffilter id $ tagActive _dimmerCloseOnClick $ domEvent Click e
+    let click = ffilter id $ tag (current _dimmerCloseOnClick) $ domEvent Click e
         f Nothing d = flipDirection d
         f (Just d) _ = d
 
@@ -101,14 +93,13 @@ dimmer' config@DimmerConfig {..} content = do
 
     mkElConfig eDir = _dimmerElConfig <> def
       { _classes = dimmerConfigClasses config
-      , _transition = Just $ mkTransConfig eDir
+      , _action = Just $ mkAction eDir
       }
 
-    mkTransConfig eDir = def
-      & transConfigInitialDirection .~ _dimmerDimmed ^. initial
-      & transConfigEvent .~ case _dimmerDuration of
-        Static dur -> mkTransition dur <$> eDir
-        Dynamic dDur -> uncurry mkTransition <$> attachPromptlyDyn dDur eDir
+    mkAction eDir = def
+      & actionInitialDirection .~ _dimmerDimmed ^. initial
+      & actionEvent ?~
+        (uncurry mkTransition <$> attachPromptlyDyn _dimmerDuration eDir)
 
     mkTransition dur dir = Transition Fade $ def
       & transitionCancelling .~ True

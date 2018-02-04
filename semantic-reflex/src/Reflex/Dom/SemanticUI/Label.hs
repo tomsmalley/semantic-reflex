@@ -1,14 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 module Reflex.Dom.SemanticUI.Label
   (
@@ -48,7 +38,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.Core hiding (fromJSString, divClass)
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 
 import Reflex.Dom.SemanticUI.Transition
@@ -105,18 +94,18 @@ instance ToClassText LabelAttached where
       hClass RightAttached = "right"
 
 data LabelConfig t = LabelConfig
-  { _labelImage :: Active t Bool
-  , _labelHidden :: Active t Bool
-  , _labelBasic :: Active t Bool
-  , _labelTag :: Active t Bool
-  , _labelFloating :: Active t Bool
-  , _labelHorizontal :: Active t Bool
+  { _labelImage :: Dynamic t Bool
+  , _labelHidden :: Dynamic t Bool
+  , _labelBasic :: Dynamic t Bool
+  , _labelTag :: Dynamic t Bool
+  , _labelFloating :: Dynamic t Bool
+  , _labelHorizontal :: Dynamic t Bool
 
-  , _labelAttached :: Active t (Maybe LabelAttached)
-  , _labelColor :: Active t (Maybe Color)
-  , _labelPointing :: Active t (Maybe Pointing)
-  , _labelRibbon :: Active t (Maybe Ribbon)
-  , _labelCorner :: Active t (Maybe TopCorner)
+  , _labelAttached :: Dynamic t (Maybe LabelAttached)
+  , _labelColor :: Dynamic t (Maybe Color)
+  , _labelPointing :: Dynamic t (Maybe Pointing)
+  , _labelRibbon :: Dynamic t (Maybe Ribbon)
+  , _labelCorner :: Dynamic t (Maybe TopCorner)
 
   , _labelLink :: Bool
   , _labelElConfig :: ActiveElConfig t
@@ -143,9 +132,9 @@ instance Reflex t => Default (LabelConfig t) where
     , _labelElConfig = def
     }
 
-labelConfigClasses :: Reflex t => LabelConfig t -> Active t Classes
-labelConfigClasses LabelConfig {..} = activeClasses
-  [ Static $ Just "ui label"
+labelConfigClasses :: Reflex t => LabelConfig t -> Dynamic t Classes
+labelConfigClasses LabelConfig {..} = dynClasses
+  [ pure $ Just "ui label"
   , fmap toClassText <$> _labelAttached
   , fmap toClassText <$> _labelColor
   , fmap toClassText <$> _labelPointing
@@ -160,11 +149,11 @@ labelConfigClasses LabelConfig {..} = activeClasses
   ]
 
 
-detail' :: MonadWidget t m => Active t Text -> m (El t)
-detail' = fmap fst . uiElement' "div" elConf . activeText
+detail' :: MonadWidget t m => Dynamic t Text -> m (El t)
+detail' = fmap fst . uiElement' "div" elConf . dynText
   where elConf = def { _classes = "detail" }
 
-detail :: MonadWidget t m => Active t Text -> m ()
+detail :: MonadWidget t m => Dynamic t Text -> m ()
 detail = void . detail'
 
 label' :: MonadWidget t m => LabelConfig t -> m a -> m (El t, a)

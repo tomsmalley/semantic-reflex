@@ -26,8 +26,7 @@ library
   hs-source-dirs: src
 
   exposed-modules:
-    Data.Selectable
-    Reflex.Dom.Active
+    Reflex.Active
     Reflex.Dom.SemanticUI
     Reflex.Dom.SemanticUI.Button
     Reflex.Dom.SemanticUI.Checkbox
@@ -46,14 +45,24 @@ library
     Reflex.Dom.SemanticUI.List
     Reflex.Dom.SemanticUI.Menu
     Reflex.Dom.SemanticUI.Message
-    Reflex.Dom.SemanticUI.Modal
     Reflex.Dom.SemanticUI.Paragraph
     Reflex.Dom.SemanticUI.RadioGroup
     Reflex.Dom.SemanticUI.Segment
     Reflex.Dom.SemanticUI.Sticky
+    Reflex.Dom.SemanticUI.Table
     Reflex.Dom.SemanticUI.Transition
   if !impl(ghcjs)
     exposed-modules: Reflex.Dom.SemanticUI.Warp
+
+  default-extensions:
+      FlexibleContexts
+    , FlexibleInstances
+    , LambdaCase
+    , MultiParamTypeClasses
+    , OverloadedStrings
+    , RankNTypes
+    , RecordWildCards
+    , ScopedTypeVariables
 
   build-depends:
       base              >= 4.8 && < 4.10

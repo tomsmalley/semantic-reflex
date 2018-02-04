@@ -1,10 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Semantic UI forms.
 -- https://semantic-ui.com/collections/form.html
@@ -18,7 +12,8 @@ module Reflex.Dom.SemanticUI.Form
 
   ) where
 
-import Control.Lens (makeLenses, (<&>))
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Lens ((<&>))
 import Control.Monad (void)
 import Data.Default
 import Data.Foldable (for_)
@@ -27,7 +22,6 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -44,7 +38,7 @@ import qualified GHCJS.DOM.EventTarget as EventTarget
 data FormConfig t = FormConfig
   { _formElConfig :: ActiveElConfig t
   }
-makeLenses ''FormConfig
+makeLensesWith (lensRules & simpleLenses .~ True) ''FormConfig
 
 instance HasElConfig t (FormConfig t) where
   elConfig = formElConfig
@@ -55,9 +49,9 @@ instance Reflex t => Default (FormConfig t) where
     }
 
 -- | Make the form div classes from the configuration
-formConfigClasses :: Reflex t => FormConfig t -> Active t Classes
-formConfigClasses FormConfig {..} = activeClasses
-  [ Static $ Just "ui form"
+formConfigClasses :: Reflex t => FormConfig t -> Dynamic t Classes
+formConfigClasses FormConfig {..} = dynClasses
+  [ pure $ Just "ui form"
   ]
 
 -- | Form UI Element.
@@ -76,24 +70,24 @@ form' config@FormConfig {..} content = do
     inputCount <- HTMLCollection.getLength inputs
     for_ ([0 .. inputCount]) $ \i -> HTMLCollection.item inputs i >>= \case
       Nothing -> pure ()
-      Just element -> DOM.castTo DOM.HTMLInputElement element >>= \case
+      Just inputEl' -> DOM.castTo DOM.HTMLInputElement inputEl' >>= \case
         Nothing -> pure ()
-        Just inputElement -> do
-          eventType :: Text <- HTMLInputElement.getType inputElement <&> \case
+        Just inputEl -> do
+          eventType :: Text <- HTMLInputElement.getType inputEl <&> \case
             -- Checkboxes need a "reset" event (see 'Checkbox' module)
             "checkbox" -> "reset"
             -- Text inputs need an "input" event to sync
             (_ :: Text) -> "input"
           void $ Event.newEvent eventType (Nothing :: Maybe DOM.EventInit)
-            >>= EventTarget.dispatchEvent element
+            >>= EventTarget.dispatchEvent inputEl'
     textareas <- Element.getElementsByTagName e ("textarea" :: Text)
     textAreaCount <- HTMLCollection.getLength textareas
     for_ ([0 .. textAreaCount]) $ \i ->
       HTMLCollection.item textareas i >>= \case
         Nothing -> pure ()
-        Just element -> void $
+        Just textAreaEl -> void $
           Event.newEvent ("input" :: Text) (Nothing :: Maybe DOM.EventInit)
-              >>= EventTarget.dispatchEvent element
+              >>= EventTarget.dispatchEvent textAreaEl
 
   -- Catch the submit events to prevent the page reloading
   void $ DOM.liftJSM $ EventM.on e GlobalEventHandlers.submit $

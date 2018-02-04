@@ -1,22 +1,14 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Reflex.Dom.SemanticUI.List where
 
-import Control.Lens.TH (makeLenses)
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Data.Default
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Icon (Icon(Icon), icon)
 import Reflex.Dom.SemanticUI.Image (Image(Image), image)
@@ -45,23 +37,23 @@ instance ToClassText ListAligned where
   toClassText ListBottom = "bottom aligned"
 
 data ListConfig t = ListConfig
-  { _listType   :: Active t (Maybe ListType)
-  , _listLink       :: Active t Bool
-  , _listHorizontal :: Active t Bool
-  , _listInverted   :: Active t Bool
-  , _listSelection  :: Active t Bool
-  , _listAnimated   :: Active t Bool
-  , _listRelaxed    :: Active t (Maybe Relaxed)
-  , _listDivided    :: Active t Bool
-  , _listCelled     :: Active t Bool
-  , _listSize       :: Active t (Maybe Size)
-  , _listFloated    :: Active t (Maybe Floated)
+  { _listType       :: Dynamic t (Maybe ListType)
+  , _listLink       :: Dynamic t Bool
+  , _listHorizontal :: Dynamic t Bool
+  , _listInverted   :: Dynamic t Bool
+  , _listSelection  :: Dynamic t Bool
+  , _listAnimated   :: Dynamic t Bool
+  , _listRelaxed    :: Dynamic t (Maybe Relaxed)
+  , _listDivided    :: Dynamic t Bool
+  , _listCelled     :: Dynamic t Bool
+  , _listSize       :: Dynamic t (Maybe Size)
+  , _listFloated    :: Dynamic t (Maybe Floated)
 
-  , _listAligned    :: Active t (Maybe ListAligned)
+  , _listAligned    :: Dynamic t (Maybe ListAligned)
 
-  , _listElConfig     :: ActiveElConfig t
+  , _listElConfig   :: ActiveElConfig t
   }
-makeLenses ''ListConfig
+makeLensesWith (lensRules & simpleLenses .~ True) ''ListConfig
 
 instance Reflex t => Default (ListConfig t) where
   def = ListConfig
@@ -82,9 +74,9 @@ instance Reflex t => Default (ListConfig t) where
     , _listElConfig = def
     }
 
-listConfigClasses :: Reflex t => ListConfig t -> Active t Classes
-listConfigClasses ListConfig {..} = activeClasses
-  [ Static $ Just "ui list"
+listConfigClasses :: Reflex t => ListConfig t -> Dynamic t Classes
+listConfigClasses ListConfig {..} = dynClasses
+  [ pure $ Just "ui list"
   , fmap toClassText <$> _listType
   , boolClass "link" _listLink
   , boolClass "horizontal" _listHorizontal
@@ -112,7 +104,7 @@ data ListItemConfig t = ListItemConfig
   , _listItemElement :: ListItemElement
   , _listItemElConfig :: ActiveElConfig t
   }
-makeLenses ''ListItemConfig
+makeLensesWith (lensRules & simpleLenses .~ True) ''ListItemConfig
 
 instance HasElConfig t (ListItemConfig t) where
   elConfig = listItemElConfig
@@ -125,9 +117,9 @@ instance Reflex t => Default (ListItemConfig t) where
     , _listItemElConfig = def
     }
 
-listItemConfigClasses :: Reflex t => ListItemConfig t -> Active t Classes
-listItemConfigClasses ListItemConfig {..} = activeClasses
-  [ Static $ Just "item"
+listItemConfigClasses :: Reflex t => ListItemConfig t -> Dynamic t Classes
+listItemConfigClasses ListItemConfig {..} = dynClasses
+  [ pure $ Just "item"
   ]
 
 -- | Create a list.

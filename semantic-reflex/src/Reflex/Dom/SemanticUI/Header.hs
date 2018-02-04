@@ -1,9 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Reflex.Dom.SemanticUI.Header
@@ -34,14 +28,13 @@ module Reflex.Dom.SemanticUI.Header
 
   ) where
 
-import Control.Lens (makeLenses)
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Data.Default
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Icon (Icon(Icon), icon)
 import Reflex.Dom.SemanticUI.Image (Image(Image), image)
@@ -66,18 +59,18 @@ headerSizeText H4 = "small"
 headerSizeText H5 = "tiny"
 
 data HeaderConfig t = HeaderConfig
-  { _headerLargeIcon  :: Active t Bool
-  , _headerDividing   :: Active t Bool
-  , _headerSub        :: Active t Bool
-  , _headerDisabled   :: Active t Bool
-  , _headerBlock      :: Active t Bool
-  , _headerInverted   :: Active t Bool
+  { _headerLargeIcon  :: Dynamic t Bool
+  , _headerDividing   :: Dynamic t Bool
+  , _headerSub        :: Dynamic t Bool
+  , _headerDisabled   :: Dynamic t Bool
+  , _headerBlock      :: Dynamic t Bool
+  , _headerInverted   :: Dynamic t Bool
 
-  , _headerSize       :: Active t (Maybe HeaderSize)
-  , _headerFloated    :: Active t (Maybe Floated)
-  , _headerAligned    :: Active t (Maybe Aligned)
-  , _headerColor      :: Active t (Maybe Color)
-  , _headerAttached   :: Active t (Maybe VerticalAttached)
+  , _headerSize       :: Dynamic t (Maybe HeaderSize)
+  , _headerFloated    :: Dynamic t (Maybe Floated)
+  , _headerAligned    :: Dynamic t (Maybe Aligned)
+  , _headerColor      :: Dynamic t (Maybe Color)
+  , _headerAttached   :: Dynamic t (Maybe VerticalAttached)
 
   , _headerIcon       :: Maybe (Icon t)
   , _headerImage      :: Maybe (Image t)
@@ -86,7 +79,7 @@ data HeaderConfig t = HeaderConfig
   , _headerItem       :: Bool
   , _headerElConfig   :: ActiveElConfig t
   }
-makeLenses ''HeaderConfig
+makeLensesWith (lensRules & simpleLenses .~ True) ''HeaderConfig
 
 instance HasElConfig t (HeaderConfig t) where
   elConfig = headerElConfig
@@ -114,9 +107,9 @@ instance Reflex t => Default (HeaderConfig t) where
     , _headerElConfig = def
     }
 
-headerConfigClasses :: Reflex t => HeaderConfig t -> Active t Classes
-headerConfigClasses HeaderConfig {..} = activeClasses
-  [ Static $ Just "header"
+headerConfigClasses :: Reflex t => HeaderConfig t -> Dynamic t Classes
+headerConfigClasses HeaderConfig {..} = dynClasses
+  [ pure $ Just "header"
   , boolClass "icon" _headerLargeIcon
   , boolClass "dividing" _headerDividing
   , boolClass "sub" _headerSub
@@ -129,8 +122,8 @@ headerConfigClasses HeaderConfig {..} = activeClasses
   , fmap toClassText <$> _headerColor
   , fmap toClassText <$> _headerAttached
 
-  , boolClass "ui" $ Static $ not _headerComponent
-  , boolClass "item" $ Static _headerItem
+  , boolClass "ui" $ pure $ not _headerComponent
+  , boolClass "item" $ pure _headerItem
   ]
 
 -- | Create a top level header

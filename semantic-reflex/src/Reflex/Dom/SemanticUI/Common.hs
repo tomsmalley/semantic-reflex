@@ -1,23 +1,10 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeFamilyDependencies #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE GADTs #-}
 
 module Reflex.Dom.SemanticUI.Common where
 
-import Control.Monad.Fix (MonadFix)
-import Control.Lens ((^.), set, ASetter)
-import Control.Monad (void, (<=<), guard)
+import Control.Lens (set, ASetter)
+import Control.Monad (void, guard)
 import Data.String
 import Data.Semigroup
 import Data.Map (Map)
@@ -27,10 +14,11 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
-import Language.Javascript.JSaddle hiding (Success)
 import Reflex.Dom.Core hiding (Link, Error, elAttr', DynamicWriterT)
 
-import Reflex.Dom.Active
+-- | Handy for filtering events to the given key
+keyIs :: Reflex t => Key -> Event t Word -> Event t ()
+keyIs key = void . ffilter (\n -> keyCodeLookup (fromIntegral n) == key)
 
 {-# INLINABLE keydown #-}
 keydown
@@ -46,147 +34,13 @@ keyup
 keyup key = fmapMaybe (\n -> guard $ keyCodeLookup (fromIntegral n) == key)
           . domEvent Keyup
 
--- JSaddle helpers
-
--- | Javascript console.log
-consoleLog :: MonadJSM m => ToJSVal a => a -> m ()
-consoleLog a = liftJSM $ do
-  console <- jsg ("console" :: Text)
-  void $ console ^. js1 ("log" :: Text) a
-
-consoleTime :: JSString -> JSM ()
-consoleTime a = do
-  console <- jsg ("console" :: Text)
-  void $ console ^. js1 ("time" :: Text) a
-
-consoleTimeEnd :: JSString -> JSM ()
-consoleTimeEnd a = do
-  console <- jsg ("console" :: Text)
-  void $ console ^. js1 ("timeEnd" :: Text) a
-
--- | Catch any JSExceptions and log them to the console. Useful for debugging
--- ghc implementations, especially wth jsaddle-warp.
-catchJS :: JSM () -> JSM ()
-catchJS action = catch action handle
-  where handle (JSException e) = consoleLog e
-
--- | The jQuery function, often used by the alias $(..) in javascript.
-jQuery :: ToJSVal a => a -> JSM JSVal
-jQuery = jsg1 ("jQuery" :: Text)
-
-------------------------------------------------------------------------------
--- | Temporary...will be moved out of here eventually.
+-- | Show 'Text' by just packing the result of 'show'
 tshow :: Show a => a -> Text
 tshow = T.pack . show
 
--- | Map with index
-imap :: (Int -> a -> b) -> [a] -> [b]
-imap f = go 0
-  where
-    go _ [] = []
-    go i (x:xs) = f i x : go (succ i) xs
-
--- | Safe indexing into lists
-(!?) :: [a] -> Int -> Maybe a
-[] !? _ = Nothing
-(x:_) !? 0 = Just x
-(_:xs) !? n = xs !? (n - 1)
-
 ------------------------------------------------------------------------------
 
-{-
-newtype UI r m a = UI
-  { runUI :: m a }
-  deriving
-    ( Functor, Applicative, Monad, MonadFix, MonadIO
-    , MonadSample t, MonadHold t, TriggerEvent t, PostBuild t, HasDocument
-    , MonadReflexCreateTrigger t
-    , MonadReader r', EventWriter t w, MonadDynamicWriter t w
-    )
-
-instance HasJSContext m => HasJSContext (UI r m) where
-  type JSContextPhantom (UI r m) = JSContextPhantom m
-  askJSContext = lift askJSContext
-
-instance Adjustable t m => Adjustable t (UI r m) where
-  runWithReplace (UI m) = UI . runWithReplace m . fmapCheap runUI
-  traverseIntMapWithKeyWithAdjust f m
-    = UI . traverseIntMapWithKeyWithAdjust (\k -> runUI . f k) m
-  traverseDMapWithKeyWithAdjust f m
-    = UI . traverseDMapWithKeyWithAdjust (\k -> runUI . f k) m
-  traverseDMapWithKeyWithAdjustWithMove f m
-    = UI . traverseDMapWithKeyWithAdjustWithMove (\k -> runUI . f k) m
-
-instance MonadTrans (UI r) where
-  lift = UI
-
-instance MonadRef m => MonadRef (UI r m) where
-  type Ref (UI r m) = Ref m
-  newRef = lift . newRef
-  readRef = lift . readRef
-  writeRef r = lift . writeRef r
-
-instance Wrapped (UI r m a) where
-  type Unwrapped (UI r m a) = m a
-  _Wrapped' = iso runUI UI
-
-#ifndef ghcjs_HOST_OS
-deriving instance MonadJSM m => MonadJSM (UI r m)
-#endif
-
-instance DomBuilder t m => DomBuilder t (UI r m) where
-  type DomBuilderSpace (UI r m) = DomBuilderSpace m
-  textNode = lift . textNode
-  element t cfg = UI . element t cfg . runUI
-  inputElement = lift . inputElement
-  textAreaElement = lift . textAreaElement
-  selectElement c = UI . selectElement c . runUI
-  placeRawElement = lift . placeRawElement
-  wrapRawElement e = lift . wrapRawElement e
-
-instance PerformEvent t m => PerformEvent t (UI r m) where
-  type Performable (UI r m) = Performable m
-  performEvent = UI . performEvent
-  performEvent_ = UI . performEvent_
-
-reUI :: UI r' m a -> UI r m a
-reUI (UI m) = UI m
-
-unUI :: UI None m a -> UI r m a
-unUI (UI m) = UI m
-
-mapUI :: forall r m a b. Monad m
-             => (m a -> m b) -> UI r m a -> UI r m b
-mapUI f = UI . f . runUI
-
-mapUI' :: forall r1 r2 m a b. Monad m
-              => (m a -> m b) -> UI r1 m a -> UI r2 m b
-mapUI' f = UI . f . runUI
--}
-
---
-
-newtype ClassText = ClassText (Maybe Text) deriving (Eq, Show)
-
-getClass :: ClassText -> Text
-getClass (ClassText (Just a)) = a
-getClass (ClassText Nothing) = ""
-
-instance IsString ClassText where
-  fromString str = ClassText $ Just $ fromString str
-
-instance Monoid ClassText where
-  mappend = (<>)
-  mempty = ClassText Nothing
-
-instance Semigroup ClassText where
-  ClassText (Just a) <> ClassText (Just b) = ClassText $ Just $ a <> " " <> b
-  ClassText ma <> ClassText mb = ClassText $ ma <> mb
-
-memptyUnless :: Monoid m => m -> Bool -> m
-memptyUnless _ False = mempty
-memptyUnless m True = m
-
+-- | A class for converting properties to their corresponding CSS class text.
 class ToClassText a where
   toClassText :: a -> Text
 
@@ -194,53 +48,28 @@ instance ToClassText a => ToClassText (Maybe a) where
   toClassText Nothing = mempty
   toClassText (Just a) = toClassText a
 
+-- | Test the contents of a 'Maybe' against the given value, if they are equal,
+-- return 'Nothing', otherwise return 'Just' the value.
 nothingIf :: Eq a => a -> Maybe a -> Maybe a
 nothingIf x (Just y) | x == y = Nothing
 nothingIf _ m = m
 
-justWhen :: Bool -> a -> Maybe a
-justWhen True = Just
-justWhen False = const Nothing
-
-activeText :: (PostBuild t m, DomBuilder t m, MonadHold t m, MonadFix m)
-           => Active t Text -> m ()
-activeText (Static t) = text t
-activeText (Dynamic t) = dynText t
-
-activeMaybe :: (PostBuild t m, DomBuilder t m) => (a -> m ()) -> Active t (Maybe a) -> m ()
-activeMaybe f (Static ma) = maybe blank f ma
-activeMaybe f (Dynamic dma) = void $ dyn $ maybe blank f <$> dma
-
-zipActiveWith :: Reflex t => (a -> b -> c) -> Active t a -> Active t b -> Active t c
-zipActiveWith f a b = f <$> a <*> b
-
--- Attrs
-
+-- | Helper function; returns 'Just' the given CSS class when the predicate is
+-- true, 'Nothing' otherwise
 boolClass :: Functor f => Text -> f Bool -> f (Maybe Text)
-boolClass t = fmap $ \case True -> Just t; False -> Nothing
+boolClass t = fmap $ \b -> t <$ guard b
 
-activeClasses :: Reflex t => [ Active t (Maybe Text) ] -> Active t Classes
-activeClasses = fmap (Classes . S.fromList . catMaybes) . sequenceA
+-- | Combine a list of dynamic CSS classes into 'Classes'
+dynClasses :: Reflex t => [Dynamic t (Maybe Text)] -> Dynamic t Classes
+dynClasses = distributeListOverDynWith $ Classes . S.fromList . catMaybes
 
-newtype Classes = Classes (Set Text)
+-- | Classes can be modelled as a 'Set' of 'Text'. Since in some cases ordering
+-- does count with Semantic-UI, these should be encoded in a single item such
+-- as 'Classes (fromList ["left aligned"])'.
+newtype Classes = Classes (Set Text) deriving (Eq, Show)
 
 instance IsString Classes where
   fromString str = Classes $ S.singleton $ fromString str
-
-classAttr :: Classes -> Map Text Text
-classAttr (Classes s)
-  | S.null s = mempty
-  | otherwise = "class" =: foldr (\x acc -> x <> " " <> acc) "" s
-
-addClass :: Text -> Classes -> Classes
-addClass t (Classes s) = Classes $ S.insert t s
-
-addClassMaybe :: Maybe Text -> Classes -> Classes
-addClassMaybe Nothing c = c
-addClassMaybe (Just t) c = addClass t c
-
-addActiveClass :: Reflex t => Active t (Maybe Text) -> Active t Classes -> Active t Classes
-addActiveClass c cs = addClassMaybe <$> c <*> cs
 
 instance Semigroup Classes where
   Classes a <> Classes b = Classes $ a <> b
@@ -249,14 +78,19 @@ instance Monoid Classes where
   mempty = Classes mempty
   Classes a `mappend` Classes b = Classes $ a `mappend` b
 
+-- | Make the "class" attribute from 'Classes'
+classAttr :: Classes -> Map Text Text
+classAttr (Classes s)
+  | S.null s = mempty
+  | otherwise = "class" =: foldr (\x acc -> x <> " " <> acc) "" s
+
+-- | Helper for adding a class to a 'Classes'
+addClass :: Text -> Classes -> Classes
+addClass t (Classes s) = Classes $ S.insert t s
+
+-- | CSS styles are modelled similar to attributes, a 'Map' from 'Text'
+-- properties to 'Text' values.
 newtype Style = Style (Map Text Text) deriving (Eq, Show)
-
-styleAttr :: Style -> Map Text Text
-styleAttr (Style m)
-  | M.null m = mempty
-  | otherwise = "style" =: M.foldrWithKey f "" m
-  where f k x acc = k <> ": " <> x <> "; " <> acc
-
 
 instance Semigroup Style where
   Style a <> Style b = Style $ a <> b
@@ -265,63 +99,59 @@ instance Monoid Style where
   mempty = Style mempty
   Style a `mappend` Style b = Style $ a `mappend` b
 
-styleText :: Style -> Text
-styleText (Style m)
-  = M.foldlWithKey' (\a k b -> a <> "; " <> k <> ": " <> b) "" m
+-- | Make the "style" attribute from 'Style'
+styleAttr :: Style -> Map Text Text
+styleAttr (Style m)
+  | M.null m = mempty
+  | otherwise = "style" =: T.concat (map f $ M.toList m)
+  where f (k, x) = T.concat [k, ":", x <> ";"]
 
-addStyle :: Text -> Text -> Style -> Style
-addStyle name v (Style m) = Style $ M.insert name v m
-
-staticText :: (DomBuilder t m, MonadHold t m, MonadFix m) => Text -> m ()
-staticText t = text t
-
+-- | 'divClass' but returning the element
 divClass' :: (DomBuilderSpace m ~ GhcjsDomSpace, DomBuilder t m) => Text -> m a -> m (El t, a)
 divClass' = elClass' "div"
 
-data Inline
-data None
-
----------
-
+-- | Set the target of a 'Lens', 'Traversal' or 'Setter' to 'pure' a value.
+--
+-- @
+-- l '|~' t ≡ 'set' l ('pure' t)
+-- @
+--
 (|~) :: (Applicative (f t'), Reflex t') => ASetter s t a (f t' b) -> b -> s -> t
 l |~ b = set l (pure b)
-
 infixr 4 |~
 
+-- | Set the target of a 'Lens', 'Traversal' or 'Setter' to 'pure . Just' a value.
+--
+-- @
+-- l '|?~' t ≡ 'set' l ('pure' '$' 'Just' t)
+-- @
+--
 (|?~) :: (Applicative (f t'), Reflex t') => ASetter s t a (f t' (Maybe b)) -> b -> s -> t
 l |?~ b = set l (pure $ Just b)
-
 infixr 4 |?~
 
-keyIs :: Reflex t => Key -> Event t Word -> Event t ()
-keyIs key = void . ffilter (\n -> keyCodeLookup (fromIntegral n) == key)
-
--- | Like 'count', but keeps the most recent event
-data CountWithLast a = NotFired | Fired Int a deriving (Eq, Show)
-countWithLast
-  :: (Reflex t, MonadHold t m, MonadFix m)
-  => Event t a -> m (Dynamic t (CountWithLast a))
-countWithLast = holdDyn NotFired <=< zipListWithEvent Fired [1..]
-
--- | Showing dynamic items such as records with dynamic or event fields
-class DynShow t a where
-  dynShow :: (Reflex t, MonadHold t m, MonadFix m) => a -> m (Dynamic t String)
-
+-- | The side of a label
 data Labeled = LeftLabeled | RightLabeled
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
 instance ToClassText Labeled where
   toClassText LeftLabeled = "left labeled"
   toClassText RightLabeled = "right labeled"
 
-data Floated = LeftFloated | RightFloated deriving (Eq, Show)
+-- | The side of floated content
+data Floated = LeftFloated | RightFloated
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
 instance ToClassText Floated where
   toClassText LeftFloated = "left floated"
   toClassText RightFloated = "right floated"
 
-data Width = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Eleven | Twelve
+-- | 12 column widths
+data Width = Two | Three | Four | Five | Six | Seven
+           | Eight | Nine | Ten | Eleven | Twelve
   deriving (Eq, Ord, Read, Show, Bounded)
 
+-- | Enumerated from 2: 'toEnum 2 = Two'...
 instance Enum Width where
 
   toEnum 2  = Two
@@ -362,6 +192,7 @@ instance ToClassText Width where
   toClassText Eleven = "eleven"
   toClassText Twelve = "twelve"
 
+-- | (Almost) universal size property
 data Size = Mini | Tiny | Small | Medium | Large | Big | Huge | Massive
   deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
@@ -375,13 +206,19 @@ instance ToClassText Size where
   toClassText Huge = "huge"
   toClassText Massive = "massive"
 
-data HorizontalAttached = LeftAttached | RightAttached deriving (Eq, Show)
-data VerticalAttached = TopAttached | Attached | BottomAttached deriving (Eq, Show)
+-- | Horizontal attachment side
+data HorizontalAttached = LeftAttached | RightAttached
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
+-- | Vertical attachment side. Things can also be sandwiched between other
+-- vertical attachments, these are just 'Attached'.
+data VerticalAttached = TopAttached | Attached | BottomAttached
+  deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
+-- | In some cases things can be either horizontally *or* vertically attached.
 data ExclusiveAttached
   = Horizontally HorizontalAttached
   | Vertically VerticalAttached
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Read, Show)
 
 instance ToClassText ExclusiveAttached where
   toClassText (Horizontally h) = toClassText h
@@ -396,18 +233,7 @@ instance ToClassText HorizontalAttached where
   toClassText LeftAttached = "left attached"
   toClassText RightAttached = "right attached"
 
-combineAttached :: Maybe VerticalAttached -> Maybe HorizontalAttached -> Maybe Text
-combineAttached Nothing Nothing = Nothing
-combineAttached mv mh = Just $ T.unwords $ catMaybes
-  [ vClass <$> mv, hClass <$> mh, Just "attached" ]
-  where
-    vClass TopAttached = "top"
-    vClass Attached = ""
-    vClass BottomAttached = "bottom"
-    hClass LeftAttached = "left"
-    hClass RightAttached = "right"
-
-
+-- | Text alignment
 data Aligned = LeftAligned | CenterAligned | RightAligned | Justified
   deriving (Eq, Show)
 
@@ -417,6 +243,7 @@ instance ToClassText Aligned where
   toClassText RightAligned = "right aligned"
   toClassText Justified = "justified"
 
+-- | Supported social network branding
 data Social
   = Facebook | Twitter | GooglePlus | VK | LinkedIn | Instagram | YouTube
   deriving (Eq, Ord, Read, Show, Enum, Bounded)
@@ -430,6 +257,7 @@ instance ToClassText Social where
   toClassText Instagram = "instagram"
   toClassText YouTube = "youtube"
 
+-- | Typical emphasis levels
 data Emphasis = Primary | Secondary | Tertiary
   deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
@@ -438,6 +266,9 @@ instance ToClassText Emphasis where
   toClassText Secondary = "secondary"
   toClassText Tertiary = "tertiary"
 
+-- | 'Positive' can provide fast visual feedback of interactions. With the
+-- default theme, 'Positive' and 'Success' will usually look the same, as well
+-- ase 'Negative' and 'Error'.
 data Positive = Positive | Negative | Success | Error
   deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
@@ -447,6 +278,7 @@ instance ToClassText Positive where
   toClassText Success = "success"
   toClassText Error = "error"
 
+-- | Supported colour range
 data Color
   = Red | Orange | Yellow | Olive | Green | Teal | Blue | Violet | Purple
   | Pink | Brown | Grey | Black

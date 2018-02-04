@@ -1,14 +1,9 @@
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Reflex.Dom.SemanticUI.Menu where
 
-import Control.Lens
+import Control.Lens.TH (makeLenses)
 import Data.Default (Default (def))
 import Data.Semigroup
 import qualified Data.Set as S
@@ -17,19 +12,18 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding (SetValue)
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data MenuConfig t a = MenuConfig
   { _menuValue :: SetValue t a
-  , _menuColor :: Active t (Maybe Color)
-  , _menuInverted :: Active t Bool
+  , _menuColor :: Dynamic t (Maybe Color)
+  , _menuInverted :: Dynamic t Bool
   , _menuSize :: Maybe Size
   , _menuVertical :: Bool
-  , _menuSecondary :: Active t Bool
-  , _menuRight :: Active t Bool
-  , _menuPointing :: Active t Bool
+  , _menuSecondary :: Dynamic t Bool
+  , _menuRight :: Dynamic t Bool
+  , _menuPointing :: Dynamic t Bool
   , _menuFluid :: Bool
   , _menuTextContent :: Bool
   , _menuCompact :: Bool
@@ -38,6 +32,7 @@ data MenuConfig t a = MenuConfig
   , _menuHighlight :: Bool
   , _menuElConfig :: ActiveElConfig t
   }
+makeLenses ''MenuConfig
 
 mkMenuConfig :: Reflex t => a -> MenuConfig t a
 mkMenuConfig a = MenuConfig
@@ -57,7 +52,6 @@ mkMenuConfig a = MenuConfig
   , _menuHighlight = False
   , _menuElConfig = def
   }
-makeLenses ''MenuConfig
 
 instance Reflex t => Default (MenuConfig t (Maybe a)) where
   def = mkMenuConfig Nothing
@@ -68,25 +62,25 @@ instance Reflex t => Default (MenuConfig t [a]) where
 instance Reflex t => Default (MenuConfig t (Set a)) where
   def = mkMenuConfig S.empty
 
-menuConfigClasses :: Reflex t => MenuConfig t a -> Active t Classes
-menuConfigClasses MenuConfig {..} = activeClasses
+menuConfigClasses :: Reflex t => MenuConfig t a -> Dynamic t Classes
+menuConfigClasses MenuConfig {..} = dynClasses
 --  [ justWhen _disabled "disabled"
 --  , justWhen _loading "loading"
 --  , justWhen _fitted "fitted"
 --  , justWhen _link "link"
-  [ Static $ Just "menu"
+  [ pure $ Just "menu"
   , boolClass "inverted" _menuInverted
   , fmap toClassText <$> _menuColor
-  , boolClass "ui" $ Static $ not _menuComponent
-  , Static $ toClassText <$> _menuSize
-  , boolClass "vertical" $ Static _menuVertical
+  , boolClass "ui" $ pure $ not _menuComponent
+  , pure $ toClassText <$> _menuSize
+  , boolClass "vertical" $ pure _menuVertical
   , boolClass "secondary" _menuSecondary
   , boolClass "right" _menuRight
   , boolClass "pointing" _menuPointing
-  , boolClass "fluid" $ Static _menuFluid
-  , boolClass "text" $ Static _menuTextContent
-  , boolClass "compact" $ Static _menuCompact
-  , Static $ toClassText <$> _menuFloated
+  , boolClass "fluid" $ pure _menuFluid
+  , boolClass "text" $ pure _menuTextContent
+  , boolClass "compact" $ pure _menuCompact
+  , pure $ toClassText <$> _menuFloated
 --  , uiText <$> _menuColor
   ]
 
@@ -110,12 +104,12 @@ instance Reflex t => Default (MenuItemConfig t) where
     , _menuItemElConfig = def
     }
 
-menuItemConfigClasses :: Reflex t => MenuItemConfig t -> Active t Classes
-menuItemConfigClasses MenuItemConfig {..} = activeClasses
-  [ Static $ Just "item"
---  , Static $ Just "link" -- FIXME
-  , Static $ toClassText <$> _menuItemColor
-  , boolClass "link" $ Static $ _menuItemLink == StyleLink
+menuItemConfigClasses :: Reflex t => MenuItemConfig t -> Dynamic t Classes
+menuItemConfigClasses MenuItemConfig {..} = dynClasses
+  [ pure $ Just "item"
+--  , pure $ Just "link" -- FIXME
+  , pure $ toClassText <$> _menuItemColor
+  , boolClass "link" $ pure $ _menuItemLink == StyleLink
   ]
 
 data MenuItem t m v = forall b. MenuItem v (MenuItemConfig t) (m b)
@@ -124,7 +118,7 @@ data MenuItem' t m b = MenuItem' (MenuItemConfig t) (m b)
 
 itemElAttrs :: Reflex t => MenuItemConfig t -> (Text, ActiveElConfig t)
 itemElAttrs conf@MenuItemConfig{..} = case _menuItemLink of
-  MenuLink href -> ("a", elConf { _attrs = Static $ "href" =: href })
+  MenuLink href -> ("a", elConf { _attrs = pure $ "href" =: href })
   _ -> ("div", elConf)
   where elConf = _menuItemElConfig <> def
           { _classes = menuItemConfigClasses conf }

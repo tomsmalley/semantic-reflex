@@ -1,7 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -- | Semantic UI fields.
@@ -17,21 +13,20 @@ module Reflex.Dom.SemanticUI.Field
 
   ) where
 
-import Control.Lens (makeLenses)
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Data.Default
 import Data.Semigroup ((<>))
 import Reflex
 import Reflex.Dom.Core
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data FieldConfig t = FieldConfig
-  { _fieldError :: Active t Bool
+  { _fieldError :: Dynamic t Bool
   , _fieldElConfig :: ActiveElConfig t
   }
-makeLenses ''FieldConfig
+makeLensesWith (lensRules & simpleLenses .~ True) ''FieldConfig
 
 instance HasElConfig t (FieldConfig t) where
   elConfig = fieldElConfig
@@ -43,9 +38,9 @@ instance Reflex t => Default (FieldConfig t) where
     }
 
 -- | Make the field div classes from the configuration
-fieldConfigClasses :: Reflex t => FieldConfig t -> Active t Classes
-fieldConfigClasses FieldConfig {..} = activeClasses
-  [ Static $ Just "ui field"
+fieldConfigClasses :: Reflex t => FieldConfig t -> Dynamic t Classes
+fieldConfigClasses FieldConfig {..} = dynClasses
+  [ pure $ Just "ui field"
   , boolClass "error" _fieldError
   ]
 

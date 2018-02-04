@@ -1,10 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeApplications #-}
 
 module Reflex.Dom.SemanticUI.Divider
   (
@@ -21,25 +15,24 @@ module Reflex.Dom.SemanticUI.Divider
 
   ) where
 
-import Control.Lens (makeLenses)
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Control.Monad (void)
 import Data.Default
 import Data.Semigroup ((<>))
 import Reflex.Dom.Core
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data DividerConfig t = DividerConfig
-  { _dividerInverted :: Active t Bool
-  , _dividerFitted :: Active t Bool
-  , _dividerHidden :: Active t Bool
-  , _dividerSection :: Active t Bool
-  , _dividerClearing :: Active t Bool
+  { _dividerInverted :: Dynamic t Bool
+  , _dividerFitted :: Dynamic t Bool
+  , _dividerHidden :: Dynamic t Bool
+  , _dividerSection :: Dynamic t Bool
+  , _dividerClearing :: Dynamic t Bool
   , _dividerElConfig :: ActiveElConfig t
   }
-makeLenses 'DividerConfig
+makeLensesWith (lensRules & simpleLenses .~ True) 'DividerConfig
 
 instance HasElConfig t (DividerConfig t) where
   elConfig = dividerElConfig
@@ -54,9 +47,9 @@ instance Reflex t => Default (DividerConfig t) where
     , _dividerElConfig = def
     }
 
-dividerConfigClasses :: Reflex t => DividerConfig t -> Active t Classes
-dividerConfigClasses DividerConfig {..} = activeClasses
-  [ Static $ Just "ui divider"
+dividerConfigClasses :: Reflex t => DividerConfig t -> Dynamic t Classes
+dividerConfigClasses DividerConfig {..} = dynClasses
+  [ pure $ Just "ui divider"
   , boolClass "inverted" _dividerInverted
   , boolClass "fitted" _dividerFitted
   , boolClass "hidden" _dividerHidden

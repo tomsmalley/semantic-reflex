@@ -1,15 +1,14 @@
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE RecordWildCards          #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Reflex.Dom.SemanticUI.Sticky where
 
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Control.Monad
 import Data.Default
 import Data.Semigroup hiding (First)
 import Reflex
 import Reflex.Dom.Core
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -28,6 +27,10 @@ data StickyConfig t = StickyConfig
   { _stickyPushing :: Bool
   , _stickyElConfig :: ActiveElConfig t
   }
+makeLensesWith (lensRules & simpleLenses .~ True) ''StickyConfig
+
+instance HasElConfig t (StickyConfig t) where
+  elConfig = stickyElConfig
 
 instance Reflex t => Default (StickyConfig t) where
   def = StickyConfig
@@ -35,19 +38,19 @@ instance Reflex t => Default (StickyConfig t) where
     , _stickyElConfig = def
     }
 
-stickyConfigClasses :: Reflex t => StickyConfig t -> Active t Classes
-stickyConfigClasses StickyConfig {..} = activeClasses
-  [ Static $ Just "ui sticky"
+stickyConfigClasses :: Reflex t => StickyConfig t -> Dynamic t Classes
+stickyConfigClasses StickyConfig {..} = dynClasses
+  [ pure $ Just "ui sticky top bound"
   ]
 
 -- | This function is very basic and not efficient in comparison to the real
 -- semantic-ui javascript
 runSticky :: Bool -> DOM.Element -> DOM.JSM ()
-runSticky pushing sticky = do
+runSticky pushing stickyEl = do
   Just window <- DOM.currentWindow
-  Just context <- Node.getParentElement sticky
+  Just context <- Node.getParentElement stickyEl
 
-  domTokenList <- Element.getClassList sticky
+  domTokenList <- Element.getClassList stickyEl
   let removeClassM :: DOM.MonadJSM m => DOM.JSString -> m ()
       removeClassM c = DOMTokenList.remove domTokenList [c]
       addClassM :: DOM.MonadJSM m => DOM.JSString -> m ()
@@ -61,13 +64,9 @@ runSticky pushing sticky = do
       setFixedM True = addClassM "fixed" >> removeClassM "bound"
       setFixedM False = addClassM "bound" >> removeClassM "fixed"
 
-  -- Set initial values
-  setTopM True
-  setFixedM False
-
   void $ EventM.on window GlobalEventHandlers.scroll $ do
 
-    stickyRect <- Element.getBoundingClientRect sticky
+    stickyRect <- Element.getBoundingClientRect stickyEl
     contextRect <- Element.getBoundingClientRect context
 
     stickyTop <- DOMRect.getY stickyRect
@@ -128,4 +127,7 @@ sticky' config@StickyConfig{..} content = do
 
   where
     elConf = _stickyElConfig <> def { _classes = stickyConfigClasses config }
+
+sticky :: MonadWidget t m => StickyConfig t -> m a -> m a
+sticky conf = fmap snd . sticky' conf
 

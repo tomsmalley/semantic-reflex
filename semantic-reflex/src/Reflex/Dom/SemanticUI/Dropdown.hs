@@ -1,34 +1,25 @@
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module Reflex.Dom.SemanticUI.Dropdown where
 
-import Control.Lens
+import Control.Lens ((<&>), (?~))
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Control.Monad.Reader
-import Control.Applicative (Alternative(..))
 import Data.Foldable (for_, traverse_)
-import Data.Traversable (for)
 import Data.Maybe (fromMaybe)
 import Data.Semigroup
 import Data.Default
 import Data.Text (Text)
-import Language.Javascript.JSaddle
+import Language.Javascript.JSaddle (liftJSM)
 import Reflex hiding (list)
 import Data.Map.Lazy (Map)
-import Data.Align
 
-import Reflex.Dom.Active
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 import Reflex.Dom.SemanticUI.Icon
-import Reflex.Dom.SemanticUI.Input
 
 import Reflex.Dom.Core hiding (SetValue, DropdownConfig, list, textInput)
 
@@ -39,7 +30,6 @@ import qualified GHCJS.DOM.Element as Element
 import qualified GHCJS.DOM.Types as Types
 
 import qualified Data.Map.Lazy as M
-import qualified Data.Text as T
 
 {-
 data DropdownAction
@@ -70,21 +60,20 @@ instance ToClassText DropdownStyle where
 -- | Config for new semantic dropdowns
 data DropdownConfig t = DropdownConfig
 --  { _dropdownValue :: SetValue t a
-  { _dropdownPlaceholder :: Active t Text
-  , _dropdownSelection :: Active t Bool
-  , _dropdownCompact :: Active t Bool
-  , _dropdownFluid :: Active t Bool
-  , _dropdownItem :: Active t Bool
-  , _dropdownInline :: Active t Bool
-  , _dropdownAs :: Active t (Maybe DropdownStyle)
+  { _dropdownPlaceholder :: Dynamic t Text
+  , _dropdownSelection :: Dynamic t Bool
+  , _dropdownCompact :: Dynamic t Bool
+  , _dropdownFluid :: Dynamic t Bool
+  , _dropdownItem :: Dynamic t Bool
+  , _dropdownInline :: Dynamic t Bool
+  , _dropdownAs :: Dynamic t (Maybe DropdownStyle)
   , _dropdownUnselectable :: Bool
   , _dropdownElConfig :: ActiveElConfig t
   }
---  , _textOnly :: Bool
---  , _maxSelections :: Maybe Int
---  , _useLabels :: Bool
---  , _fullTextSearch :: Bool
---  , _action :: DropdownAction
+makeLensesWith (lensRules & simpleLenses .~ True) ''DropdownConfig
+
+instance HasElConfig t (DropdownConfig t) where
+  elConfig = dropdownElConfig
 
 instance Reflex t => Default (DropdownConfig t) where
   def = DropdownConfig
@@ -100,95 +89,67 @@ instance Reflex t => Default (DropdownConfig t) where
     }
 
 dropdownConfigClasses
-  :: Reflex t => DropdownConfig t -> Dynamic t Bool -> Active t Classes
-dropdownConfigClasses DropdownConfig {..} isOpen = activeClasses
-  [ Static $ Just "ui selection dropdown"
+  :: Reflex t => DropdownConfig t -> Dynamic t Bool -> Dynamic t Classes
+dropdownConfigClasses DropdownConfig {..} isOpen = dynClasses
+  [ pure $ Just "ui selection dropdown"
   , boolClass "compact" _dropdownCompact
   , boolClass "fluid" _dropdownFluid
   , boolClass "selection" _dropdownSelection
   , boolClass "item" _dropdownItem
   , boolClass "inline" _dropdownInline
-  , Dynamic $ boolClass "active" isOpen
+  , boolClass "active" isOpen
   , fmap toClassText <$> _dropdownAs
   ]
-
-dropdown
-  :: forall t m k f. (Monad f, Ord k, MonadWidget t m, Ord (f k), Foldable f)
-  => DropdownConfig t -> f k -> Dynamic t (Map k (m ()))
-  -> m (Dynamic t (f k))
-dropdown conf init = fmap snd . dropdown' conf init
 
 lookupNextKey :: (Foldable f, Monad f, Ord k) => f k -> f k -> Map k a -> f k
 -- FIXME: needs to be lookupMin but requires newer containers than is provided
 -- with the current reflex-platform ghc version
-lookupNextKey init f m
-  | null f = if not $ M.null m then pure $ fst $ M.findMin m else init
-  | otherwise = f >>= \k -> case M.lookupIndex k m of
+lookupNextKey ini mCurrent m
+  | null mCurrent = if not $ M.null m then pure $ fst $ M.findMin m else ini
+  | otherwise = mCurrent >>= \k -> case M.lookupIndex k m of
     Just i -> pure $ fst $ M.elemAt (min (pred $ M.size m) $ succ i) m
-    Nothing -> init
+    Nothing -> ini
 
 lookupPrevKey :: (Foldable f, Monad f, Ord k) => f k -> f k -> Map k a -> f k
 -- FIXME: needs to be lookupMax but requires newer containers than is provided
 -- with the current reflex-platform ghc version
-lookupPrevKey init f m
-  | null f = if not $ M.null m then pure $ fst $ M.findMax m else init
-  | otherwise = f >>= \k -> case M.lookupIndex k m of
+lookupPrevKey ini mCurrent m
+  | null mCurrent = if not $ M.null m then pure $ fst $ M.findMax m else ini
+  | otherwise = mCurrent >>= \k -> case M.lookupIndex k m of
     Just i -> pure $ fst $ M.elemAt (max 0 $ pred i) m
-    Nothing -> init
+    Nothing -> ini
 
 
--- | Create a dynamically-changing set of widgets, one of which is selected at
--- any time.
-selectViewListWithKey' :: forall t m k v a.
-  (Adjustable t m, Ord k, PostBuild t m, MonadHold t m, MonadFix m)
-  => Dynamic t k
-  -> Dynamic t (Map k v)
-  -> (k -> Dynamic t v -> Dynamic t Bool -> m (El t, Event t a))
-  -> m (Dynamic t (Map k (El t)), Event t k)
-selectViewListWithKey' selection vals mkChild = do
-  let selectionDemux = demux selection
-  selectChild <- listWithKey vals $ \k v -> do
-    let selected = demuxed selectionDemux k
-    (e, selectSelf) <- mkChild k v selected
-    pure (e, k <$ selectSelf)
-  pure
-    ( fmap fst <$> selectChild
-    , switchPromptlyDyn $ leftmost . fmap snd . M.elems <$> selectChild
-    )
+dropdown
+  :: forall active t m k f.
+    (SingActive active, Monad f, Ord k, MonadWidget t m, Ord (f k), Foldable f)
+  => DropdownConfig t -> f k -> Active active t (Map k (m ()))
+  -> m (Dynamic t (f k))
+dropdown conf ini = fmap snd . dropdown' conf ini
 
 dropdown'
-  :: forall t m k f. (Monad f, Ord k, MonadWidget t m, Ord (f k), Foldable f)
-  => DropdownConfig t -> f k -> Dynamic t (Map k (m ()))
+  :: forall active t m k f.
+    (SingActive active, Monad f, Ord k, MonadWidget t m, Ord (f k), Foldable f)
+  => DropdownConfig t -> f k -> Active active t (Map k (m ()))
   -> m (El t, Dynamic t (f k))
-dropdown' config@DropdownConfig {..} init items = mdo
+dropdown' config@DropdownConfig {..} ini items = mdo
   (e, a) <- uiElement' "div" (elConf isOpen) $ mdo
     icon "dropdown" def
 
-    dyn $ ffor selection $ \f ->
+    void $ dyn $ ffor dSelection $ \f ->
       if null f
-      then divClass "default text" $ text "Default text"
-      else for_ f $ \k -> void $ divClass "text" $ dyn $
+      then divClass "default text" $ dynText _dropdownPlaceholder
+      else for_ f $ \k -> void $ divClass "text" $ active id (void . dyn) $
         fromMaybe blank . M.lookup k <$> items
 
     let menuEl = Types.uncheckedCastTo Types.Element $ _element_raw menuEl'
-    (menuEl', selection) <- menu eOpen $ do
-      (dynKeyToEl, eMaybeK) <- selectViewListWithKey' selection
+    (menuEl', dSelection) <- menu eOpen $ do
+      (elemMap, eMaybeK) <- activeSelectViewListWithKey dSelection
         (M.mapKeysMonotonic pure <$> items) renderItem
-
-      selection <- holdDyn init $ leftmost
-        [ tag (lookupNextKey init <$> current selection <*> current items) $
-            keydown ArrowDown e
-        , tag (lookupPrevKey init <$> current selection <*> current items) $
-            keydown ArrowUp e
-        , case _dropdownUnselectable of
-          True -> attachWith (\old new -> if old == new then init else new)
-            (current selection) eMaybeK
-          False -> eMaybeK
-        ]
 
         -- Alter the scroll position of the dropdown menu when the selected item
         -- is outside of its bounds
-      performEvent_ $ ffor (updated $ M.lookup <$> selection <*> dynKeyToEl) $
+      performEvent_ $ ffor (updated $ M.lookup <$> dSelection <*> active pure id elemMap) $
         traverse_ $ \itemEl' -> liftJSM $ do
 
         let itemEl = Types.uncheckedCastTo Types.Element
@@ -203,14 +164,22 @@ dropdown' config@DropdownConfig {..} init items = mdo
             itemAbove = itemOffset < scrollTop
         when (itemBelow || itemAbove) $ Element.setScrollTop menuEl itemOffset
 
+      holdDyn ini $ leftmost
+        [ flip tag (keydown ArrowDown e) $ lookupNextKey ini
+            <$> current dSelection <*> active pure current items
+        , flip tag (keydown ArrowUp e) $ lookupPrevKey ini
+            <$> current dSelection <*> active pure current items
+        , case _dropdownUnselectable of
+          True -> attachWith (\old new -> if old == new then ini else new)
+            (current dSelection) eMaybeK
+          False -> eMaybeK
+        ]
 
-      pure (selection)
-
-    pure selection
+    pure dSelection
 
   -- Add event listeners
   let htmlElement = Types.uncheckedCastTo Types.HTMLElement $ _element_raw e
-  liftJSM $ EventM.on htmlElement GlobalEventHandlers.keyDown $ do
+  void $ liftJSM $ EventM.on htmlElement GlobalEventHandlers.keyDown $ do
     EventM.uiKeyCode >>= \k -> case keyCodeLookup (fromIntegral k) of
       Space -> EventM.preventDefault
       ArrowDown -> EventM.preventDefault
@@ -237,26 +206,26 @@ dropdown' config@DropdownConfig {..} init items = mdo
       , _attrs = pure ("tabindex" =: "0")
       }
 
-    renderItem k dV dSelected = do
-      let itemConf = def & classes .~ Dynamic dClasses
+    renderItem _k v dSelected = do
+      let itemConf = def & classes .~ dClasses
           dClasses = dSelected <&> \case
             True -> "item active selected"
             False -> "item"
 
-      (e, _) <- uiElement' "div" itemConf $ do
-        dyn dV
+      (e, _) <- uiElement' "div" itemConf $ active id (void . dyn) v
       pure (e, domEvent Click e)
 
     menu eOpen = uiElement' "div" $ def
       & classes |~ "menu"
-      & transition ?~ menuTransition eOpen
-    menuTransition eOpen = def
-      & transConfigInitialDirection .~ Out
-      & transConfigForceVisible .~ True
-      & transConfigEvent .~ fmap mkTransition eOpen
-    mkTransition dir = Transition SlideDown $ def
+      & action ?~ mkAction eOpen
+    mkAction eOpen = def
+      & actionInitialDirection .~ Out
+      & actionForceVisible .~ True
+      & actionEvent ?~ fmap mkTransition eOpen
+    mkTransition open = Transition SlideDown $ def
       & transitionDuration .~ 0.2
       & transitionCancelling .~ True
+      & transitionDirection ?~ if open then In else Out
 
 --------------------------------------------------------------------------------
 {-
@@ -268,7 +237,7 @@ searchDropdown
   -> Dynamic t (Map k (m ()))
   -> Dynamic t [(Text, k)]
   -> m (Dynamic t (f k))
-searchDropdown config init items = fmap snd . searchDropdown' config init items
+searchDropdown config ini items = fmap snd . searchDropdown' config ini items
 
 searchDropdown'
   :: forall t m k f.
@@ -276,7 +245,7 @@ searchDropdown'
   => DropdownConfig t -> f k -> Dynamic t (Map k (m ()))
   -> Dynamic t [(Text, k)]
   -> m (El t, Dynamic t (f k))
-searchDropdown' config@DropdownConfig {..} init items search = mdo
+searchDropdown' config@DropdownConfig {..} ini items search = mdo
 
   (dropdownEl, (ti, a)) <- uiElement' "div" (elConf isOpen) $ mdo
     icon "dropdown" def
@@ -337,13 +306,13 @@ searchDropdown' config@DropdownConfig {..} init items search = mdo
           Element.setScrollTop menuEl itemOffset
 -}
 
-      holdDyn init $ leftmost
-        [ tag (lookupNextKey' init <$> current selection <*> current restricted)
+      holdDyn ini $ leftmost
+        [ tag (lookupNextKey' ini <$> current selection <*> current restricted)
           $ keydown ArrowDown dropdownEl
-        , tag (lookupPrevKey' init <$> current selection <*> current restricted)
+        , tag (lookupPrevKey' ini <$> current selection <*> current restricted)
           $ keydown ArrowUp dropdownEl
         , case _dropdownUnselectable of
-          True -> attachWith (\old (new, _) -> if old == new then init else new)
+          True -> attachWith (\old (new, _) -> if old == new then ini else new)
             (current selection) eMaybeK
           False -> fmap fst eMaybeK
         ]

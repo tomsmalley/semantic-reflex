@@ -1,9 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Reflex.Dom.SemanticUI.Button
   (
@@ -73,22 +68,21 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding (Error, button)
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data ButtonsConfig t = ButtonsConfig
-  { _buttonsBasic :: Active t Bool
-  , _buttonsIcon :: Active t Bool
-  , _buttonsLabeledIcon :: Active t Bool
-  , _buttonsVertical :: Active t Bool
-  , _buttonsCompact :: Active t Bool
+  { _buttonsBasic :: Dynamic t Bool
+  , _buttonsIcon :: Dynamic t Bool
+  , _buttonsLabeledIcon :: Dynamic t Bool
+  , _buttonsVertical :: Dynamic t Bool
+  , _buttonsCompact :: Dynamic t Bool
 
-  , _buttonsColor :: Active t (Maybe Color)
-  , _buttonsSize :: Active t (Maybe Size)
-  , _buttonsAttached :: Active t (Maybe VerticalAttached)
-  , _buttonsWidth :: Active t (Maybe Width)
-  , _buttonsFloated :: Active t (Maybe Floated)
+  , _buttonsColor :: Dynamic t (Maybe Color)
+  , _buttonsSize :: Dynamic t (Maybe Size)
+  , _buttonsAttached :: Dynamic t (Maybe VerticalAttached)
+  , _buttonsWidth :: Dynamic t (Maybe Width)
+  , _buttonsFloated :: Dynamic t (Maybe Floated)
 
   , _buttonsElConfig :: ActiveElConfig t
   }
@@ -114,9 +108,10 @@ instance Reflex t => Default (ButtonsConfig t) where
     , _buttonsElConfig = def
     }
 
-buttonsConfigClasses :: Reflex t => ButtonsConfig t -> Active t Classes
-buttonsConfigClasses ButtonsConfig {..} = activeClasses
-  [ Static $ Just "ui buttons"
+buttonsConfigClasses :: Reflex t
+  => ButtonsConfig t -> Dynamic t Classes
+buttonsConfigClasses ButtonsConfig {..} = dynClasses
+  [ pure $ Just "ui buttons"
 
   , boolClass "basic" _buttonsBasic
   , boolClass "icon" _buttonsIcon
@@ -132,7 +127,7 @@ buttonsConfigClasses ButtonsConfig {..} = activeClasses
   ]
 
 data LabeledButtonConfig t = LabeledButtonConfig
-  { _labeledButtonSide :: Active t Labeled
+  { _labeledButtonSide :: Dynamic t Labeled
   , _labeledButtonElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''LabeledButtonConfig
@@ -140,15 +135,17 @@ makeLensesWith (lensRules & simpleLenses .~ True) ''LabeledButtonConfig
 instance HasElConfig t (LabeledButtonConfig t) where
   elConfig = labeledButtonElConfig
 
-instance Reflex t => Default (LabeledButtonConfig t) where
+instance Reflex t
+  => Default (LabeledButtonConfig t) where
   def = LabeledButtonConfig
     { _labeledButtonSide = pure RightLabeled
     , _labeledButtonElConfig = def
     }
 
-labeledButtonConfigClasses :: Reflex t => LabeledButtonConfig t -> Active t Classes
-labeledButtonConfigClasses LabeledButtonConfig {..} = activeClasses
-  [ Static $ Just "ui button"
+labeledButtonConfigClasses :: Reflex t
+  => LabeledButtonConfig t -> Dynamic t Classes
+labeledButtonConfigClasses LabeledButtonConfig {..} = dynClasses
+  [ pure $ Just "ui button"
   , Just . toClassText <$> _labeledButtonSide
   ]
 
@@ -161,14 +158,15 @@ instance ToClassText AnimatedButtonType where
   toClassText AnimatedFade = "animated fade"
 
 data AnimatedButton t m = AnimatedButton
-  { _animatedButtonType :: Active t AnimatedButtonType
+  { _animatedButtonType :: Dynamic t AnimatedButtonType
   , _animatedButtonHiddenContent :: m ()
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''AnimatedButton
 
-instance Monad m => Default (AnimatedButton t m) where
+instance (Reflex t, Applicative m)
+  => Default (AnimatedButton t m) where
   def = AnimatedButton
-    { _animatedButtonType = Static Animated
+    { _animatedButtonType = pure Animated
     , _animatedButtonHiddenContent = pure ()
     }
 
@@ -189,23 +187,23 @@ toTagText = \case
   DivButton -> "div"
 
 data ButtonConfig t m = ButtonConfig
-  { _buttonDisabled     :: Active t Bool
-  , _buttonCompact      :: Active t Bool
-  , _buttonBasic        :: Active t Bool
-  , _buttonIcon         :: Active t Bool
-  , _buttonInverted     :: Active t Bool
-  , _buttonLoading      :: Active t Bool
-  , _buttonFluid        :: Active t Bool
-  , _buttonCircular     :: Active t Bool
+  { _buttonDisabled     :: Dynamic t Bool
+  , _buttonCompact      :: Dynamic t Bool
+  , _buttonBasic        :: Dynamic t Bool
+  , _buttonIcon         :: Dynamic t Bool
+  , _buttonInverted     :: Dynamic t Bool
+  , _buttonLoading      :: Dynamic t Bool
+  , _buttonFluid        :: Dynamic t Bool
+  , _buttonCircular     :: Dynamic t Bool
 
-  , _buttonColor        :: Active t (Maybe Color)
-  , _buttonSize         :: Active t (Maybe Size)
-  , _buttonEmphasis     :: Active t (Maybe Emphasis)
-  , _buttonPositive     :: Active t (Maybe Positive)
-  , _buttonSocial       :: Active t (Maybe Social)
-  , _buttonFloated      :: Active t (Maybe Floated)
-  , _buttonLabeledIcon  :: Active t (Maybe Labeled)
-  , _buttonAttached     :: Active t (Maybe ExclusiveAttached)
+  , _buttonColor        :: Dynamic t (Maybe Color)
+  , _buttonSize         :: Dynamic t (Maybe Size)
+  , _buttonEmphasis     :: Dynamic t (Maybe Emphasis)
+  , _buttonPositive     :: Dynamic t (Maybe Positive)
+  , _buttonSocial       :: Dynamic t (Maybe Social)
+  , _buttonFloated      :: Dynamic t (Maybe Floated)
+  , _buttonLabeledIcon  :: Dynamic t (Maybe Labeled)
+  , _buttonAttached     :: Dynamic t (Maybe ExclusiveAttached)
 
   , _buttonAnimated     :: Maybe (AnimatedButton t m)
   , _buttonType         :: ButtonType
@@ -249,9 +247,10 @@ filterPositive Negative = Negative
 filterPositive Success = Positive
 filterPositive Error = Negative
 
-buttonConfigClasses :: Reflex t => ButtonConfig t m -> Active t Classes
-buttonConfigClasses ButtonConfig {..} = activeClasses
-  [ Static $ Just "ui button"
+buttonConfigClasses :: Reflex t
+  => ButtonConfig t m -> Dynamic t Classes
+buttonConfigClasses ButtonConfig {..} = dynClasses
+  [ pure $ Just "ui button"
   , boolClass "disabled" _buttonDisabled
   , boolClass "compact" _buttonCompact
   , boolClass "basic" _buttonBasic
@@ -272,34 +271,42 @@ buttonConfigClasses ButtonConfig {..} = activeClasses
   ]
 
 
-buttons' :: MonadWidget t m => ButtonsConfig t -> m a -> m (El t, a)
+buttons'
+  :: MonadWidget t m
+  => ButtonsConfig t -> m a -> m (El t, a)
 buttons' config@ButtonsConfig {..} = uiElement' "div" elConf
   where
    elConf = _buttonsElConfig <> def
       { _classes = buttonsConfigClasses config }
 
-buttons :: MonadWidget t m => ButtonsConfig t -> m a -> m a
+buttons
+  :: MonadWidget t m
+  => ButtonsConfig t -> m a -> m a
 buttons c = fmap snd . buttons' c
 
-conditionalWithText' :: MonadWidget t m => Active t Text -> m (El t)
+conditionalWithText'
+  :: MonadWidget t m => Dynamic t Text -> m (El t)
 conditionalWithText' dataText
   = fst <$> uiElement' "div" config blank
   where
     config = def
-      & elConfigClasses |~ "or"
-      & elConfigAttributes .~ fmap ("data-text" =:) dataText
+      & classes |~ "or"
+      & attrs .~ fmap ("data-text" =:) dataText
 
-conditionalWithText :: MonadWidget t m => Active t Text -> m ()
+conditionalWithText
+  :: MonadWidget t m => Dynamic t Text -> m ()
 conditionalWithText = void . conditionalWithText'
 
-conditional' :: MonadWidget t m => m (El t)
-conditional' = fst <$> uiElement' "div" config blank
-  where config = def & elConfigClasses |~ "or"
+conditional'
+  :: MonadWidget t m => m (El t)
+conditional' = fst <$> divClass' "or" blank
 
 conditional :: MonadWidget t m => m ()
 conditional = void conditional'
 
-button' :: MonadWidget t m => ButtonConfig t m -> m () -> m (El t, Event t ())
+button'
+  :: MonadWidget t m
+  => ButtonConfig t m -> m () -> m (El t, Event t ())
 button' config@ButtonConfig {..} content = do
   (e, _) <- uiElement' (toTagText _buttonType) elConf $
     case _buttonAnimated of
@@ -311,18 +318,21 @@ button' config@ButtonConfig {..} content = do
   where
     elConf = _buttonElConfig <> def
       { _classes = buttonConfigClasses config
-      , _attrs = Static $ case _buttonType of
+      , _attrs = pure $ case _buttonType of
         SubmitButton -> "type" =: "submit"
         ButtonButton -> "type" =: "button"
         ResetButton  -> "type" =: "reset"
         _ -> mempty
       }
 
-button :: MonadWidget t m => ButtonConfig t m -> m () -> m (Event t ())
+button
+  :: MonadWidget t m
+  => ButtonConfig t m -> m () -> m (Event t ())
 button c = fmap snd . button' c
 
 labeledButton'
-  :: MonadWidget t m => LabeledButtonConfig t -> m a -> m (El t, Event t ())
+  :: MonadWidget t m
+  => LabeledButtonConfig t -> m a -> m (El t, Event t ())
 labeledButton' config@LabeledButtonConfig{..} content = do
   (e, _) <- uiElement' "div" elConf content
   pure (e, domEvent Click e)
@@ -331,6 +341,7 @@ labeledButton' config@LabeledButtonConfig{..} content = do
       { _classes = labeledButtonConfigClasses config }
 
 labeledButton
-  :: MonadWidget t m => LabeledButtonConfig t -> m a -> m (Event t ())
+  :: MonadWidget t m
+  => LabeledButtonConfig t -> m a -> m (Event t ())
 labeledButton c = fmap snd . labeledButton' c
 

@@ -1,10 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -- | Semantic UI segments. Pure reflex implementation is provided.
@@ -12,8 +5,17 @@
 module Reflex.Dom.SemanticUI.Segment
   (
 
-    segment, segment'
+    segments, segments'
+  , SegmentsConfig (..)
+  , segmentsHorizontal
+  , segmentsRaised
+  , segmentsStacked
+  , segmentsCompact
+  , segmentsElConfig
+
+  , segment, segment'
   , SegmentConfig (..)
+  , Stacked (..)
   , segmentRaised
   , segmentVertical
   , segmentInverted
@@ -33,13 +35,12 @@ module Reflex.Dom.SemanticUI.Segment
 
   ) where
 
-import Control.Lens (makeLenses)
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Data.Default
 import Data.Semigroup ((<>))
 import Reflex
 import Reflex.Dom.Core
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -52,70 +53,70 @@ instance ToClassText Stacked where
   toClassText Piled = "piled"
 
 data SegmentConfig t = SegmentConfig
-  { _segmentRaised :: Active t Bool
+  { _segmentRaised :: Dynamic t Bool
   -- ^ Segments can be raised
-  , _segmentVertical :: Active t Bool
+  , _segmentVertical :: Dynamic t Bool
   -- ^ Segments can be formatted as part of a vertical group
-  , _segmentInverted :: Active t Bool
+  , _segmentInverted :: Dynamic t Bool
   -- ^ Segments can have inverted colors
-  , _segmentPadded :: Active t Bool
+  , _segmentPadded :: Dynamic t Bool
   -- ^ Segments can have extra padding
-  , _segmentCompact :: Active t Bool
+  , _segmentCompact :: Dynamic t Bool
   -- ^ If the segment should be compact
-  , _segmentCircular :: Active t Bool
+  , _segmentCircular :: Dynamic t Bool
   -- ^ Segments can be circular
-  , _segmentClearing :: Active t Bool
+  , _segmentClearing :: Dynamic t Bool
   -- ^ Segments can clear floated content
-  , _segmentBasic :: Active t Bool
+  , _segmentBasic :: Dynamic t Bool
   -- ^ A basic segment has no special formatting
 
-  , _segmentStacked :: Active t (Maybe Stacked)
+  , _segmentStacked :: Dynamic t (Maybe Stacked)
   -- ^ Segments can be stacked
-  , _segmentAttached :: Active t (Maybe VerticalAttached)
+  , _segmentAttached :: Dynamic t (Maybe VerticalAttached)
   -- ^ Segments can be attached vertically
-  , _segmentColor :: Active t (Maybe Color)
+  , _segmentColor :: Dynamic t (Maybe Color)
   -- ^ Segment color
-  , _segmentEmphasis :: Active t Emphasis
+  , _segmentEmphasis :: Dynamic t Emphasis
   -- ^ Segmants can have different emphasis
-  , _segmentFloated :: Active t (Maybe Floated)
+  , _segmentFloated :: Dynamic t (Maybe Floated)
   -- ^ Segments can be floated
-  , _segmentAligned :: Active t (Maybe Aligned)
+  , _segmentAligned :: Dynamic t (Maybe Aligned)
   -- ^ Segments can have aligned text
-  , _segmentSize :: Active t (Maybe Size)
+  , _segmentSize :: Dynamic t (Maybe Size)
   -- ^ Segments can be a different size
 
   , _segmentElConfig :: ActiveElConfig t
   -- ^ Config
   }
-makeLenses ''SegmentConfig
+makeLensesWith (lensRules & simpleLenses .~ True) ''SegmentConfig
 
 instance HasElConfig t (SegmentConfig t) where
   elConfig = segmentElConfig
 
 instance Reflex t => Default (SegmentConfig t) where
   def = SegmentConfig
-    { _segmentRaised = Static False
-    , _segmentStacked = Static Nothing
-    , _segmentVertical = Static False
-    , _segmentInverted = Static False
-    , _segmentAttached = Static Nothing
-    , _segmentPadded = Static False
-    , _segmentColor = Static Nothing
-    , _segmentCompact = Static False
-    , _segmentEmphasis = Static Primary
-    , _segmentCircular = Static False
-    , _segmentClearing = Static False
-    , _segmentFloated = Static Nothing
-    , _segmentAligned = Static Nothing
-    , _segmentBasic = Static False
-    , _segmentSize = Static Nothing
+    { _segmentRaised = pure False
+    , _segmentStacked = pure Nothing
+    , _segmentVertical = pure False
+    , _segmentInverted = pure False
+    , _segmentAttached = pure Nothing
+    , _segmentPadded = pure False
+    , _segmentColor = pure Nothing
+    , _segmentCompact = pure False
+    , _segmentEmphasis = pure Primary
+    , _segmentCircular = pure False
+    , _segmentClearing = pure False
+    , _segmentFloated = pure Nothing
+    , _segmentAligned = pure Nothing
+    , _segmentBasic = pure False
+    , _segmentSize = pure Nothing
     , _segmentElConfig = def
     }
 
 -- | Make the segment div classes from the configuration
-segmentConfigClasses :: Reflex t => SegmentConfig t -> Active t Classes
-segmentConfigClasses SegmentConfig {..} = activeClasses
-  [ Static $ Just "ui segment"
+segmentConfigClasses :: Reflex t => SegmentConfig t -> Dynamic t Classes
+segmentConfigClasses SegmentConfig {..} = dynClasses
+  [ pure $ Just "ui segment"
   , boolClass "raised" _segmentRaised
   , fmap toClassText <$> _segmentStacked
   , boolClass "vertical" _segmentVertical
@@ -142,4 +143,52 @@ segment' config@SegmentConfig{..} = uiElement' "div" elConf
 -- | Segment UI Element.
 segment :: MonadWidget t m => SegmentConfig t -> m a -> m a
 segment config = fmap snd . segment' config
+
+
+data SegmentsConfig t = SegmentsConfig
+  { _segmentsHorizontal :: Dynamic t Bool
+  -- ^ Segments can be horizontal
+  , _segmentsRaised :: Dynamic t Bool
+  -- ^ Segments can be raised
+  , _segmentsStacked :: Dynamic t (Maybe Stacked)
+  -- ^ Segments can be stacked
+  , _segmentsCompact :: Dynamic t Bool
+  -- ^ Segments can be compact
+  , _segmentsElConfig :: ActiveElConfig t
+  -- ^ Config
+  }
+makeLensesWith (lensRules & simpleLenses .~ True) ''SegmentsConfig
+
+instance HasElConfig t (SegmentsConfig t) where
+  elConfig = segmentsElConfig
+
+instance Reflex t => Default (SegmentsConfig t) where
+  def = SegmentsConfig
+    { _segmentsHorizontal = pure False
+    , _segmentsRaised = pure False
+    , _segmentsStacked = pure Nothing
+    , _segmentsCompact = pure False
+    , _segmentsElConfig = def
+    }
+
+-- | Make the segment div classes from the configuration
+segmentsConfigClasses :: Reflex t => SegmentsConfig t -> Dynamic t Classes
+segmentsConfigClasses SegmentsConfig {..} = dynClasses
+  [ pure $ Just "ui segments"
+  , boolClass "horizontal" _segmentsHorizontal
+  , boolClass "raised" _segmentsRaised
+  , fmap toClassText <$> _segmentsStacked
+  , boolClass "compact" _segmentsCompact
+  ]
+
+
+-- | Segments UI Element.
+segments' :: MonadWidget t m => SegmentsConfig t -> m a -> m (El t, a)
+segments' config@SegmentsConfig{..} = uiElement' "div" elConf
+  where
+    elConf = _segmentsElConfig <> def { _classes = segmentsConfigClasses config }
+
+-- | Segments UI Element.
+segments :: MonadWidget t m => SegmentsConfig t -> m a -> m a
+segments config = fmap snd . segments' config
 

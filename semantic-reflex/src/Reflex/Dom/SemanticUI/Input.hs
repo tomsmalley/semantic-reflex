@@ -1,10 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Reflex.Dom.SemanticUI.Input
   (
@@ -12,7 +6,7 @@ module Reflex.Dom.SemanticUI.Input
     input, input'
   , InputConfig (..)
   , InputIcon (..)
-  , Action (..)
+  , InputAction (..)
   , inputLoading
   , inputDisabled
   , inputError
@@ -33,10 +27,18 @@ module Reflex.Dom.SemanticUI.Input
   , textInputType
   , textInputValue
 
+  , TextInput (..)
+  , textInput_value
+  , textInput_input
+  , textInput_keypress
+  , textInput_keydown
+  , textInput_keyup
+  , textInput_hasFocus
+
   ) where
 
-import Control.Lens (makeLenses)
-import Control.Monad (void, guard)
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Monad (void)
 import Control.Monad.Trans.Maybe
 import Data.Default
 import Data.Map (Map)
@@ -51,13 +53,12 @@ import Reflex.Dom.Core hiding (Input, SetValue, TextInputConfig, textInput)
 import qualified Reflex.Dom.Core as Reflex
 import qualified GHCJS.DOM.HTMLElement as HTMLElement
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
-data Action = LeftAction | RightAction
+data InputAction = LeftAction | RightAction
 
-instance ToClassText Action where
+instance ToClassText InputAction where
   toClassText LeftAction = "left action"
   toClassText RightAction = "action"
 
@@ -68,21 +69,21 @@ instance ToClassText InputIcon where
   toClassText RightIcon = "icon"
 
 data InputConfig t = InputConfig
-  { _inputLoading     :: Active t Bool
-  , _inputDisabled    :: Active t Bool
-  , _inputError    :: Active t Bool
-  , _inputTransparent :: Active t Bool
-  , _inputInverted    :: Active t Bool
-  , _inputFluid       :: Active t Bool
+  { _inputLoading     :: Dynamic t Bool
+  , _inputDisabled    :: Dynamic t Bool
+  , _inputError       :: Dynamic t Bool
+  , _inputTransparent :: Dynamic t Bool
+  , _inputInverted    :: Dynamic t Bool
+  , _inputFluid       :: Dynamic t Bool
 
-  , _inputIcon    :: Active t (Maybe InputIcon)
-  , _inputLabeled     :: Active t (Maybe Labeled)
-  , _inputAction      :: Active t (Maybe Action)
-  , _inputSize        :: Active t (Maybe Size)
+  , _inputIcon        :: Dynamic t (Maybe InputIcon)
+  , _inputLabeled     :: Dynamic t (Maybe Labeled)
+  , _inputAction      :: Dynamic t (Maybe InputAction)
+  , _inputSize        :: Dynamic t (Maybe Size)
 
   , _inputElConfig    :: ActiveElConfig t
   }
-makeLenses ''InputConfig
+makeLensesWith (lensRules & simpleLenses .~ True) ''InputConfig
 
 instance Reflex t => Default (InputConfig t) where
   def = InputConfig
@@ -99,9 +100,9 @@ instance Reflex t => Default (InputConfig t) where
     , _inputElConfig = def
     }
 
-inputConfigClasses :: Reflex t => InputConfig t -> Active t Classes
-inputConfigClasses InputConfig {..} = activeClasses
-  [ Static $ Just "ui input"
+inputConfigClasses :: Reflex t => InputConfig t -> Dynamic t Classes
+inputConfigClasses InputConfig {..} = dynClasses
+  [ pure $ Just "ui input"
   , boolClass "loading" _inputLoading
   , boolClass "disabled" _inputDisabled
   , boolClass "error" _inputError
@@ -114,23 +115,6 @@ inputConfigClasses InputConfig {..} = activeClasses
   -- Tiny isn't specified for some reason
   , fmap (\s -> toClassText $ if s == Tiny then Mini else s) <$> _inputSize
   ]
-
-instance DynShow t (TextInput t) where
-  dynShow TextInput {..} = do
-    input <- countWithLast _textInput_input
-    keypress <- countWithLast _textInput_keypress
-    keydown <- countWithLast _textInput_keydown
-    keyup <- countWithLast _textInput_keyup
-    return $ mconcat
-      [ pure "TextInputResult"
-      , (("\n  { _textInput_value = " <>) . show) <$> _textInput_value
-      , (("\n  , _textInput_input = " <>) . show) <$> input
-      , (("\n  , _textInput_keypress = " <>) . show) <$> keypress
-      , (("\n  , _textInput_keydown = " <>) . show) <$> keydown
-      , (("\n  , _textInput_keyup = " <>) . show) <$> keyup
-      , (("\n  , _textInput_hasFocus = " <>) . show) <$> _textInput_hasFocus
-      , pure "\n  }"
-      ]
 
 -- | A wrapper around the reflex-dom 'textInput' which conforms to the style
 -- of this library
@@ -166,7 +150,7 @@ data TextInputConfig t = TextInputConfig
   , _textInputType :: InputType
   , _textInputAttrs :: Dynamic t (Map Text Text)
   }
-makeLenses ''TextInputConfig
+makeLensesWith (lensRules & simpleLenses .~ True) ''TextInputConfig
 
 instance Reflex t => Default (TextInputConfig t) where
   def = TextInputConfig

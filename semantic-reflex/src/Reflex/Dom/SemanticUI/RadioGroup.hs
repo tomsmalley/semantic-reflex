@@ -1,42 +1,18 @@
---{-# LANGUAGE DuplicateRecordFields    #-}
---{-# LANGUAGE FlexibleInstances        #-}
---{-# LANGUAGE MultiParamTypeClasses    #-}
---{-# LANGUAGE OverloadedStrings        #-}
---{-# LANGUAGE RecordWildCards          #-}
---{-# LANGUAGE TemplateHaskell          #-}
---{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module Reflex.Dom.SemanticUI.RadioGroup
-  (
-  {-
-  -- * Radio Group
-    RadioGroup (..)
-  , RadioGroupConfig (..)
-  -- * Radio Item
-  , RadioItem (..)
-  , RadioItemConfig (..)
-  -}
-  ) where
+-- | This module is a work in progress
+module Reflex.Dom.SemanticUI.RadioGroup where
 
-{-
-import           Control.Monad (void)
-import           Control.Monad.Trans
-import           Control.Lens ((^.))
-import           Data.Default
-import qualified Data.List as L
-import           Data.Map (Map)
-import qualified Data.Map as M
-import           Data.Maybe (isJust)
-import           Data.Monoid ((<>))
-import           Data.Text (Text)
-import qualified Data.Text as T
-import qualified GHCJS.DOM.Element as DOM
-import           Language.Javascript.JSaddle
-import           Reflex
-import           Reflex.Dom.Core hiding
-  ()
+import Control.Monad (void)
+import Control.Lens (makeLenses)
+import Data.Default
+import Data.Foldable (traverse_)
+import Data.Map (Map)
+import Data.Text (Text)
+import Reflex
+import Reflex.Dom.Core hiding (SetValue, checkbox)
 
-import Reflex.Dom.SemanticUI.Checkbox (CheckboxType (..))
+import Reflex.Dom.SemanticUI.Checkbox
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -68,51 +44,63 @@ data RadioItem a = RadioItem
 --------------------------------------------------------------------------------
 -- Radio Group Config
 
-data RadioGroupConfig t a = RadioGroupConfig
-  { _initialValue :: Maybe a
+data RadioGroupConfig t f a = RadioGroupConfig
+  { _radioGroupConfigValue :: SetValue t (f a)
   -- ^ Initial value of the radio group. 'Nothing' means no items are selected.
-  , _setValue :: Event t (Maybe a)
-  -- ^ Event which sets the value. 'Nothing' clears the selection.
-  , _altType :: Maybe CheckboxType
+  , _radioGroupType :: Maybe CheckboxType
   -- ^ Checkbox type, e.g. slider
   --, _wrapper :: m DOM.Element -> m DOM.Element
   --, _wrapper :: forall b. m b -> m b
   -- ^ Wrapper around each individual item
-  , _config :: ActiveElConfig t
+  , _radioGroupElConfig :: ActiveElConfig t
   }
+makeLenses ''RadioGroupConfig
 
-radioGroupClasses :: Reflex t => RadioGroupConfig t a -> Active t Classes
-radioGroupClasses RadioGroupConfig {..} = activeClasses
-  [ ]
+instance HasElConfig t (RadioGroupConfig t f a) where
+  elConfig = radioGroupElConfig
 
-instance Reflex t => Default (RadioGroupConfig t a) where
+instance (Default (f a), Reflex t)
+  => Default (RadioGroupConfig t f a) where
   def = RadioGroupConfig
-    { _initialValue = Nothing
-    , _setValue = never
-    , _altType = Nothing
-    --, _wrapper = divClass "field"
-    , _config = def
+    { _radioGroupConfigValue = SetValue def Nothing
+    , _radioGroupType = Nothing
+    , _radioGroupElConfig = def
     }
 
 --------------------------------------------------------------------------------
 -- Radio Group Functions
 
-data RadioGroup t a = RadioGroup
-  { _name :: Text
-  , _items :: [RadioItem a]
-  , _config :: RadioGroupConfig t a
-  }
-
-instance Eq a => UI t m (RadioGroup t a) where
-  type Return t m (RadioGroup t a) = Dynamic t (Maybe a)
-  ui' (RadioGroup name items config) = radioGroup name items config
-
--- | Create a group of radio checkboxes from the given list of items. The name
+-- | Create a group of radio checkboxes from the given items. The name
 -- is required to link the individual checkboxes together, it must be unique to
 -- the field. The \<input\> elements are given values automatically by their
 -- index.
 --
 -- https://semantic-ui.com/modules/checkbox.html#radio
+radioGroup
+  :: forall t m a f. (Monad f, Ord a, MonadWidget t m, Ord (f a), Foldable f)
+  => Text -> RadioGroupConfig t f a -> Dynamic t (Map a (m ()))
+  -> m (Dynamic t (f a))
+radioGroup name conf = fmap snd . radioGroup' name conf
+
+radioGroup'
+  :: forall t m a f. (Monad f, Ord a, MonadWidget t m, Ord (f a), Foldable f)
+  => Text -> RadioGroupConfig t f a -> Dynamic t (Map a (m ()))
+  -> m (El t, Dynamic t (f a))
+radioGroup' name _config@RadioGroupConfig{..} items
+  = divClass' "grouped fields" $ do
+
+  void $ dyn $ ffor items $ traverse_ $
+    divClass "field" . putRadioItem name _radioGroupType
+  pure $ pure $ _initial _radioGroupConfigValue
+
+putRadioItem :: MonadWidget t m => Text -> Maybe CheckboxType -> m () -> m ()
+putRadioItem name mType m = do
+  void $ uiElement "div" def $ do
+    checkbox m $ def
+      & checkboxType |~ mType
+      & attrs |~ ("name" =: name)
+
+{-
 radioGroup
   :: (Eq a, MonadWidget t m)
   => Text                   -- ^ Name of \<input\> elements

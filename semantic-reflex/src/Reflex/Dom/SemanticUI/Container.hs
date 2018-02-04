@@ -1,13 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE JavaScriptFFI #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Reflex.Dom.SemanticUI.Container
@@ -21,20 +11,19 @@ module Reflex.Dom.SemanticUI.Container
 
   ) where
 
-import Control.Lens (makeLenses)
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Data.Default
 import Data.Semigroup ((<>))
 import Reflex.Dom.Core
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data ContainerConfig t = ContainerConfig
-  { _containerSize      :: Active t (Maybe Size)
+  { _containerSize      :: Dynamic t (Maybe Size)
   , _containerElConfig  :: ActiveElConfig t
   }
-makeLenses ''ContainerConfig
+makeLensesWith (lensRules & simpleLenses .~ True) ''ContainerConfig
 
 instance HasElConfig t (ContainerConfig t) where
   elConfig = containerElConfig
@@ -45,9 +34,9 @@ instance Reflex t => Default (ContainerConfig t) where
     , _containerElConfig = def
     }
 
-containerConfigClasses :: Reflex t => ContainerConfig t -> Active t Classes
-containerConfigClasses ContainerConfig {..} = activeClasses
-    [ Static $ Just $ "ui container"
+containerConfigClasses :: Reflex t => ContainerConfig t -> Dynamic t Classes
+containerConfigClasses ContainerConfig {..} = dynClasses
+    [ pure $ Just $ "ui container"
     , fmap toClassText <$> _containerSize
     ]
 

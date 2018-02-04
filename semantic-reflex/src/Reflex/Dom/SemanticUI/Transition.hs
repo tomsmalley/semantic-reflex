@@ -1,15 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedLists #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -20,10 +11,10 @@ module Reflex.Dom.SemanticUI.Transition
   -- * Transition
     Transition (..)
 
-  , TransConfig (..)
-  , transConfigEvent
-  , transConfigInitialDirection
-  , transConfigForceVisible
+  , Action (..)
+  , actionEvent
+  , actionInitialDirection
+  , actionForceVisible
 
   , TransitionType (..)
   , AnimationType (..)
@@ -44,7 +35,7 @@ module Reflex.Dom.SemanticUI.Transition
   , elConfigStyle
   , elConfigClasses
 
-  , HasTransition (..)
+  , HasAction (..)
   , HasAttributes (..)
   , HasStyle (..)
   , HasClasses (..)
@@ -56,27 +47,29 @@ module Reflex.Dom.SemanticUI.Transition
   , initial, event
   ) where
 
-import Data.Align
-import Data.These
+import Control.Applicative (Alternative(..))
 import Control.Concurrent
-import qualified Control.Concurrent.Thread.Delay as Concurrent
 import Control.Lens (Lens')
-import Control.Lens.TH (makeLenses, makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.TH (makeLenses)
 import Control.Monad (void)
 import Control.Monad.Trans (liftIO)
+
+import Data.Align
 import Data.Default (Default(..))
-import Data.Semigroup
-import Data.Map (Map)
 import Data.IntMap (IntMap)
-import qualified Data.IntMap as IM
-import Data.Text (Text)
-import Reflex
-import Reflex.Dom.Core hiding
-  (Drop, HasAttributes, divClass, elAttr', SetValue)
-
+import Data.Map (Map)
+import Data.Maybe (fromMaybe)
+import Data.Semigroup
+import Data.These
 import Data.Time
+import Data.Text (Text)
 
-import Reflex.Dom.Active
+import Reflex
+import Reflex.Dom.Core hiding (Drop, HasAttributes, SetValue)
+
+import qualified Control.Concurrent.Thread.Delay as Concurrent
+import qualified Data.IntMap as IM
+
 import Reflex.Dom.SemanticUI.Common
 
 -- | Transition types as listed in
@@ -143,7 +136,7 @@ instance ToClassText Direction where
   toClassText In = "in"
   toClassText Out = "out"
 
--- | Returned by 'runTransition', controls the relavant animation / transition
+-- | Returned by 'runAction', controls the relavant animation / transition
 -- classes and styles.
 data AnimationAttrs t = AnimationAttrs
   { _animationAttrsClass :: Dynamic t (Maybe Classes)
@@ -190,22 +183,33 @@ instance Default TransitionConfig where
     }
 
 -- | Transition configuration for elements
-data TransConfig t = TransConfig
-  { _transConfigEvent :: Event t Transition
-  , _transConfigInitialDirection :: Direction
-  , _transConfigForceVisible :: Bool
+data Action t = Action
+  { _actionEvent :: Maybe (Event t Transition)
+  , _actionInitialDirection :: Direction
+  , _actionForceVisible :: Bool
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''TransConfig
 
-instance Reflex t => Default (TransConfig t) where
-  def = TransConfig
-    { _transConfigEvent = never
-    , _transConfigInitialDirection = In
-    , _transConfigForceVisible = False
-    }
+instance Reflex t => Default (Action t) where
+  def = Action Nothing In False
 
-instance Reflex t => Semigroup (TransConfig t) where
-  TransConfig e1 i v <> TransConfig e2 _ _ = TransConfig (leftmost [e1, e2]) i v
+instance Reflex t => Semigroup (Action t) where
+  Action e1 i v <> Action e2 _ _ = Action (joinEvents e1 e2) i v
+
+joinEvents
+  :: Reflex t => Maybe (Event t a) -> Maybe (Event t a) -> Maybe (Event t a)
+joinEvents (Just e1) (Just e2) = Just $ leftmost [e1, e2]
+joinEvents e1 e2 = e1 <|> e2
+
+actionEvent :: Lens' (Action t) (Maybe (Event t Transition))
+actionEvent f (Action e d fv) = (\e' -> Action e' d fv) <$> f e
+
+actionInitialDirection :: Lens' (Action t) Direction
+actionInitialDirection f (Action e d fv)
+  = (\d' -> Action e d' fv) <$> f d
+
+actionForceVisible :: Lens' (Action t) Bool
+actionForceVisible f (Action e d fv)
+  = (\fv' -> Action e d fv') <$> f fv
 
 -- | Queue of transitions
 data Queue = Queue
@@ -301,14 +305,17 @@ updateQueue (These t ()) queue
 
 -- | Run a transition, returning the classes and styles the element needs to
 -- use.
-runTransition
+runAction
   :: MonadWidget t m
-  => TransConfig t
+  => Action t
   -> m (AnimationAttrs t)
-runTransition (TransConfig eTransition initDirection forceVisible) = do
+runAction (Action Nothing initDirection forceVisible) = do
+  let mClasses = finalClasses forceVisible initDirection
+  pure $ AnimationAttrs (pure mClasses) (pure Nothing)
+
+runAction (Action (Just eTransition) initDirection forceVisible) = do
 
   rec
-
     -- Holds the queue and running state
     dTransitionQueue <- foldDyn updateQueue (initialQueue initDirection)
                       $ align eTransition (void eFinalFiltered)
@@ -368,7 +375,7 @@ runTransition (TransConfig eTransition initDirection forceVisible) = do
     [ animatingStyle . snd <$> eStart
     , Nothing <$ eFinalFiltered ]
 
-  return $ AnimationAttrs mClasses mStyle
+  pure $ AnimationAttrs mClasses mStyle
 
 -- | Make the animating classes from a queue item
 animatingClasses :: Bool -> QueueItem -> Maybe Classes
@@ -390,10 +397,10 @@ animatingStyle (QueueItem _ d _ _)
   = Just $ Style $ "animation-duration" =: tshow d
 
 data ActiveElConfig t = ActiveElConfig
-  { _classes :: Active t Classes
-  , _style :: Active t Style
-  , _attrs :: Active t (Map Text Text)
-  , _transition :: Maybe (TransConfig t)
+  { _classes :: Dynamic t Classes
+  , _style :: Dynamic t Style
+  , _attrs :: Dynamic t (Map Text Text)
+  , _action :: Maybe (Action t)
   }
 
 instance Reflex t => Default (ActiveElConfig t) where
@@ -401,38 +408,38 @@ instance Reflex t => Default (ActiveElConfig t) where
     { _classes = pure mempty
     , _style = pure mempty
     , _attrs = pure mempty
-    , _transition = Nothing
+    , _action = Nothing
     }
 
 -- Lenses
 
-elConfigTransition :: Lens' (ActiveElConfig t) (Maybe (TransConfig t))
+elConfigTransition :: Lens' (ActiveElConfig t) (Maybe (Action t))
 elConfigTransition f (ActiveElConfig c s at t)
   = ActiveElConfig c s at <$> f t
 
-elConfigAttributes :: Lens' (ActiveElConfig t) (Active t (Map Text Text))
+elConfigAttributes :: Lens' (ActiveElConfig t) (Dynamic t (Map Text Text))
 elConfigAttributes f (ActiveElConfig c s at t)
   = (\at' -> ActiveElConfig c s at' t) <$> f at
 
-elConfigStyle :: Lens' (ActiveElConfig t) (Active t Style)
+elConfigStyle :: Lens' (ActiveElConfig t) (Dynamic t Style)
 elConfigStyle f (ActiveElConfig c s at t)
   = (\s' -> ActiveElConfig c s' at t) <$> f s
 
-elConfigClasses :: Lens' (ActiveElConfig t) (Active t Classes)
+elConfigClasses :: Lens' (ActiveElConfig t) (Dynamic t Classes)
 elConfigClasses f (ActiveElConfig c s at t)
   = (\c' -> ActiveElConfig c' s at t) <$> f c
 
-class HasTransition t a | a -> t where
-  transition :: Lens' a (Maybe (TransConfig t))
+class HasAction t a | a -> t where
+  action :: Lens' a (Maybe (Action t))
 
 class HasAttributes t a | a -> t where
-  attrs :: Lens' a (Active t (Map Text Text))
+  attrs :: Lens' a (Dynamic t (Map Text Text))
 
 class HasStyle t a | a -> t where
-  style :: Lens' a (Active t Style)
+  style :: Lens' a (Dynamic t Style)
 
 class HasClasses t a | a -> t where
-  classes :: Lens' a (Active t Classes)
+  classes :: Lens' a (Dynamic t Classes)
 
 class HasElConfig t a | a -> t where
   elConfig :: Lens' a (ActiveElConfig t)
@@ -449,13 +456,13 @@ instance HasElConfig t a => HasStyle t a where
 instance HasElConfig t a => HasClasses t a where
   classes = elConfig . elConfigClasses
 
-instance HasElConfig t a => HasTransition t a where
-  transition = elConfig . elConfigTransition
+instance HasElConfig t a => HasAction t a where
+  action = elConfig . elConfigTransition
 
 -- | Left biased
 instance Reflex t => Semigroup (ActiveElConfig t) where
-  ActiveElConfig a b c d <> ActiveElConfig a' b' c' d'
-    = ActiveElConfig (a <> a') (b <> b') (c <> c') (d <> d')
+  ActiveElConfig a b c d <> ActiveElConfig a' b' c' d' = ActiveElConfig
+    (a `mappend` a') (b `mappend` b') (c `mappend` c') (d <> d')
 
 instance Reflex t => Monoid (ActiveElConfig t) where
   mempty = def
@@ -465,35 +472,17 @@ uiElement :: MonadWidget t m => Text -> ActiveElConfig t -> m a -> m a
 uiElement elTag conf = fmap snd . uiElement' elTag conf
 
 uiElement'
-  :: MonadWidget t m
-  => Text
-  -> ActiveElConfig t
-  -> m a
+  :: MonadWidget t m => Text -> ActiveElConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 uiElement' elTag ActiveElConfig {..} child = do
-  transAttrs <- traverse runTransition _transition
-  case transAttrs of
-    Nothing -> do
-      let activeAttrs = mkAttrs <$> _classes <*> _style <*> _attrs
-          mkAttrs c s as = classAttr c <> styleAttr s <> as
-      elActiveAttr' elTag activeAttrs child
-
-    Just (AnimationAttrs dynMClasses dynMStyle) -> do
-
-      let activeAttrs = mkAttrs
-            <$> _classes
-            <*> Dynamic dynMClasses
-            <*> _style
-            <*> Dynamic dynMStyle
-            <*> _attrs
-
-          mkAttrs c mClasses s mStyle as
-            = classAttr (maybe c (<> c) mClasses)
-            <> styleAttr (maybe s (<> s) mStyle)
-            <> as
-
-      elActiveAttr' elTag activeAttrs child
-
+  AnimationAttrs dMClasses dMStyle <- runAction $ fromMaybe def _action
+  let dynAttrs
+        = mkAttrs <$> _classes <*> dMClasses <*> _style <*> dMStyle <*> _attrs
+      mkAttrs c mClasses s mStyle as
+        = classAttr (maybe c (<> c) mClasses)
+        <> styleAttr (maybe s (<> s) mStyle)
+        <> as
+  elDynAttr' elTag dynAttrs child
 
 data SetValue' t a b = SetValue
   { _initial :: a
@@ -504,10 +493,5 @@ makeLenses ''SetValue'
 type SetValue t a = SetValue' t a a
 
 instance Reflex t => Semigroup (SetValue' t a b) where
-  SetValue a mEvt1 <> SetValue _ mEvt2 = SetValue a (mCombined mEvt1 mEvt2)
-    where
-      mCombined Nothing Nothing = Nothing
-      mCombined (Just e1) (Just e2) = Just $ leftmost [e1, e2]
-      mCombined (Just e1) Nothing = Just e1
-      mCombined Nothing (Just e2) = Just e2
+  SetValue a mEvt1 <> SetValue _ mEvt2 = SetValue a (joinEvents mEvt1 mEvt2)
 

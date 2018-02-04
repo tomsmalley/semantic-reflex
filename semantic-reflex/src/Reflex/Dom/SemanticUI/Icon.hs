@@ -1,26 +1,14 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeApplications #-}
 
 module Reflex.Dom.SemanticUI.Icon where
 
-import Control.Lens.TH (makeLenses, makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Control.Monad (void)
 import Data.Default
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex.Dom.Core hiding (fromJSString)
 
-import Reflex.Dom.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -56,19 +44,19 @@ instance ToClassText Corner where
   toClassText BottomRight = "bottom right corner"
 
 data IconConfig t = IconConfig
-  { _iconDisabled :: Active t Bool
-  , _iconLoading :: Active t Bool
-  , _iconFitted :: Active t Bool
-  , _iconSize :: Active t (Maybe Size)
-  , _iconLink :: Active t Bool
-  , _iconFlipped :: Active t (Maybe Flipped)
-  , _iconRotated :: Active t (Maybe Rotated)
-  , _iconCircular :: Active t Bool
-  , _iconBordered :: Active t Bool
-  , _iconColor :: Active t (Maybe Color)
-  , _iconInverted :: Active t Bool
-  , _iconCorner :: Active t (Maybe Corner)
-  , _iconTitle :: Active t (Maybe Text)
+  { _iconDisabled :: Dynamic t Bool
+  , _iconLoading :: Dynamic t Bool
+  , _iconFitted :: Dynamic t Bool
+  , _iconSize :: Dynamic t (Maybe Size)
+  , _iconLink :: Dynamic t Bool
+  , _iconFlipped :: Dynamic t (Maybe Flipped)
+  , _iconRotated :: Dynamic t (Maybe Rotated)
+  , _iconCircular :: Dynamic t Bool
+  , _iconBordered :: Dynamic t Bool
+  , _iconColor :: Dynamic t (Maybe Color)
+  , _iconInverted :: Dynamic t Bool
+  , _iconCorner :: Dynamic t (Maybe Corner)
+  , _iconTitle :: Dynamic t (Maybe Text)
   , _iconElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''IconConfig
@@ -94,9 +82,9 @@ instance Reflex t => Default (IconConfig t) where
     , _iconElConfig = def
     }
 
-iconConfigClasses :: Reflex t => IconConfig t -> Active t Classes
-iconConfigClasses IconConfig {..} = activeClasses
-  [ Static $ Just "icon"
+iconConfigClasses :: Reflex t => IconConfig t -> Dynamic t Classes
+iconConfigClasses IconConfig {..} = dynClasses
+  [ pure $ Just "icon"
   , boolClass "disabled" _iconDisabled
   , boolClass "loading" _iconLoading
   , boolClass "fitted" _iconFitted
@@ -112,7 +100,7 @@ iconConfigClasses IconConfig {..} = activeClasses
   ]
 
 data IconsConfig t = IconsConfig
-  { _iconsSize :: Active t (Maybe Size)
+  { _iconsSize :: Dynamic t (Maybe Size)
   , _iconsElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''IconsConfig
@@ -123,26 +111,26 @@ instance Reflex t => Default (IconsConfig t) where
     , _iconsElConfig = def
     }
 
-iconsConfigClasses :: Reflex t => IconsConfig t -> Active t Classes
-iconsConfigClasses IconsConfig {..} = activeClasses
-  [ Static $ Just "icons"
+iconsConfigClasses :: Reflex t => IconsConfig t -> Dynamic t Classes
+iconsConfigClasses IconsConfig {..} = dynClasses
+  [ pure $ Just "icons"
   , fmap toClassText <$> _iconsSize
   ]
 
 
-icon' :: MonadWidget t m => Active t Text -> IconConfig t -> m (El t)
-icon' activeIcon config@IconConfig {..}
+icon' :: MonadWidget t m => Dynamic t Text -> IconConfig t -> m (El t)
+icon' dynIcon config@IconConfig {..}
   = fst <$> uiElement' "i" elConf blank
   where
     elConf = _iconElConfig <> def
-      { _classes = addClass <$> activeIcon <*> iconConfigClasses config
+      { _classes = addClass <$> dynIcon <*> iconConfigClasses config
       , _attrs = maybe mempty ("title" =:) <$> _iconTitle
       }
 
 -- This is for inclusion in other element configs
-data Icon t = Icon (Active t Text) (IconConfig t)
+data Icon t = Icon (Dynamic t Text) (IconConfig t)
 
-icon :: MonadWidget t m => Active t Text -> IconConfig t -> m ()
+icon :: MonadWidget t m => Dynamic t Text -> IconConfig t -> m ()
 icon i = void . icon' i
 
 icons' :: MonadWidget t m => IconsConfig t -> m a -> m (El t, a)
@@ -155,13 +143,13 @@ icons :: MonadWidget t m => IconsConfig t -> m a -> m a
 icons config = fmap snd . icons' config
 
 
-flag' :: MonadWidget t m => Active t Text -> FlagConfig t -> m (El t)
-flag' flagActive FlagConfig {..}
+flag' :: MonadWidget t m => Dynamic t Text -> FlagConfig t -> m (El t)
+flag' dynFlag FlagConfig {..}
   = fst <$> uiElement' "i" config blank
   where
     config = _flagElConfig
-      & elConfigClasses .~ (flip addClass "flag" <$> flagActive)
+      & elConfigClasses .~ (flip addClass "flag" <$> dynFlag)
 
-flag :: MonadWidget t m => Active t Text -> FlagConfig t -> m ()
+flag :: MonadWidget t m => Dynamic t Text -> FlagConfig t -> m ()
 flag f = void . flag' f
 
