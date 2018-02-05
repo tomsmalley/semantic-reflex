@@ -177,7 +177,7 @@ makeLenses ''TransitionConfig
 
 instance Default TransitionConfig where
   def = TransitionConfig
-    { _transitionDuration = 0.75
+    { _transitionDuration = 0.5
     , _transitionDirection = Nothing
     , _transitionCancelling = False
     }

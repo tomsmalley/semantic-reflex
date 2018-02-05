@@ -15,74 +15,65 @@ import Reflex.Dom.Core hiding (SetValue)
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
-data MenuConfig t a = MenuConfig
-  { _menuValue :: SetValue t a
-  , _menuColor :: Dynamic t (Maybe Color)
+data MenuConfig t = MenuConfig
+  { _menuColor :: Dynamic t (Maybe Color)
   , _menuInverted :: Dynamic t Bool
-  , _menuSize :: Maybe Size
-  , _menuVertical :: Bool
+  , _menuSize :: Dynamic t (Maybe Size)
+  , _menuVertical :: Dynamic t Bool
   , _menuSecondary :: Dynamic t Bool
   , _menuRight :: Dynamic t Bool
   , _menuPointing :: Dynamic t Bool
-  , _menuFluid :: Bool
-  , _menuTextContent :: Bool
-  , _menuCompact :: Bool
-  , _menuFloated :: Maybe Floated
-  , _menuComponent :: Bool
-  , _menuHighlight :: Bool
+  , _menuFluid :: Dynamic t Bool
+  , _menuText :: Dynamic t Bool
+  , _menuCompact :: Dynamic t Bool
+  , _menuFloated :: Dynamic t (Maybe Floated)
   , _menuElConfig :: ActiveElConfig t
   }
 makeLenses ''MenuConfig
 
-mkMenuConfig :: Reflex t => a -> MenuConfig t a
-mkMenuConfig a = MenuConfig
-  { _menuValue = SetValue a Nothing
-  , _menuColor = pure Nothing
-  , _menuInverted = pure False
-  , _menuSize = Nothing
-  , _menuVertical = False
-  , _menuSecondary = pure False
-  , _menuRight = pure False
-  , _menuPointing = pure False
-  , _menuFluid = False
-  , _menuTextContent = False
-  , _menuCompact = False
-  , _menuFloated = Nothing
-  , _menuComponent = False
-  , _menuHighlight = False
-  , _menuElConfig = def
-  }
+instance Reflex t => Default (MenuConfig t) where
+  def = MenuConfig
+    { _menuColor = pure Nothing
+    , _menuInverted = pure False
+    , _menuSize = pure Nothing
+    , _menuVertical = pure False
+    , _menuSecondary = pure False
+    , _menuRight = pure False
+    , _menuPointing = pure False
+    , _menuFluid = pure False
+    , _menuText = pure False
+    , _menuCompact = pure False
+    , _menuFloated = pure Nothing
+    , _menuElConfig = def
+    }
 
-instance Reflex t => Default (MenuConfig t (Maybe a)) where
-  def = mkMenuConfig Nothing
-
-instance Reflex t => Default (MenuConfig t [a]) where
-  def = mkMenuConfig []
-
-instance Reflex t => Default (MenuConfig t (Set a)) where
-  def = mkMenuConfig S.empty
-
-menuConfigClasses :: Reflex t => MenuConfig t a -> Dynamic t Classes
+menuConfigClasses :: Reflex t => MenuConfig t -> Dynamic t Classes
 menuConfigClasses MenuConfig {..} = dynClasses
---  [ justWhen _disabled "disabled"
---  , justWhen _loading "loading"
---  , justWhen _fitted "fitted"
---  , justWhen _link "link"
-  [ pure $ Just "menu"
+  [ pure $ Just "ui menu"
   , boolClass "inverted" _menuInverted
   , fmap toClassText <$> _menuColor
-  , boolClass "ui" $ pure $ not _menuComponent
-  , pure $ toClassText <$> _menuSize
-  , boolClass "vertical" $ pure _menuVertical
+  , fmap toClassText <$> _menuSize
+  , boolClass "vertical" $ _menuVertical
   , boolClass "secondary" _menuSecondary
   , boolClass "right" _menuRight
   , boolClass "pointing" _menuPointing
-  , boolClass "fluid" $ pure _menuFluid
-  , boolClass "text" $ pure _menuTextContent
-  , boolClass "compact" $ pure _menuCompact
-  , pure $ toClassText <$> _menuFloated
---  , uiText <$> _menuColor
+  , boolClass "fluid" $ _menuFluid
+  , boolClass "text" $ _menuText
+  , boolClass "compact" $ _menuCompact
+  , fmap toClassText <$> _menuFloated
   ]
+
+-- | Create a menu.
+menu' :: MonadWidget t m => MenuConfig t -> m a -> m (El t, a)
+menu' config@MenuConfig {..} widget
+  = uiElement' "div" elConf widget
+  where
+    elConf = _menuElConfig <> def
+      { _classes = menuConfigClasses config }
+
+-- | Create a menu.
+menu :: MonadWidget t m => MenuConfig t -> m a -> m a
+menu c = fmap snd . menu' c
 
 data MenuLink
   = MenuLink Text -- ^ A real link
@@ -91,7 +82,8 @@ data MenuLink
   deriving (Eq, Show)
 
 data MenuItemConfig t = MenuItemConfig
-  { _menuItemColor :: Maybe Color
+  { _menuItemColor :: Dynamic t (Maybe Color)
+  , _menuItemDisabled :: Dynamic t Bool
   , _menuItemLink :: MenuLink
   , _menuItemElConfig :: ActiveElConfig t
   }
@@ -99,22 +91,27 @@ makeLenses ''MenuItemConfig
 
 instance Reflex t => Default (MenuItemConfig t) where
   def = MenuItemConfig
-    { _menuItemColor = Nothing
-    , _menuItemLink = NoLink
+    { _menuItemColor = pure Nothing
+    , _menuItemDisabled = pure False
+    , _menuItemLink = StyleLink
     , _menuItemElConfig = def
     }
 
 menuItemConfigClasses :: Reflex t => MenuItemConfig t -> Dynamic t Classes
 menuItemConfigClasses MenuItemConfig {..} = dynClasses
   [ pure $ Just "item"
---  , pure $ Just "link" -- FIXME
-  , pure $ toClassText <$> _menuItemColor
+  , fmap toClassText <$> _menuItemColor
+  , boolClass "disabled" _menuItemDisabled
   , boolClass "link" $ pure $ _menuItemLink == StyleLink
   ]
 
-data MenuItem t m v = forall b. MenuItem v (MenuItemConfig t) (m b)
+menuItem' :: MonadWidget t m => MenuItemConfig t -> m a -> m (El t, a)
+menuItem' config widget
+  = uiElement' "div" elConf widget
+  where (elTag, elConf) = itemElAttrs config
 
-data MenuItem' t m b = MenuItem' (MenuItemConfig t) (m b)
+menuItem :: MonadWidget t m => MenuItemConfig t -> m a -> m a
+menuItem c = fmap snd . menuItem' c
 
 itemElAttrs :: Reflex t => MenuItemConfig t -> (Text, ActiveElConfig t)
 itemElAttrs conf@MenuItemConfig{..} = case _menuItemLink of
@@ -122,7 +119,6 @@ itemElAttrs conf@MenuItemConfig{..} = case _menuItemLink of
   _ -> ("div", elConf)
   where elConf = _menuItemElConfig <> def
           { _classes = menuItemConfigClasses conf }
-
 
 {-
 data Menu f t m v b = Menu

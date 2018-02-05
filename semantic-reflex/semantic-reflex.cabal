@@ -47,6 +47,7 @@ library
     Reflex.Dom.SemanticUI.Message
     Reflex.Dom.SemanticUI.Paragraph
     Reflex.Dom.SemanticUI.RadioGroup
+    Reflex.Dom.SemanticUI.Rail
     Reflex.Dom.SemanticUI.Segment
     Reflex.Dom.SemanticUI.Sticky
     Reflex.Dom.SemanticUI.Table

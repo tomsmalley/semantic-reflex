@@ -28,6 +28,7 @@ import Reflex.Dom.SemanticUI.Menu       as Components
 import Reflex.Dom.SemanticUI.Message    as Components
 import Reflex.Dom.SemanticUI.Paragraph  as Components
 import Reflex.Dom.SemanticUI.RadioGroup as Components
+import Reflex.Dom.SemanticUI.Rail       as Components
 import Reflex.Dom.SemanticUI.Segment    as Components
 import Reflex.Dom.SemanticUI.Sticky     as Components
 import Reflex.Dom.SemanticUI.Table      as Components
