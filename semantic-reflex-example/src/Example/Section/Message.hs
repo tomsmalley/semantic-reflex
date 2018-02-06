@@ -24,7 +24,7 @@ import Example.QQ
 import Example.Common
 
 messages :: forall t m. MonadWidget t m => Section t m
-messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collections/message.html") $ do
+messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/message.html") $ do
 
   hscode $(printDefinition id stripParens ''MessageConfig)
   hscode $(printDefinition oneline id ''MessageType)
@@ -71,7 +71,7 @@ messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collecti
     let config = def
           & messageDismissable ?~ Transition Fade
               (def & transitionDuration .~ 0.2)
-          & transition ?~ (def & transConfigEvent .~ (Transition Instant
+          & action ?~ (def & actionEvent ?~ (Transition Instant
               (def & transitionDirection ?~ In) <$ resetEvent))
     message config $ do
       header def $ text "Welcome back!"
@@ -106,7 +106,7 @@ messages = LinkedSection "Message" (simpleLink "https://semantic-ui.com/collecti
     paragraph $ do
       icon "help" def
       text "Already signed up? "
-      httpLink "#" $ text "Login here"
+      hyperlink "#" $ text "Login here"
       text " instead."
   |]
 

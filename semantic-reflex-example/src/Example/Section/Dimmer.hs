@@ -18,7 +18,7 @@ import Example.QQ
 import Example.Common
 
 dimmers :: forall t m. MonadWidget t m => Section t m
-dimmers = LinkedSection "Dimmer" (text "A dimmers hides distractions to focus attention on particular content") $ do
+dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attention on particular content") $ do
 
   hscode $ $(printDefinition id stripParens ''DimmerConfig)
 

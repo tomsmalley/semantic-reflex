@@ -20,7 +20,7 @@ import Example.QQ
 import Example.Common
 
 labels :: forall t m. MonadWidget t m => Section t m
-labels = LinkedSection "Label" blank $ do
+labels = Section "Label" blank $ do
 
   hscode $ $(printDefinition id stripParens ''LabelConfig)
 
@@ -77,14 +77,14 @@ labels = LinkedSection "Label" blank $ do
   mkExample "Corner" (def
     & subtitle ?~ text "A label can position itself in the corner or an element")
     [example|
-  let conf = def & imageSpaced |?~ Spaced & imageShape |?~ Rounded
+  let conf = def & imageShape |?~ Rounded
                  & style |~ Style ("overflow" =: "hidden")
 
   contentImage "images/animals/flamingo.png" conf $
     label (def & labelCorner |?~ LeftCorner
                & labelColor |?~ Pink
                & labelLink .~ True) $ icon "heart" def
-
+  divider $ def & dividerHidden |~ True
   contentImage "images/animals/shark.png" conf $
     label (def & labelCorner |?~ RightCorner
                & labelColor |?~ Blue
@@ -187,15 +187,15 @@ labels = LinkedSection "Label" blank $ do
   mkExample "Floating" (def
     & subtitle ?~ text "A label can float above another element")
     [example|
---  menu (mkMenuConfig Nothing & compact .~ True) $ do
---    menuItem (1 :: Int) def $ do
+  segments (def & segmentsCompact |~ True) $ do
+    segment def $ do
       icon "mail" def
       text "Messages"
       label (def & labelFloating |~ True & labelColor |?~ Red) $ text "22"
---    menuItem 2 def $ do
---      icon "users" def
---      text "Friends"
---      label (def & labelFloating |~ True & labelColor |?~ Teal) $ text "14"
+    segment def $ do
+      icon "users" def
+      text "Friends"
+      label (def & labelFloating |~ True & labelColor |?~ Teal) $ text "14"
   |]
 
   mkExample "Detail" (def
@@ -227,7 +227,7 @@ labels = LinkedSection "Label" blank $ do
             conf = def
               & labelColor |~ mColor
               & labelImage |~ True
-              & transition ?~ (def & transConfigEvent .~ (leftmost
+              & transition ?~ (def & transConfigEvent ?~ (leftmost
               [ Transition Instant (def & transitionDirection ?~ In) <$ resetEvent
               , Transition Scale (def & transitionDirection ?~ Out) <$ eClose
               ]))
@@ -252,7 +252,7 @@ labels = LinkedSection "Label" blank $ do
             conf = def
               & labelColor |~ mColor
               & labelImage |~ True
-              & transition ?~ (def & transConfigEvent .~ (leftmost
+              & action ?~ (def & actionEvent ?~ (leftmost
               [ Transition Instant (def & transitionDirection ?~ In) <$ resetEvent
               , Transition Scale (def & transitionDirection ?~ Out) <$ eClose
               ]))
@@ -273,6 +273,10 @@ labels = LinkedSection "Label" blank $ do
     )
 
   mkExample "Image" (def
+    & inbetween ?~ (message (def & messageType |?~ WarningMessage) $ do
+        paragraph $ do
+          icon "warning sign" def
+          text "Images must have a 'Spaced' attribute when inside labels or they will cause a line break." )
     & subtitle ?~ text "A label can include an image")
     [example|
   label def $ do
@@ -281,7 +285,7 @@ labels = LinkedSection "Label" blank $ do
     text "Kevin"
   label def $ do
     text "Billy"
-    image "images/animals/bug.png" $ def & imageShape |?~ Rounded
+    image "images/animals/bug.png" $ def & imageSpaced |?~ Spaced & imageShape |?~ Rounded
     text "Bug"
   label def $ do
     text "Dorothy"

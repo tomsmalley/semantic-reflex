@@ -20,15 +20,13 @@ import Example.QQ
 import Example.Common
 
 checkboxes :: forall t m. MonadWidget t m => Section t m
-checkboxes = LinkedSection "Checkbox" (simpleLink "https://semantic-ui.com/modules/checkbox.html") $ do
+checkboxes = Section "Checkbox" (simpleLink "https://semantic-ui.com/modules/checkbox.html") $ do
 
   message (def & messageType |?~ InfoMessage) $ paragraph $ do
     icon "announcement" def
     text "The implementation of the Checkbox module does not depend on the Semantic UI or jQuery Javascript libraries."
 
   paragraph $ text "Checkboxes consist of a label and a configuration."
-
-  hscode $(printDefinition id stripParens ''Checkbox)
 
   paragraph $ text "The configuration allows you to set the checkboxValue, indeterminate state, Semantic UI checkbox type, fitted property, and disabled state. The value and indeterminate states are separated into 'initial' and 'set' in order to disconnect them from the resultant dynamic values."
 
@@ -47,19 +45,19 @@ checkboxes = LinkedSection "Checkbox" (simpleLink "https://semantic-ui.com/modul
     & subtitle ?~ text "Standard checkbox styles")
     [resetExample|
   \resetEvent -> do
-    normal <- checkbox "Normal checkbox" $ def
+    normal <- checkbox (text "Normal checkbox") $ def
       & checkboxSetValue . event ?~ (False <$ resetEvent)
 
     divider $ def & dividerHidden |~ True
 
-    toggle <- checkbox "Toggle checkbox (checked by default)" $ def
+    toggle <- checkbox (text "Toggle checkbox (checked by default)") $ def
       & checkboxType |?~ Toggle
       & checkboxSetValue . event ?~ (True <$ resetEvent)
       & checkboxSetValue . initial .~ True
 
     divider $ def & dividerHidden |~ True
 
-    slider <- checkbox "Slider checkbox" $ def
+    slider <- checkbox (text "Slider checkbox") $ def
       & checkboxType |?~ Slider
       & checkboxSetValue . event ?~ (False <$ resetEvent)
 
@@ -79,17 +77,17 @@ checkboxes = LinkedSection "Checkbox" (simpleLink "https://semantic-ui.com/modul
 
     divider $ def & dividerHidden |~ True
 
-    normal <- checkbox "Initially disabled" $ def
+    normal <- checkbox (text "Initially disabled") $ def
       & checkboxSetValue . event ?~ (False <$ resetEvent)
-      & checkboxDisabled .~ Dynamic (fmap not enabled)
+      & checkboxDisabled .~ fmap not enabled
 
     divider $ def & dividerHidden |~ True
 
-    toggle <- checkbox "Initially disabled (checked by default)" $ def
+    toggle <- checkbox (text "Initially disabled (checked by default)") $ def
       & checkboxType |?~ Toggle
       & checkboxSetValue . event ?~ (True <$ resetEvent)
       & checkboxSetValue . initial .~ True
-      & checkboxDisabled .~ Dynamic (fmap not enabled)
+      & checkboxDisabled .~ fmap not enabled
 
     return $ traverse (view checkboxValue) [normal, toggle]
   |]
@@ -107,7 +105,7 @@ checkboxes = LinkedSection "Checkbox" (simpleLink "https://semantic-ui.com/modul
 
     divider $ def & dividerHidden |~ True
 
-    checkbox "Indeterminate" $ def
+    checkbox (text "Indeterminate") $ def
       & checkboxSetValue . event ?~ (True <$ resetEvent)
       & checkboxSetIndeterminate . event ?~ eIndeterminate
       & checkboxSetIndeterminate . initial .~ True
@@ -120,18 +118,18 @@ checkboxes = LinkedSection "Checkbox" (simpleLink "https://semantic-ui.com/modul
     [resetExample|
   \resetEvent -> do
     normal <- segment (def & segmentCompact |~ True)
-      $ checkbox "" $ def
+      $ checkbox blank $ def
         & checkboxFitted |~ True
         & checkboxSetValue . event ?~ (False <$ resetEvent)
 
     slider <- segment (def & segmentCompact |~ True)
-      $ checkbox "" $ def
+      $ checkbox blank $ def
         & checkboxFitted |~ True
         & checkboxType |?~ Toggle
         & checkboxSetValue . event ?~ (False <$ resetEvent)
 
     toggle <- segment (def & segmentCompact |~ True)
-      $ checkbox "" $ def
+      $ checkbox blank $ def
         & checkboxFitted |~ True
         & checkboxType |?~ Slider
         & checkboxSetValue . event ?~ (False <$ resetEvent)

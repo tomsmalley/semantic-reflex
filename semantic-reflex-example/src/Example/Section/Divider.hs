@@ -17,7 +17,7 @@ import Example.QQ
 import Example.Common
 
 dividers :: forall t m. MonadWidget t m => Section t m
-dividers = LinkedSection "Divider" (text "A divider visually segments content into groups") $ do
+dividers = Section "Divider" (text "A divider visually segments content into groups") $ do
 
   upstreamIssue 4342 "Vertical dividers are not exposed here due to them being broken upstream."
 

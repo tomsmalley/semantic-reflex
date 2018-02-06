@@ -21,8 +21,6 @@ import Reflex.Dom.SemanticUI
 import Reflex.Dom.Core (text)
 import GHC.Tuple
 
-import Data.Selectable
-
 import Example.QQ
 import Example.Common
 
@@ -32,8 +30,8 @@ data Favourite
   | Reflex
   deriving (Eq, Show)
 
-menu :: forall t m. MonadWidget t m => Section t m
-menu = LinkedSection "Menu" (text "A menu displays grouped navigation actions") $ do
+menuSection :: forall t m. MonadWidget t m => Section t m
+menuSection = Section "Menu" (text "A menu displays grouped navigation actions") $ do
 
   paragraph $ text "In Semantic UI menus are just exposed as styling elements and any active state must be managed by you. Here the state is managed for you."
 

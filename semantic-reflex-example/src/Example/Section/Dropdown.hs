@@ -10,15 +10,8 @@
 
 module Example.Section.Dropdown where
 
-{-
-import GHC.Tuple -- TH requires this for (,)
-import Data.Semigroup ((<>))
-import Data.Text (Text)
-import qualified Data.Text as T
-
--}
 import Control.Lens
-import Control.Monad ((<=<), void)
+import Control.Monad ((<=<), void, join)
 import Data.Foldable (for_)
 import Data.Text (Text)
 import Reflex.Dom.SemanticUI
@@ -35,41 +28,36 @@ import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
 
 dropdowns :: MonadWidget t m => Section t m
-dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/modules/dropdown.html") $ do
+dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/dropdown.html") $ do
 
   hscode $(printDefinition id stripParens ''DropdownConfig)
 
   pageHeader H3 def $ text "Dropdown"
 
-  mkExample "Dropdown" (def
+  mkExample "Static or Dynamic Dropdown" (def
     & dynamic ?~ dynCode
-    & subtitle ?~ text "A standard dropdown")
+    & subtitle ?~ text "A dropdown with lots of items. Note that the dynamic list takes a few times longer to load than the static list.")
     [resetExample|
   \resetEvent -> do
-    let countries = [minBound .. maxBound] :: [CountryEnum]
-        render = pure $ M.fromList
-          [ (c, flag (pure $ T.toLower $ tshow c) def >> text (countryText c))
-          | c <- countries ]
-    dropdown def Nothing render
-  |]
+    on <- toggle True <=< button def $ text "Toggle"
 
-  --search = pure $ [ (countryText c, c) | c <- countries ]
-  --             <> [ (tshow c, c) | c <- countries ]
+    let items = [1 .. 1000] :: [Int]
+        render = M.fromList [ (i, text $ tshow i) | i <- items ]
 
-  mkExample "Dropdown" (def
-    & dynamic ?~ dynCode
-    & subtitle ?~ text "A standard dropdown")
-    [resetExample|
-  \resetEvent -> do
-    dropdown def Nothing $ pure $ 1 =: (text "one") <> 2 =: (text "two")
-  |]
+    e <- dyn $ ffor on $ \o -> case o of
+      True -> dropdown (def & dropdownPlaceholder |~ "Static") Nothing $
+        Static render
+      False -> dropdown (def & dropdownPlaceholder |~ "Dynamic") Nothing $
+        Dynamic $ pure render
+    join <$> holdDyn (pure Nothing) e
+      |]
 
   mkExample "Dropdown" (def
     & dynamic ?~ dynCode
     & subtitle ?~ text "A standard dropdown")
     [resetExample|
   \resetEvent -> do
-    dropdown def (Just 1) $ pure $ 1 =: (text "one") <> 2 =: (text "two")
+    dropdown def (Just 1) $ Static $ 1 =: (text "one") <> 2 =: (text "two")
   |]
 
   mkExample "Dropdown" (def
@@ -77,7 +65,7 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
     & subtitle ?~ text "A standard dropdown")
     [resetExample|
   \resetEvent -> do
-    dropdown def (Identity 1) $ pure $ 1 =: (text "one") <> 2 =: (text "two")
+    dropdown def (Identity 1) $ Static $ 1 =: (text "one") <> 2 =: (text "two")
   |]
 
   mkExample "Dropdown" (def
@@ -85,7 +73,7 @@ dropdowns = LinkedSection "Dropdown" (simpleLink "https://semantic-ui.com/module
     & subtitle ?~ text "A standard dropdown")
     [resetExample|
   \resetEvent -> do
-    dropdown def [2] $ pure $ 1 =: (text "one") <> 2 =: (text "two")
+    dropdown def [2] $ Static $ 1 =: (text "one") <> 2 =: (text "two")
   |]
 
 {-

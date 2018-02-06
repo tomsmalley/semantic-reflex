@@ -21,7 +21,7 @@ import Example.QQ
 import Example.Common
 
 inputs :: forall t m. MonadWidget t m => Section t m
-inputs = LinkedSection "Input" (text "An input is a field used to elicit a response from a user " >> simpleLink "https://semantic-ui.com/elements/input.html") $ do
+inputs = Section "Input" (text "An input is a field used to elicit a response from a user " >> simpleLink "https://semantic-ui.com/elements/input.html") $ do
 
   hscode $ $(printDefinition id stripParens ''InputConfig)
   hscode $ $(printDefinition id stripParens ''TextInputConfig)
@@ -44,14 +44,14 @@ inputs = LinkedSection "Input" (text "An input is a field used to elicit a respo
 
   divider $ def & dividerHidden |~ True
 
-  input (def & inputLoading .~ Dynamic isLoading
+  input (def & inputLoading .~ isLoading
              & inputIcon |?~ LeftIcon) $ do
     icon "search" def
     textInput $ def & textInputPlaceholder |~ "Search..."
 
   divider $ def & dividerHidden |~ True
 
-  input (def & inputLoading .~ Dynamic isLoading
+  input (def & inputLoading .~ isLoading
              & inputIcon |?~ RightIcon) $ do
     icon "search" def
     textInput $ def & textInputPlaceholder |~ "Search..."

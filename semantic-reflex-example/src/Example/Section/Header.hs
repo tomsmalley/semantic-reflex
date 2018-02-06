@@ -31,7 +31,7 @@ predMaybe a
   | otherwise = Just $ pred a
 
 headers :: MonadWidget t m => Section t m
-headers = LinkedSection "Header" (simpleLink "https://semantic-ui.com/elements/header.html") $ do
+headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.html") $ do
 
   hscode $(printDefinition id stripParens ''HeaderConfig)
 
@@ -61,7 +61,7 @@ headers = LinkedSection "Header" (simpleLink "https://semantic-ui.com/elements/h
       foldDyn (\f a -> fromMaybe a $ f a) Medium $
         leftmost [ succMaybe <$ plus, predMaybe <$ minus, const (Just Medium) <$ resetEvent ]
 
-    segment (def & segmentSize .~ Dynamic (Just <$> dSize)) $ do
+    segment (def & segmentSize .~ (Just <$> dSize)) $ do
       header (def & headerSize |?~ H1) $ text "First Header"
       header (def & headerSize |?~ H2) $ text "Second Header"
       header (def & headerSize |?~ H3) $ text "Third Header"
@@ -90,7 +90,7 @@ headers = LinkedSection "Header" (simpleLink "https://semantic-ui.com/elements/h
     & subtitle ?~ text "A header may be formatted to label smaller or de-emphasised content")
     [example|
   list (def & listHorizontal |~ True) $ do
-    let animal name = Image ("images/animals/" <> name <> ".png") $ def
+    let animal name = Image (pure $ "images/animals/" <> name <> ".png") $ def
           & imageSize |?~ Mini & imageShape |?~ Circular
 
     listItem (def & listItemImage ?~ animal "bat") $ do

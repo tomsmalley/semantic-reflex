@@ -6,33 +6,43 @@
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
 
 module Example.Section.RadioGroup where
 
-{-
 import Control.Lens
 import Control.Monad ((<=<), void, when, join)
 import Data.Text (Text)
-import qualified Data.Text as T
-import Example.QQ
--}
 import Reflex.Dom.SemanticUI
+import Reflex.Dom.Core
 
+import qualified Data.Map as M
+import qualified Data.Text as T
+
+import Example.QQ
+import Example.CountryEnum
 import Example.Common
 
 radioGroups :: forall t m. MonadWidget t m => Section t m
-radioGroups = LinkedSection "Radio Group" blank $ do
-
-  {-
-
-  hscode $ $(printDefinition id stripParens ''RadioGroup)
-  hscode $ $(printDefinition id stripParens ''RadioGroupConfig)
-  hscode $ $(printDefinition id stripParens ''RadioItem)
-  hscode $ $(printDefinition id stripParens ''RadioItemConfig)
+radioGroups = Section "Radio Group" blank $ do
 
   divClass "ui two column stackable grid" $ do
     divClass "row" $ do
 
+      divClass "column" $ do
+        mkExample "Radio group" (def
+          & dynamic ?~ dynCode
+          & subtitle ?~ text "")
+          [resetExample|
+        \resetEvent -> do
+          let countries = [minBound .. maxBound] :: [CountryEnum]
+              render = pure $ M.fromList
+                [ (c, flag (pure $ T.toLower $ tshow c) def >> text (countryText c))
+                | c <- countries ]
+          radioGroup "test" (def :: RadioGroupConfig t Maybe CountryEnum) render
+        |]
+
+{-
       divClass "column" $ do
         exampleCardDyn dynCode "Radio group" "" [mkExample|
         \resetEvent -> do
@@ -52,7 +62,7 @@ radioGroups = LinkedSection "Radio Group" blank $ do
                 & setValue .~ (Just Unmetered <$ resetEvent)
                 & altType ?~ Slider
         |]
-  -}
+-}
 
   return ()
 

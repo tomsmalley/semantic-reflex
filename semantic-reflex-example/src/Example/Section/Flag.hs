@@ -20,19 +20,19 @@ import Example.Common
 import Example.CountryEnum
 
 flags :: MonadWidget t m => Section t m
-flags = LinkedSection "Flag" (text "A flag is used to represent a political state") $ do
+flags = Section "Flag" (text "A flag is used to represent a political state") $ do
 
   paragraph $ do
     text "For available flag types, see "
     let url = "https://semantic-ui.com/elements/flag.html"
-    hyperlink (pure $ Just url) (pure "the Semantic UI docs")
+    hyperlink url $ text "the Semantic UI docs"
     text "."
 
   mkExample "Flag" (def
     & subtitle ?~ text "A flag can use the two digit country code, the full name, or a common alias")
     [example|
   for_ [minBound .. maxBound :: CountryEnum] $
-    flip flag def . Static . T.toLower . T.pack . show
+    flip flag def . pure . T.toLower . T.pack . show
   |]
 
   return ()

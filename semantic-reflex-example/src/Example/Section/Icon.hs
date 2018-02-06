@@ -18,7 +18,7 @@ import Example.QQ
 import Example.Common
 
 iconSection :: MonadWidget t m => Section t m
-iconSection = LinkedSection "Icon" blank $ do
+iconSection = Section "Icon" blank $ do
 
   hscode $ $(printDefinition id stripParens ''IconConfig)
   hscode $ $(printDefinition id stripParens ''IconsConfig)

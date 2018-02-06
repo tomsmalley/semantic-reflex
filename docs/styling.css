@@ -43,7 +43,7 @@
 }
 @media only screen and (max-width: 992px) {
   #main.container > .right.rail {
-    display: none;
+    position: relative;
   }
   #main.container , #masthead > .container {
     margin-left: 1em !important;

@@ -51,7 +51,9 @@ library
     , lens            >= 4.15.2
     , mtl
     , reflex-dom-core >= 0.4 && < 0.5
+    , reflex-dom-nested-routing
     , semantic-reflex
+    , transformers
     , text
 
     -- For example code generation
@@ -63,9 +65,9 @@ library
 
   if impl(ghcjs)
     build-depends: ghcjs-base
+    cpp-options: -DGHCJS_GC_INTERVAL=60000
 
   ghc-options: -Wall -Wno-unused-do-bind -Wno-type-defaults
---  cpp-options: -D_GHCJS_ -DGHCJS_GC_INTERVAL=60000
 
   default-language:    Haskell2010
 
@@ -74,7 +76,7 @@ executable semantic-reflex-example
   hs-source-dirs: .
   default-language: Haskell2010
   build-depends:
-      base            >= 4.8 && < 4.10
+      base >= 4.8 && < 4.10
     , semantic-reflex-example
   if !impl(ghcjs)
     build-depends:
@@ -84,3 +86,5 @@ executable semantic-reflex-example
   ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
   if impl(ghcjs)
     ghc-options: -dedupe
+    cpp-options: -DGHCJS_GC_INTERVAL=60000
+

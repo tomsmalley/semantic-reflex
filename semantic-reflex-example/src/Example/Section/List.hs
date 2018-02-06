@@ -21,7 +21,7 @@ import Example.Common
 data Files a = File a | Folder a [Files a]
 
 lists :: MonadWidget t m => Section t m
-lists = LinkedSection "List" (text "A list is used to group related content" >> simpleLink "https://semantic-ui.com/elements/list.html") $ do
+lists = Section "List" (text "A list is used to group related content. " >> simpleLink "https://semantic-ui.com/elements/list.html") $ do
 
   hscode $(printDefinition id stripParens ''ListConfig)
   hscode $(printDefinition id stripParens ''ListItemConfig)
@@ -95,7 +95,7 @@ lists = LinkedSection "List" (text "A list is used to group related content" >> 
     listItem def $ do
       text "Benefits"
       list def $ do
-        listItem def $ httpLink "" $ text "Link to somewhere"
+        listItem def $ hyperlink "" $ text "Link to somewhere"
         listItem def $ text "Rebates"
         listItem def $ text "Discounts"
     listItem def $ text "Warranty"
@@ -104,24 +104,24 @@ lists = LinkedSection "List" (text "A list is used to group related content" >> 
   mkExample "" def
     [example|
   list (def & listType |?~ Bulleted & listHorizontal |~ True) $ do
-    listItem def $ httpLink "#" $ text "About Us"
-    listItem def $ httpLink "#" $ text "Sitemap"
-    listItem def $ httpLink "#" $ text "Contact"
+    listItem def $ hyperlink "#" $ text "About Us"
+    listItem def $ hyperlink "#" $ text "Sitemap"
+    listItem def $ hyperlink "#" $ text "Contact"
   |]
 
   mkExample "Ordered" (def
     & subtitle ?~ text "A list can be ordered numerically")
     [example|
   list (def & listType |?~ Ordered) $ do
-    listItem def $ httpLink "#" $ text "Getting Started"
-    listItem def $ httpLink "#" $ text "Introduction"
+    listItem def $ hyperlink "#" $ text "Getting Started"
+    listItem def $ hyperlink "#" $ text "Introduction"
     listItem def $ do
-      httpLink "#" $ text "Languages"
+      hyperlink "#" $ text "Languages"
       list def $ do
-        listItem def $ httpLink "#" $ text "HTML"
-        listItem def $ httpLink "#" $ text "Javascript"
-        listItem def $ httpLink "#" $ text "CSS"
-    listItem def $ httpLink "#" $ text "Review"
+        listItem def $ hyperlink "#" $ text "HTML"
+        listItem def $ hyperlink "#" $ text "Javascript"
+        listItem def $ hyperlink "#" $ text "CSS"
+    listItem def $ hyperlink "#" $ text "Review"
   |]
 
   mkExample "Value" (def
@@ -176,23 +176,23 @@ lists = LinkedSection "List" (text "A list is used to group related content" >> 
           & imageShape |?~ Avatar
 
     listItem (def & listItemImage ?~ animalImage "fox") $ do
-      listHeader $ httpLink "#" $ text "Fiona"
+      listHeader $ hyperlink "#" $ text "Fiona"
       listDescription $ text "Last seen rummaging through the bins just now."
 
     listItem (def & listItemImage ?~ animalImage "elephant") $ do
-      listHeader $ httpLink "#" $ text "Ethan"
+      listHeader $ hyperlink "#" $ text "Ethan"
       listDescription $ text "Last seen playing in the water 2 hours ago."
 
     listItem (def & listItemImage ?~ animalImage "monkey") $ do
-      listHeader $ httpLink "#" $ text "Marcus"
+      listHeader $ hyperlink "#" $ text "Marcus"
       listDescription $ text "Last seen swinging on his tyre yesterday."
 
     listItem (def & listItemImage ?~ animalImage "giraffe") $ do
-      listHeader $ httpLink "#" $ text "Ginny"
+      listHeader $ hyperlink "#" $ text "Ginny"
       listDescription $ text "Last seen nibbling on a tree 3 days ago."
 
     listItem (def & listItemImage ?~ animalImage "spider") $ do
-      listHeader $ httpLink "#" $ text "Stanley"
+      listHeader $ hyperlink "#" $ text "Stanley"
       listDescription $ text "Last seen spooking people a week ago."
   |]
 
@@ -234,11 +234,11 @@ lists = LinkedSection "List" (text "A list is used to group related content" >> 
   list def $ do
 
     listItem (def & listItemIcon ?~ Icon "map marker" def) $ do
-      listHeader $ httpLink "#" $ text "Krolewskie Jadlo"
+      listHeader $ hyperlink "#" $ text "Krolewskie Jadlo"
       listDescription $ text "An excellent polish restaurant, quick delivery and hearty, filling meals."
 
     listItem (def & listItemIcon ?~ Icon "map marker" def) $ do
-      listHeader $ httpLink "#" $ text "Sapporo Haru"
+      listHeader $ hyperlink "#" $ text "Sapporo Haru"
       listDescription $ text "Greenpoint's best choice for quick and delicious sushi."
   |]
 

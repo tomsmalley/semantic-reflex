@@ -21,11 +21,10 @@ import Example.QQ
 import Example.Common
 
 buttonSection :: forall t m. MonadWidget t m => Section t m
-buttonSection = LinkedSection "Button" (text "") $ do
+buttonSection = Section "Button" (text "") $ do
 
   paragraph $ text ""
 
-  --hscode $(printDefinition id stripParens ''Button)
   hscode $(printDefinition id stripParens ''ButtonConfig)
 
   pageHeader H3 def $ text "Types"
@@ -160,13 +159,13 @@ buttonSection = LinkedSection "Button" (text "") $ do
   stop <- button def $ text "Stop"
   isLoading <- holdDyn True $ leftmost [True <$ start, False <$ stop]
   divider (def & dividerHidden |~ True)
-  button (def & buttonLoading .~ Dynamic isLoading) $ text "Loaded"
+  button (def & buttonLoading .~ isLoading) $ text "Loaded"
   button (def & buttonBasic |~ True
-              & buttonLoading .~ Dynamic isLoading) $ text "Loaded"
+              & buttonLoading .~ isLoading) $ text "Loaded"
   button (def & buttonEmphasis |?~ Primary
-              & buttonLoading .~ Dynamic isLoading) $ text "Loaded"
+              & buttonLoading .~ isLoading) $ text "Loaded"
   button (def & buttonEmphasis |?~ Secondary
-              & buttonLoading .~ Dynamic isLoading) $ text "Loaded"
+              & buttonLoading .~ isLoading) $ text "Loaded"
   |]
 
   mkExample "Social" (def
@@ -224,12 +223,11 @@ buttonSection = LinkedSection "Button" (text "") $ do
         text "Semantic UI has some sneaky javascript that gives state to anything with a 'toggle' class. Here you must deal with state explicitly."))
     ([str|
   \resetEvent -> do
-    rec let conf = def & emphasis .~ Dynamic (bool (Just Primary) Nothing <$> on)
+    rec let conf = def & buttonEmphasis .~ (bool Nothing (Just Primary) <$> on)
         on <- toggle False <=< button conf $ text "Toggle"
     return on
   |], Left $ do
-    rec let conf = def & buttonEmphasis .~ Dynamic
-              (bool Nothing (Just Primary) <$> on)
+    rec let conf = def & buttonEmphasis .~ (bool Nothing (Just Primary) <$> on)
         on <- toggle False <=< button conf $ text "Toggle"
     return on
     )

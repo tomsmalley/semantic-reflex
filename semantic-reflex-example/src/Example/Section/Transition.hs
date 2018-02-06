@@ -22,8 +22,8 @@ spaceBeforeUpper (c:cs)
   | isUpper c = ' ' : c : spaceBeforeUpper cs
   | otherwise = c : spaceBeforeUpper cs
 
-animalUrl :: Text -> Active t Text
-animalUrl a = Static $ "images/animals/" <> a <> ".png"
+animalUrl :: Reflex t => Text -> Dynamic t Text
+animalUrl a = pure $ "images/animals/" <> a <> ".png"
 
 mkButton :: MonadWidget t m => TransitionType
          -> m (Event t Transition)
@@ -39,10 +39,10 @@ mkImages animal evt = do
         & imageSize |?~ Small & imageShape |?~ Rounded & imageInline |~ True
   image (animalUrl animal) $ imgConfig
     & imageSpaced |?~ RightSpaced
-    & transition ?~ (def & transConfigEvent .~ evt)
+    & action ?~ (def & actionEvent ?~ evt)
   image (animalUrl animal) $ imgConfig
     & imageSpaced |?~ LeftSpaced
-    & transition ?~ (def & transConfigEvent .~ fmap (\(Transition t c) -> Transition t $ c & transitionCancelling .~ True) evt)
+    & action ?~ (def & actionEvent ?~ fmap (\(Transition t c) -> Transition t $ c & transitionCancelling .~ True) evt)
 
 mkButtons :: MonadWidget t m => Text -> [TransitionType] -> m ()
 mkButtons _ [] = return ()
@@ -57,7 +57,7 @@ mkButtons animal types = do
           & buttonsSize |?~ Small
 
 transitions :: MonadWidget t m => Section t m
-transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/modules/transition.html") $ do
+transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/transition.html") $ do
 
   message (def & messageType |?~ InfoMessage) $ paragraph $ do
     icon "announcement" def
@@ -88,7 +88,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         image (animalUrl animal) $ def
           & imageSize |?~ Small
           & imageShape |?~ Rounded
-          & transition ?~ (def & transConfigEvent .~ (Animation anim def <$ run))
+          & action ?~ (def & actionEvent ?~ (Animation anim def <$ run))
   |]
 
   mkExample "Cancelling Animations" (def
@@ -102,7 +102,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
         image (animalUrl animal) $ def
           & imageSize |?~ Small
           & imageShape |?~ Rounded
-          & transition ?~ (def & transConfigEvent .~ (Animation anim (def & transitionCancelling .~ True) <$ run))
+          & action ?~ (def & actionEvent ?~ (Animation anim (def & transitionCancelling .~ True) <$ run))
   |]
 
   mkExample "Transitions" (def
@@ -123,7 +123,7 @@ transitions = LinkedSection "Transition" (simpleLink "https://semantic-ui.com/mo
   image (animalUrl "crocodile") $ def
     & imageSize |?~ Small
     & imageShape |?~ Rounded
-    & transition ?~ (def & transConfigEvent .~ eTransition)
+    & action ?~ (def & actionEvent ?~ eTransition)
   |]
 
   mkExample "Scale" (def

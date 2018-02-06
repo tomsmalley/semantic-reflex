@@ -12,6 +12,7 @@
 module Example.Common where
 
 import Control.Lens
+import Control.Monad.Fix (MonadFix)
 import Control.Monad ((<=<), void)
 import Data.Bool (bool)
 import Data.Default
@@ -20,11 +21,14 @@ import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
-import Reflex.Dom.Core hiding (button)
 
 import Example.QQ
 
-data Section t m = LinkedSection Text (m ()) (m ())
+data Section t m = Section
+  { sectionHeader :: Text
+  , sectionDetail :: m ()
+  , sectionContent :: m ()
+  }
 
 removableWidget :: MonadWidget t m => Event t () -> m (Event t ()) -> m ()
 removableWidget restore widget = do
@@ -33,6 +37,46 @@ removableWidget restore widget = do
         , widget <$ restore
         ]
   return ()
+
+data CountWithLast a = NotFired | Fired Int a deriving (Eq, Show)
+countWithLast
+  :: (Reflex t, MonadHold t m, MonadFix m)
+  => Event t a -> m (Dynamic t (CountWithLast a))
+countWithLast = holdDyn NotFired <=< zipListWithEvent Fired [1..]
+
+class DynShow t a where
+  dynShow :: (Reflex t, MonadHold t m, MonadFix m) => a -> m (Dynamic t String)
+
+instance DynShow t (Checkbox t) where
+  dynShow Checkbox {..} = do
+    change <- countWithLast _checkboxChange
+    pure $ mconcat
+      [ pure "Checkbox"
+      , (("\n  { _checkboxValue = " <>) . show) <$> _checkboxValue
+      , (("\n  , _checkboxChange = " <>) . show) <$> change
+      , (("\n  , _checkboxIsIndeterminate = " <>) . show)
+        <$> _checkboxIsIndeterminate
+      , (("\n  , _checkboxHasFocus = " <>) . show) <$> _checkboxHasFocus
+      , pure "\n  }"
+      ]
+
+instance DynShow t (TextInput t) where
+  dynShow TextInput {..} = do
+    input <- countWithLast _textInput_input
+    keypress <- countWithLast _textInput_keypress
+    keydown <- countWithLast _textInput_keydown
+    keyup <- countWithLast _textInput_keyup
+    pure $ mconcat
+      [ pure "TextInputResult"
+      , (("\n  { _textInput_value = " <>) . show) <$> _textInput_value
+      , (("\n  , _textInput_input = " <>) . show) <$> input
+      , (("\n  , _textInput_keypress = " <>) . show) <$> keypress
+      , (("\n  , _textInput_keydown = " <>) . show) <$> keydown
+      , (("\n  , _textInput_keyup = " <>) . show) <$> keyup
+      , (("\n  , _textInput_hasFocus = " <>) . show) <$> _textInput_hasFocus
+      , pure "\n  }"
+      ]
+
 
 dynShowCode :: (MonadWidget t m, DynShow t a) => a -> m ()
 dynShowCode a = do
@@ -43,7 +87,7 @@ dynCode :: (MonadWidget t m, Show a) => Dynamic t a -> m ()
 dynCode d = void $ dyn $ hscode . show <$> d
 
 simpleLink :: MonadWidget t m => Text -> m ()
-simpleLink url = void $ hyperlink (pure $ pure url) (Static url)
+simpleLink url = void $ hyperlink url $ text url
 
 orElse :: a -> a -> Bool -> a
 orElse a _ True = a
@@ -67,8 +111,7 @@ upstreamIssue :: MonadWidget t m => Int -> Text -> m ()
 upstreamIssue issue msg = message def $ paragraph $ do
   icon "warning sign" def
   text msg
-  elAttr "a" ("href" =: url) $
-    image (Static shield) $ def & imageFloated |?~ RightFloated
+  hyperlink url $ image (pure shield) $ def & imageFloated |?~ RightFloated
   where
     shield = "https://img.shields.io/github/issues/detail/s/"
           <> "Semantic-Org/Semantic-UI/" <> tshow issue <> ".svg?maxAge=2592000"
@@ -111,8 +154,8 @@ mkExample name ExampleConf {..} (code, eitherWidget)
         & classes |~ addClass c "flex"
         & segmentBasic |~ True
         & segmentClearing |~ True
-        & segmentPadded .~ Dynamic codeIsOpen
-        & segmentAttached .~ Dynamic (bool Nothing (Just a) <$> codeIsOpen)
+        & segmentPadded .~ codeIsOpen
+        & segmentAttached .~ (bool Nothing (Just a) <$> codeIsOpen)
 
   -- Widget segment
   widgetResult <- segment (flexConfig TopAttached "widget") $
@@ -127,9 +170,9 @@ mkExample name ExampleConf {..} (code, eitherWidget)
 
   -- Code segment
   let codeConfig evt = def
-        & transition ?~ (def
-          & transConfigEvent .~ fmap mkTransition evt
-          & transConfigInitialDirection .~ Out)
+        & action ?~ (def
+          & actionEvent ?~ fmap mkTransition evt
+          & actionInitialDirection .~ Out)
         & segmentAttached |?~ BottomAttached
       mkTransition t = Transition Instant $ def
         & transitionDirection ?~ bool Out In t

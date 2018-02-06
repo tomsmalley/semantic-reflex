@@ -33,19 +33,24 @@ mymode = Exts.defaultParseMode
                           ++ Exts.infixl_ 8 ["^?", "^."]
                           ++ Exts.infixr_ 4 ["%~", ".~", "?~", "|~", "|?~"]
                           ++ Exts.infixl_ 1 ["&"]
-    , Exts.extensions = Exts.EnableExtension <$>
-      [ Exts.ExistentialQuantification
-      , Exts.TypeFamilies
-      , Exts.ExplicitForAll
-      , Exts.DataKinds
-      , Exts.LambdaCase
-      , Exts.GADTs
-      , Exts.MultiParamTypeClasses
-      , Exts.RecordWildCards
-      , Exts.RecursiveDo
-      , Exts.ScopedTypeVariables
-      ]
+    , Exts.extensions = Exts.EnableExtension <$> exts
     }
+
+exts :: [Exts.KnownExtension]
+exts
+  = [ Exts.ExistentialQuantification
+  , Exts.TypeFamilies
+  , Exts.TypeApplications
+  , Exts.ExplicitForAll
+  , Exts.DataKinds
+  , Exts.LambdaCase
+  , Exts.GADTs
+  , Exts.MultiParamTypeClasses
+  , Exts.RecordWildCards
+  , Exts.RecursiveDo
+  , Exts.ScopedTypeVariables
+  ]
+
 -- | Pretty print the definition of a haskell type
 printDefinition :: (String -> String) -> (String -> String) -> Name -> ExpQ
 printDefinition postproc preproc name = do
@@ -53,10 +58,9 @@ printDefinition postproc preproc name = do
   let
     mode = Exts.defaultParseMode
       { Exts.baseLanguage = Exts.Haskell2010
-      , Exts.extensions = Exts.EnableExtension <$>
-        [Exts.ExistentialQuantification, Exts.TypeFamilies, Exts.ExplicitForAll, Exts.DataKinds, Exts.GADTs, Exts.MultiParamTypeClasses, Exts.RecordWildCards, Exts.RecursiveDo]
+      , Exts.extensions = Exts.EnableExtension <$> exts
       }
-    style' = Exts.style { Exts.lineLength = 600, Exts.ribbonsPerLine = 1 }
+    style' = Exts.style { Exts.lineLength = 9999, Exts.ribbonsPerLine = 1 }
     parse = Exts.parseDeclWithMode mode . stripForAll . stripTypes . stripNumbers . stripModules . preproc . pprint
     prettyPrint = postproc . newlines . Exts.prettyPrintStyleMode style' Exts.defaultMode
     pp = prettyPrint . Exts.fromParseResult . parse $ info
@@ -68,11 +72,11 @@ printDefinition postproc preproc name = do
       fail str'
 
 hscode :: MonadWidget t m => String -> m ()
-hscode = void . elActiveAttr "code" (Static $ "class" =: "haskell")
+hscode = void . elAttr "code" ("class" =: "haskell")
        . elDynHtml' "pre" . constDyn . hscolour
 
 hsCodeInline :: MonadWidget t m => String -> m ()
-hsCodeInline = void . elActiveAttr "code" (Static $ "class" =: "haskell inline")
+hsCodeInline = void . elAttr "code" ("class" =: "haskell inline")
              . elDynHtml' "pre" . constDyn . hscolour
 
 hscolour :: String -> Text

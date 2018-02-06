@@ -1,19 +1,15 @@
 docs: ghcjs
 	chmod -R +w docs
-	cp -r result/dist/js docs
-	cp result/dist/semantic.min.css docs
-	cp -r result/dist/themes docs
-	cp -r semantic-reflex-example/resources/* docs
+	nix-shell -p closurecompiler --run 'closure-compiler \
+		--js_output_file docs/js/all.js \
+		--externs=./result/bin/semantic-reflex-example.jsexe/all.js.externs \
+		./result/bin/semantic-reflex-example.jsexe/all.js \
+		--jscomp_off=checkVars \
+		-O ADVANCED -W QUIET'
 
-docs-nocc: ghcjs-nocc
+docs-nocc: ghcjs
 	chmod -R +w docs
-	cp -r result/dist/js docs
-	cp result/dist/semantic.min.css docs
-	cp -r result/dist/themes docs
-	cp -r semantic-reflex-example/resources/* docs
+	cp ./result/bin/semantic-reflex-example.jsexe/all.js docs/js/all.js
 
 ghcjs: semantic-reflex semantic-reflex-example
 	nix-build --attr ghcjs.semantic-reflex-example
-
-ghcjs-nocc: semantic-reflex semantic-reflex-example
-	nix-build --attr ghcjs.semantic-reflex-example --arg runCC false

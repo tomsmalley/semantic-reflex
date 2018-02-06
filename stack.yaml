@@ -4,3 +4,5 @@ system-ghc: true
 packages:
 - location: semantic-reflex
 - location: semantic-reflex-example
+
+extra-deps:
