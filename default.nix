@@ -1,5 +1,3 @@
-{ runCC ? true }:
-
 (import ./reflex-platform {}).project ({ pkgs, ... }: {
   packages = {
     semantic-reflex = ./semantic-reflex;

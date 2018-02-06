@@ -1,30 +1,20 @@
-# Introduction
+# Semantic UI for Reflex Dom
 
-This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the reflex-dom-semui library.
+This library aims to provide a type safe Haskell reimplementation of Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It started as a fork of the reflex-dom-semui library.
+
+There are no dependencies on upstream JavaScript (either Semantic-UI or jQuery).
 
 ## Building
 
-To work on the library use nix-shell and cabal, or nix-build. For GHC:
+The library uses the `project` implementation of `reflex-platform`.
 
-    $ nix-shell --attr env
+    $ nix-shell -A shells.ghc
     [nix-shell]$ cabal new-configure --ghc
     [nix-shell]$ cabal new-build
 
-    $ nix-build
-
-And for GHCJS:
-
-    $ nix-shell --attr env --arg ghcjs true
-    [nix-shell]$ cabal new-configure --ghcjs
-    [nix-shell]$ cabal new-build
-
-    $ nix-build --arg ghcjs true
-
-reflex-platform is expected to be in `../reflex-platform`, if it is elsewhere
-you can pass `--arg reflex-platform /path/to/reflex-platform`. All commands are
-expected to be executed from the projects root directory (where this readme is located).
-
 ---
+
+## Examples
 
 A compiled version of the code in the `example` folder is available in `docs/index.html` or online at https://tomsmalley.github.io/semantic-reflex/.
 
@@ -32,8 +22,7 @@ The example app can be run by GHC or GHCJS. For GHC it uses jsaddle-warp to run
 a warp server, this is useful for development:
 
     $ nix-shell --attr env
-    [nix-shell]$ cabal new-configure --ghc
-    [nix-shell]$ ghcid "--command=stack ghci --system-ghc example" "--test=Main.debug" --warnings
+    [nix-shell]$ ghcid -c 'stack ghci semantic-reflex semantic-reflex-example' -W -T Main.main
 
 We use stack ghci to load multiple targets, so we don't have to reload ghci when
 working on the library and examples at the same time.
