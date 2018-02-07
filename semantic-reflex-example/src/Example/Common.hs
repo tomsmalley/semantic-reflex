@@ -154,8 +154,8 @@ mkExample name ExampleConf {..} (code, eitherWidget)
         & classes |~ addClass c "flex"
         & segmentBasic |~ True
         & segmentClearing |~ True
-        & segmentPadded .~ codeIsOpen
-        & segmentAttached .~ (bool Nothing (Just a) <$> codeIsOpen)
+        & segmentPadded .~ Dyn codeIsOpen
+        & segmentAttached .~ Dyn (bool Nothing (Just a) <$> codeIsOpen)
 
   -- Widget segment
   widgetResult <- segment (flexConfig TopAttached "widget") $

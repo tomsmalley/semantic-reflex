@@ -29,6 +29,7 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -47,13 +48,13 @@ instance ToClassText Spaced where
   toClassText RightSpaced = "right spaced"
 
 data ImageConfig t = ImageConfig
-  { _imageInline :: Dynamic t Bool
+  { _imageInline :: Active t Bool
 
-  , _imageSize :: Dynamic t (Maybe Size)
-  , _imageShape :: Dynamic t (Maybe ImageShape)
-  , _imageFloated :: Dynamic t (Maybe Floated)
-  , _imageTitle :: Dynamic t (Maybe Text)
-  , _imageSpaced :: Dynamic t (Maybe Spaced)
+  , _imageSize :: Active t (Maybe Size)
+  , _imageShape :: Active t (Maybe ImageShape)
+  , _imageFloated :: Active t (Maybe Floated)
+  , _imageTitle :: Active t (Maybe Text)
+  , _imageSpaced :: Active t (Maybe Spaced)
 
   , _imageComponent :: Bool
   , _imageElConfig :: ActiveElConfig t
@@ -75,7 +76,7 @@ instance Reflex t => Default (ImageConfig t) where
     , _imageElConfig = def
     }
 
-imageConfigClasses :: Reflex t => ImageConfig t -> Dynamic t Classes
+imageConfigClasses :: Reflex t => ImageConfig t -> Active t Classes
 imageConfigClasses ImageConfig {..} = dynClasses
   [ pure $ "ui image" <$ guard (not _imageComponent)
   , fmap toClassText <$> _imageSize
@@ -86,17 +87,19 @@ imageConfigClasses ImageConfig {..} = dynClasses
   ]
 
 data Image t = Image
-  { _imageSrc :: Dynamic t Text
+  { _imageSrc :: Active t Text
   , _imageConfig :: ImageConfig t
   }
 
 data ContentImage t m a = ContentImage
-  { _contentImageSrc :: Dynamic t Text
+  { _contentImageSrc :: Active t Text
   , _contentImageConfig :: ImageConfig t
   , _contentImageContent :: m a
   }
 
-image' :: MonadWidget t m => Dynamic t Text -> ImageConfig t -> m (El t)
+image'
+  :: UI t m => Active t Text -> ImageConfig t
+  -> m (Element EventResult (DomBuilderSpace m) t)
 image' src config@ImageConfig {..} = fst <$> uiElement' "img" elConf blank
   where
     elConf = _imageElConfig <> def
@@ -105,11 +108,12 @@ image' src config@ImageConfig {..} = fst <$> uiElement' "img" elConf blank
       }
     mkAttrs s t = "src" =: s <> maybe mempty ("title" =:) t
 
-image :: MonadWidget t m => Dynamic t Text -> ImageConfig t -> m ()
+image :: UI t m => Active t Text -> ImageConfig t -> m ()
 image i = void . image' i
 
 contentImage'
-  :: MonadWidget t m => Dynamic t Text -> ImageConfig t -> m a -> m (El t, a)
+  :: UI t m => Active t Text -> ImageConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 contentImage' src config@ImageConfig {..} content
   = uiElement' "div" elConf $ do
     a <- content
@@ -122,6 +126,6 @@ contentImage' src config@ImageConfig {..} content
                     , _classes = imageConfigClasses config }
     mkAttrs s t = "src" =: s <> maybe mempty ("title" =:) t
 
-contentImage :: MonadWidget t m => Dynamic t Text -> ImageConfig t -> m a -> m a
+contentImage :: UI t m => Active t Text -> ImageConfig t -> m a -> m a
 contentImage i config = fmap snd . contentImage' i config
 

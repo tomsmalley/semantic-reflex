@@ -25,6 +25,7 @@ import GHCJS.DOM.Types (castTo, HTMLElement(..), Element(..))
 import Reflex
 import Reflex.Dom.Core hiding (CheckboxConfig, Checkbox, SetValue(..))
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -50,11 +51,11 @@ data CheckboxConfig t = CheckboxConfig
   , _checkboxSetIndeterminate :: SetValue t Bool
   -- ^ Control over indeterminate state
 
-  , _checkboxType :: Dynamic t (Maybe CheckboxType)
+  , _checkboxType :: Active t (Maybe CheckboxType)
   -- ^ Checkbox type, e.g. slider
-  , _checkboxFitted :: Dynamic t Bool
+  , _checkboxFitted :: Active t Bool
   -- ^ Checkbox is fitted
-  , _checkboxDisabled :: Dynamic t Bool
+  , _checkboxDisabled :: Active t Bool
   -- ^ Checkbox is disabled
 
   , _checkboxElConfig :: ActiveElConfig t
@@ -80,7 +81,7 @@ instance Reflex t
 -- | Make the checkbox div classes from the configuration
 checkboxConfigClasses
   :: Reflex t
-  => CheckboxConfig t -> Dynamic t Classes
+  => CheckboxConfig t -> Active t Classes
 checkboxConfigClasses CheckboxConfig {..} = dynClasses
   [ pure $ Just "ui checkbox"
   , fmap toClassText <$> _checkboxType
@@ -125,10 +126,13 @@ checkbox' content config@CheckboxConfig {..} = do
 
   let e = DOM.uncheckedCastTo DOM.HTMLInputElement $ _element_raw inputEl
 
-  -- Set initial disabled
-  Input.setDisabled e <=< sample $ current _checkboxDisabled
-  -- Set future disabled
-  performEvent_ $ ffor (updated _checkboxDisabled) $ Input.setDisabled e
+  case _checkboxDisabled of
+    Static x -> Input.setDisabled e x
+    Dyn x -> do
+      -- Set initial disabled
+      Input.setDisabled e <=< sample $ current x
+      -- Set future disabled
+      performEvent_ $ ffor (updated x) $ Input.setDisabled e
 
   -- Set initial value
   Input.setChecked e $ _initial _checkboxSetValue

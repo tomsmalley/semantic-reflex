@@ -29,6 +29,7 @@ import Reflex.Dom.Core
 
 import Data.Time (NominalDiffTime)
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -66,14 +67,16 @@ instance Reflex t => Default (DimmerConfig t) where
 
 -- | Make the dimmer div classes from the configuration
 dimmerConfigClasses :: Reflex t => DimmerConfig t -> Dynamic t Classes
-dimmerConfigClasses DimmerConfig {..} = dynClasses
+dimmerConfigClasses DimmerConfig {..} = dynClasses'
   [ pure $ Just "ui active dimmer"
   , boolClass "inverted" _dimmerInverted
   , pure $ if _dimmerPage then Just "page" else Nothing
   ]
 
 -- | Dimmer UI Element.
-dimmer' :: forall t m a. MonadWidget t m => DimmerConfig t -> m a -> m (El t, a)
+dimmer'
+  :: forall t m a. UI t m => DimmerConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 dimmer' config@DimmerConfig {..} content = do
   rec
 
@@ -92,7 +95,7 @@ dimmer' config@DimmerConfig {..} content = do
   where
 
     mkElConfig eDir = _dimmerElConfig <> def
-      { _classes = dimmerConfigClasses config
+      { _classes = Dyn $ dimmerConfigClasses config
       , _action = Just $ mkAction eDir
       }
 
@@ -106,6 +109,6 @@ dimmer' config@DimmerConfig {..} content = do
       & transitionDirection ?~ dir
       & transitionDuration .~ dur
 
-dimmer :: MonadWidget t m => DimmerConfig t -> m a -> m a
+dimmer :: UI t m => DimmerConfig t -> m a -> m a
 dimmer c = fmap snd . dimmer' c
 

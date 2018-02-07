@@ -8,6 +8,7 @@ import Data.Semigroup ((<>))
 import Reflex
 import Reflex.Dom.Core
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -21,9 +22,9 @@ instance ToClassText TableType where
 
 
 data TableConfig t = TableConfig
-  { _tableType :: Dynamic t TableType
-  , _tableColor :: Dynamic t (Maybe Color)
-  , _tableAttached :: Dynamic t (Maybe VerticalAttached)
+  { _tableType :: Active t TableType
+  , _tableColor :: Active t (Maybe Color)
+  , _tableAttached :: Active t (Maybe VerticalAttached)
   , _tableElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''TableConfig
@@ -39,7 +40,7 @@ instance Reflex t => Default (TableConfig t) where
     , _tableElConfig = def
     }
 
-tableConfigClasses :: Reflex t => TableConfig t -> Dynamic t Classes
+tableConfigClasses :: Reflex t => TableConfig t -> Active t Classes
 tableConfigClasses TableConfig {..} = dynClasses
   [ pure $ Just "ui table"
   , Just . toClassText <$> _tableType
@@ -48,14 +49,16 @@ tableConfigClasses TableConfig {..} = dynClasses
 --  , boolClass "link" _listLink
   ]
 
-table' :: MonadWidget t m => TableConfig t -> m a -> m (El t, a)
+table'
+  :: UI t m => TableConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 table' config@TableConfig {..} widget
   = uiElement' "table" elConf widget
   where
     elConf = _tableElConfig <> def
       { _classes = tableConfigClasses config }
 
-table :: MonadWidget t m => TableConfig t -> m a -> m a
+table :: UI t m => TableConfig t -> m a -> m a
 table c = fmap snd . table' c
 
 thead :: MonadWidget t m => m a -> m a

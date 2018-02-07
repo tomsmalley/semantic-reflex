@@ -22,6 +22,7 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -49,7 +50,7 @@ instance Reflex t => Default (FormConfig t) where
     }
 
 -- | Make the form div classes from the configuration
-formConfigClasses :: Reflex t => FormConfig t -> Dynamic t Classes
+formConfigClasses :: Reflex t => FormConfig t -> Active t Classes
 formConfigClasses FormConfig {..} = dynClasses
   [ pure $ Just "ui form"
   ]

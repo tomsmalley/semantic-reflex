@@ -9,6 +9,7 @@ import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex.Dom.Core hiding (fromJSString)
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -44,19 +45,19 @@ instance ToClassText Corner where
   toClassText BottomRight = "bottom right corner"
 
 data IconConfig t = IconConfig
-  { _iconDisabled :: Dynamic t Bool
-  , _iconLoading :: Dynamic t Bool
-  , _iconFitted :: Dynamic t Bool
-  , _iconSize :: Dynamic t (Maybe Size)
-  , _iconLink :: Dynamic t Bool
-  , _iconFlipped :: Dynamic t (Maybe Flipped)
-  , _iconRotated :: Dynamic t (Maybe Rotated)
-  , _iconCircular :: Dynamic t Bool
-  , _iconBordered :: Dynamic t Bool
-  , _iconColor :: Dynamic t (Maybe Color)
-  , _iconInverted :: Dynamic t Bool
-  , _iconCorner :: Dynamic t (Maybe Corner)
-  , _iconTitle :: Dynamic t (Maybe Text)
+  { _iconDisabled :: Active t Bool
+  , _iconLoading :: Active t Bool
+  , _iconFitted :: Active t Bool
+  , _iconSize :: Active t (Maybe Size)
+  , _iconLink :: Active t Bool
+  , _iconFlipped :: Active t (Maybe Flipped)
+  , _iconRotated :: Active t (Maybe Rotated)
+  , _iconCircular :: Active t Bool
+  , _iconBordered :: Active t Bool
+  , _iconColor :: Active t (Maybe Color)
+  , _iconInverted :: Active t Bool
+  , _iconCorner :: Active t (Maybe Corner)
+  , _iconTitle :: Active t (Maybe Text)
   , _iconElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''IconConfig
@@ -82,7 +83,7 @@ instance Reflex t => Default (IconConfig t) where
     , _iconElConfig = def
     }
 
-iconConfigClasses :: Reflex t => IconConfig t -> Dynamic t Classes
+iconConfigClasses :: Reflex t => IconConfig t -> Active t Classes
 iconConfigClasses IconConfig {..} = dynClasses
   [ pure $ Just "icon"
   , boolClass "disabled" _iconDisabled
@@ -100,7 +101,7 @@ iconConfigClasses IconConfig {..} = dynClasses
   ]
 
 data IconsConfig t = IconsConfig
-  { _iconsSize :: Dynamic t (Maybe Size)
+  { _iconsSize :: Active t (Maybe Size)
   , _iconsElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''IconsConfig
@@ -111,14 +112,16 @@ instance Reflex t => Default (IconsConfig t) where
     , _iconsElConfig = def
     }
 
-iconsConfigClasses :: Reflex t => IconsConfig t -> Dynamic t Classes
+iconsConfigClasses :: Reflex t => IconsConfig t -> Active t Classes
 iconsConfigClasses IconsConfig {..} = dynClasses
   [ pure $ Just "icons"
   , fmap toClassText <$> _iconsSize
   ]
 
 
-icon' :: MonadWidget t m => Dynamic t Text -> IconConfig t -> m (El t)
+icon'
+  :: UI t m => Active t Text -> IconConfig t
+  -> m (Element EventResult (DomBuilderSpace m) t)
 icon' dynIcon config@IconConfig {..}
   = fst <$> uiElement' "i" elConf blank
   where
@@ -128,28 +131,32 @@ icon' dynIcon config@IconConfig {..}
       }
 
 -- This is for inclusion in other element configs
-data Icon t = Icon (Dynamic t Text) (IconConfig t)
+data Icon t = Icon (Active t Text) (IconConfig t)
 
-icon :: MonadWidget t m => Dynamic t Text -> IconConfig t -> m ()
+icon :: UI t m => Active t Text -> IconConfig t -> m ()
 icon i = void . icon' i
 
-icons' :: MonadWidget t m => IconsConfig t -> m a -> m (El t, a)
+icons'
+  :: UI t m => IconsConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 icons' config@IconsConfig {..} = uiElement' "i" elConf
   where
     elConf = _iconsElConfig <> def
       { _classes = iconsConfigClasses config }
 
-icons :: MonadWidget t m => IconsConfig t -> m a -> m a
+icons :: UI t m => IconsConfig t -> m a -> m a
 icons config = fmap snd . icons' config
 
 
-flag' :: MonadWidget t m => Dynamic t Text -> FlagConfig t -> m (El t)
+flag'
+  :: UI t m => Active t Text -> FlagConfig t
+  -> m (Element EventResult (DomBuilderSpace m) t)
 flag' dynFlag FlagConfig {..}
   = fst <$> uiElement' "i" config blank
   where
     config = _flagElConfig
       & elConfigClasses .~ (flip addClass "flag" <$> dynFlag)
 
-flag :: MonadWidget t m => Dynamic t Text -> FlagConfig t -> m ()
+flag :: UI t m => Active t Text -> FlagConfig t -> m ()
 flag f = void . flag' f
 

@@ -9,6 +9,7 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Icon (Icon(Icon), icon)
 import Reflex.Dom.SemanticUI.Image (Image(Image), image)
@@ -37,19 +38,19 @@ instance ToClassText ListAligned where
   toClassText ListBottom = "bottom aligned"
 
 data ListConfig t = ListConfig
-  { _listType       :: Dynamic t (Maybe ListType)
-  , _listLink       :: Dynamic t Bool
-  , _listHorizontal :: Dynamic t Bool
-  , _listInverted   :: Dynamic t Bool
-  , _listSelection  :: Dynamic t Bool
-  , _listAnimated   :: Dynamic t Bool
-  , _listRelaxed    :: Dynamic t (Maybe Relaxed)
-  , _listDivided    :: Dynamic t Bool
-  , _listCelled     :: Dynamic t Bool
-  , _listSize       :: Dynamic t (Maybe Size)
-  , _listFloated    :: Dynamic t (Maybe Floated)
+  { _listType       :: Active t (Maybe ListType)
+  , _listLink       :: Active t Bool
+  , _listHorizontal :: Active t Bool
+  , _listInverted   :: Active t Bool
+  , _listSelection  :: Active t Bool
+  , _listAnimated   :: Active t Bool
+  , _listRelaxed    :: Active t (Maybe Relaxed)
+  , _listDivided    :: Active t Bool
+  , _listCelled     :: Active t Bool
+  , _listSize       :: Active t (Maybe Size)
+  , _listFloated    :: Active t (Maybe Floated)
 
-  , _listAligned    :: Dynamic t (Maybe ListAligned)
+  , _listAligned    :: Active t (Maybe ListAligned)
 
   , _listElConfig   :: ActiveElConfig t
   }
@@ -74,7 +75,7 @@ instance Reflex t => Default (ListConfig t) where
     , _listElConfig = def
     }
 
-listConfigClasses :: Reflex t => ListConfig t -> Dynamic t Classes
+listConfigClasses :: Reflex t => ListConfig t -> Active t Classes
 listConfigClasses ListConfig {..} = dynClasses
   [ pure $ Just "ui list"
   , fmap toClassText <$> _listType
@@ -117,7 +118,8 @@ instance Reflex t => Default (ListItemConfig t) where
     , _listItemElConfig = def
     }
 
-listItemConfigClasses :: Reflex t => ListItemConfig t -> Dynamic t Classes
+listItemConfigClasses
+  :: Reflex t => ListItemConfig t -> Active t Classes
 listItemConfigClasses ListItemConfig {..} = dynClasses
   [ pure $ Just "item"
   ]
@@ -125,7 +127,9 @@ listItemConfigClasses ListItemConfig {..} = dynClasses
 -- | Create a list.
 --
 -- https://semantic-ui.com/elements/list.html
-list' :: MonadWidget t m => ListConfig t -> m a -> m (El t, a)
+list'
+  :: UI t m => ListConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 list' config@ListConfig {..} widget
   = uiElement' "div" elConf widget
   where
@@ -135,10 +139,12 @@ list' config@ListConfig {..} widget
 -- | Create a list.
 --
 -- https://semantic-ui.com/elements/list.html
-list :: MonadWidget t m => ListConfig t -> m a -> m a
+list :: UI t m => ListConfig t -> m a -> m a
 list c = fmap snd . list' c
 
-listItem' :: MonadWidget t m => ListItemConfig t -> m a -> m (El t, a)
+listItem'
+  :: UI t m => ListItemConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 listItem' config@ListItemConfig {..} widget
   = uiElement' (listItemElementText _listItemElement) elConf $
     case _listItemImage of
@@ -154,18 +160,19 @@ listItem' config@ListItemConfig {..} widget
     elConf = _listItemElConfig <> def
       { _classes = listItemConfigClasses config }
 
-listItem :: MonadWidget t m => ListItemConfig t -> m a -> m a
+listItem :: UI t m => ListItemConfig t -> m a -> m a
 listItem c = fmap snd . listItem' c
 
-listHeader' :: MonadWidget t m => m a -> m (El t, a)
+listHeader' :: UI t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 listHeader' = divClass' "header"
 
-listHeader :: MonadWidget t m => m a -> m a
+listHeader :: UI t m => m a -> m a
 listHeader = fmap snd . listHeader'
 
-listDescription' :: MonadWidget t m => m a -> m (El t, a)
+listDescription'
+  :: UI t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 listDescription' = divClass' "description"
 
-listDescription :: MonadWidget t m => m a -> m a
+listDescription :: UI t m => m a -> m a
 listDescription = fmap snd . listDescription'
 

@@ -61,7 +61,7 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
       foldDyn (\f a -> fromMaybe a $ f a) Medium $
         leftmost [ succMaybe <$ plus, predMaybe <$ minus, const (Just Medium) <$ resetEvent ]
 
-    segment (def & segmentSize .~ (Just <$> dSize)) $ do
+    segment (def & segmentSize .~ Dyn (Just <$> dSize)) $ do
       header (def & headerSize |?~ H1) $ text "First Header"
       header (def & headerSize |?~ H2) $ text "Second Header"
       header (def & headerSize |?~ H3) $ text "Third Header"
@@ -132,7 +132,7 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
     text "Add calendar event"
     icon "add to calendar" $ def
       & iconLink |~ True & iconColor |?~ Teal
-      & style |~ Style ("margin-left" =: "0.5em")
+      & style |~ Style "margin-left: 0.5em"
   |]
 
   mkExample "Subheader" (def

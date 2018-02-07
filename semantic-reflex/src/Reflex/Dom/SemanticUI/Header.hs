@@ -35,6 +35,7 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Icon (Icon(Icon), icon)
 import Reflex.Dom.SemanticUI.Image (Image(Image), image)
@@ -59,18 +60,18 @@ headerSizeText H4 = "small"
 headerSizeText H5 = "tiny"
 
 data HeaderConfig t = HeaderConfig
-  { _headerLargeIcon  :: Dynamic t Bool
-  , _headerDividing   :: Dynamic t Bool
-  , _headerSub        :: Dynamic t Bool
-  , _headerDisabled   :: Dynamic t Bool
-  , _headerBlock      :: Dynamic t Bool
-  , _headerInverted   :: Dynamic t Bool
+  { _headerLargeIcon  :: Active t Bool
+  , _headerDividing   :: Active t Bool
+  , _headerSub        :: Active t Bool
+  , _headerDisabled   :: Active t Bool
+  , _headerBlock      :: Active t Bool
+  , _headerInverted   :: Active t Bool
 
-  , _headerSize       :: Dynamic t (Maybe HeaderSize)
-  , _headerFloated    :: Dynamic t (Maybe Floated)
-  , _headerAligned    :: Dynamic t (Maybe Aligned)
-  , _headerColor      :: Dynamic t (Maybe Color)
-  , _headerAttached   :: Dynamic t (Maybe VerticalAttached)
+  , _headerSize       :: Active t (Maybe HeaderSize)
+  , _headerFloated    :: Active t (Maybe Floated)
+  , _headerAligned    :: Active t (Maybe Aligned)
+  , _headerColor      :: Active t (Maybe Color)
+  , _headerAttached   :: Active t (Maybe VerticalAttached)
 
   , _headerIcon       :: Maybe (Icon t)
   , _headerImage      :: Maybe (Image t)
@@ -107,7 +108,7 @@ instance Reflex t => Default (HeaderConfig t) where
     , _headerElConfig = def
     }
 
-headerConfigClasses :: Reflex t => HeaderConfig t -> Dynamic t Classes
+headerConfigClasses :: Reflex t => HeaderConfig t -> Active t Classes
 headerConfigClasses HeaderConfig {..} = dynClasses
   [ pure $ Just "header"
   , boolClass "icon" _headerLargeIcon
@@ -129,7 +130,8 @@ headerConfigClasses HeaderConfig {..} = dynClasses
 -- | Create a top level header
 -- https://semantic-ui.com/elements/header.html
 pageHeader'
-  :: MonadWidget t m => HeaderSize -> HeaderConfig t -> m a -> m (El t, a)
+  :: UI t m => HeaderSize -> HeaderConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 pageHeader' size config@HeaderConfig {..} widget
   = uiElement' (headerSizeEl size) elConf $ case _headerImage of
     Nothing -> case _headerIcon of
@@ -143,12 +145,14 @@ pageHeader' size config@HeaderConfig {..} widget
   where
     elConf = _headerElConfig <> def { _classes = headerConfigClasses config }
 
-pageHeader :: MonadWidget t m => HeaderSize -> HeaderConfig t -> m a -> m a
+pageHeader :: UI t m => HeaderSize -> HeaderConfig t -> m a -> m a
 pageHeader s c = fmap snd . pageHeader' s c
 
 -- | Create a content header
 -- https://semantic-ui.com/elements/header.html
-header' :: MonadWidget t m => HeaderConfig t -> m a -> m (El t, a)
+header'
+  :: UI t m => HeaderConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 header' config@HeaderConfig {..} widget
   = uiElement' "div" elConf $ case _headerImage of
     Nothing -> case _headerIcon of
@@ -166,12 +170,12 @@ header' config@HeaderConfig {..} widget
       { _classes = addSize <*> headerConfigClasses config
       }
 
-header :: MonadWidget t m => HeaderConfig t -> m a -> m a
+header :: UI t m => HeaderConfig t -> m a -> m a
 header c = fmap snd . header' c
 
-subHeader' :: MonadWidget t m => m a -> m (El t, a)
+subHeader' :: UI t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 subHeader' = divClass' "sub header"
 
-subHeader :: MonadWidget t m => m a -> m a
+subHeader :: UI t m => m a -> m a
 subHeader = fmap snd . subHeader'
 

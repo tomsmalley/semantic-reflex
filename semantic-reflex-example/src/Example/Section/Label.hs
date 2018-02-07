@@ -78,7 +78,7 @@ labels = Section "Label" blank $ do
     & subtitle ?~ text "A label can position itself in the corner or an element")
     [example|
   let conf = def & imageShape |?~ Rounded
-                 & style |~ Style ("overflow" =: "hidden")
+                 & style |~ Style "overflow: hidden"
 
   contentImage "images/animals/flamingo.png" conf $
     label (def & labelCorner |?~ LeftCorner

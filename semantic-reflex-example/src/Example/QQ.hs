@@ -73,7 +73,7 @@ printDefinition postproc preproc name = do
 
 hscode :: MonadWidget t m => String -> m ()
 hscode = void . elAttr "code" ("class" =: "haskell")
-       . elDynHtml' "pre" . constDyn . hscolour
+       . elDynHtml' "pre" . pure . hscolour
 
 hsCodeInline :: MonadWidget t m => String -> m ()
 hsCodeInline = void . elAttr "code" ("class" =: "haskell inline")

@@ -142,8 +142,8 @@ intro = Section "Introduction" blank $ do
   segments def $ for_ (progressTable @t @m) $ \(Category name items) -> mdo
 
     open <- segment (def & segmentColor |?~ Teal) $ do
-      (e, _) <- elAttr' "div" ("style" =: "cursor: pointer;") $ do
-        icon' (bool "caret right" "caret down" <$> open) def
+      (e, _) <- elAttr' "div" ("style" =: "cursor: pointer") $ do
+        icon' (Dyn $ bool "caret right" "caret down" <$> open) def
         text name
       toggle False $ domEvent Click e
 
@@ -177,7 +177,7 @@ intro = Section "Introduction" blank $ do
   paragraph $ text "In some cases (e.g. dropdowns) we want to write one function which optimises the common case of having a static list of items. For this, see the type:"
   paragraph $ do
     hscode $(printDefinition id id ''ActiveType)
-    hscode $(printDefinition id id ''Active)
+    hscode $(printDefinition id id ''TaggedActive)
   paragraph $ text "This is used in the dropdown implementation."
 
 -- | Convert a component name to a css id string
@@ -209,7 +209,7 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
     divClass "ui container" $ do
       let conf = def
             & headerImage ?~ semanticLogo
-            & style |~ Style ("cursor" =: "pointer")
+            & style |~ Style "cursor: pointer"
       (e, _) <- pageHeader' H1 conf $ do
         text "Semantic UI for Reflex Dom"
         subHeader $ text "Documentation and examples"
@@ -226,11 +226,11 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
       linkHeaderConfig = def
         & headerSub |~ True
         & headerIcon ?~ Icon "info" (def & iconColor |?~ Teal)
-        & style |~ Style ("cursor" =: "pointer")
+        & style |~ Style "cursor: pointer"
       categoryConfig isOpen = linkHeaderConfig
-        & headerIcon ?~ Icon (bool "right angle" "down angle" <$> isOpen) def
+        & headerIcon ?~ Icon (Dyn $ bool "right angle" "down angle" <$> isOpen) def
       wrapper isOpen = def
-        & style |~ Style ("margin-top" =: "1em")
+        & style |~ Style "margin-top: 1em"
         & action ?~ (def
           & actionEvent ?~ (Transition Instant def <$ updated isOpen)
           & actionInitialDirection .~ Out)
@@ -239,7 +239,7 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
   uiElement "div" mainConfig $ do
 
     -- Menu
-    let s = Style ("overflow" =: "auto")
+    let s = Style "overflow: auto"
     rail RightRail (def & railDividing |~ True & style |~ s) $ sticky def $ do
       (e, _) <- pageHeader' H4 linkHeaderConfig $ text "Introduction"
       tellRoute $ [] <$ domEvent Click e
@@ -260,14 +260,14 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
     withRoute $ \route -> case M.lookup route sections of
       Nothing -> localRedirect []
       Just (Section heading subHeading child) -> do
-        pageHeader H2 (def & style |~ Style ("margin-top" =: "0.5em")) $ do
+        pageHeader H2 (def & style |~ Style "margin-top: 0.5em") $ do
           text heading
           subHeader subHeading
         child
 
   -- Footer
   segment (def & segmentVertical |~ True
-              & style |~ Style ("padding" =: "0")) blank
+              & style |~ Style "padding: 0") blank
   segment (def & segmentVertical |~ True
               & segmentAligned |?~ CenterAligned) $ do
     buttons (def & buttonsSize |?~ Small) $ do

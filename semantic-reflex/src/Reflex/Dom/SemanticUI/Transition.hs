@@ -1,7 +1,11 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Semantic UI transitions. Pure reflex implementation is provided.
@@ -27,7 +31,9 @@ module Reflex.Dom.SemanticUI.Transition
   , Direction (..)
   , flipDirection
 
+  , dynClasses
   , ActiveElConfig (..)
+  , UI
   , uiElement
   , uiElement'
   , elConfigTransition
@@ -49,17 +55,21 @@ module Reflex.Dom.SemanticUI.Transition
 
 import Control.Applicative (Alternative(..))
 import Control.Concurrent
-import Control.Lens (Lens')
+import Control.Lens (Lens', Identity(..))
 import Control.Lens.TH (makeLenses)
 import Control.Monad (void)
-import Control.Monad.Trans (liftIO)
+import Control.Monad.Fix (MonadFix)
+import Control.Monad.Trans (liftIO, MonadIO)
 
+import Data.Dependent.Map (DMap, GCompare, DSum(..))
+import qualified Data.Dependent.Map as DMap
 import Data.Align
 import Data.Default (Default(..))
 import Data.IntMap (IntMap)
 import Data.Map (Map)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, catMaybes)
 import Data.Semigroup
+import Data.String (IsString(..))
 import Data.These
 import Data.Time
 import Data.Text (Text)
@@ -67,9 +77,11 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding (Drop, HasAttributes, SetValue)
 
+import qualified Data.Map as M
 import qualified Control.Concurrent.Thread.Delay as Concurrent
 import qualified Data.IntMap as IM
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 
 -- | Transition types as listed in
@@ -139,8 +151,8 @@ instance ToClassText Direction where
 -- | Returned by 'runAction', controls the relavant animation / transition
 -- classes and styles.
 data AnimationAttrs t = AnimationAttrs
-  { _animationAttrsClass :: Dynamic t (Maybe Classes)
-  , _animationAttrsStyle :: Dynamic t (Maybe Style)
+  { _animationAttrsClass :: Active t (Maybe Classes)
+  , _animationAttrsStyle :: Active t (Maybe Style)
   }
 
 -- | Individual transition events
@@ -177,7 +189,7 @@ makeLenses ''TransitionConfig
 
 instance Default TransitionConfig where
   def = TransitionConfig
-    { _transitionDuration = 0.5
+    { _transitionDuration = 0.5 -- TODO: this is valid for transitions, but animations need a 0.75 default
     , _transitionDirection = Nothing
     , _transitionCancelling = False
     }
@@ -306,7 +318,8 @@ updateQueue (These t ()) queue
 -- | Run a transition, returning the classes and styles the element needs to
 -- use.
 runAction
-  :: MonadWidget t m
+  :: ( MonadFix m, MonadHold t m, TriggerEvent t m, PerformEvent t m
+     , MonadIO (Performable m), Reflex t )
   => Action t
   -> m (AnimationAttrs t)
 runAction (Action Nothing initDirection forceVisible) = do
@@ -375,14 +388,18 @@ runAction (Action (Just eTransition) initDirection forceVisible) = do
     [ animatingStyle . snd <$> eStart
     , Nothing <$ eFinalFiltered ]
 
-  pure $ AnimationAttrs mClasses mStyle
+  pure $ AnimationAttrs (Dyn mClasses) (Dyn mStyle)
 
 -- | Make the animating classes from a queue item
 animatingClasses :: Bool -> QueueItem -> Maybe Classes
 animatingClasses fv (QueueItem (Left t) _ _ d)
-  = Just $ Classes ["animating", "transition", toClassText t, toClassText d, if fv then "visible" else mempty]
+  = Just $ Classes
+    [ "animating", "transition", toClassText t, toClassText d
+    , if fv then "visible" else mempty ]
 animatingClasses fv (QueueItem (Right t) _ _ _)
-  = Just $ Classes ["animating", "transition", toClassText t, if fv then "visible" else mempty]
+  = Just $ Classes
+    [ "animating", "transition", toClassText t
+    , if fv then "visible" else mempty ]
 
 -- | Make the final classes given the direction and whether visibility should be
 -- forced
@@ -394,12 +411,13 @@ finalClasses False In = Nothing
 -- | Make the animating styles
 animatingStyle :: QueueItem -> Maybe Style
 animatingStyle (QueueItem _ d _ _)
-  = Just $ Style $ "animation-duration" =: tshow d
+  = Just $ Style $ "animation-duration: " <> tshow d
+
 
 data ActiveElConfig t = ActiveElConfig
-  { _classes :: Dynamic t Classes
-  , _style :: Dynamic t Style
-  , _attrs :: Dynamic t (Map Text Text)
+  { _classes :: Active t Classes
+  , _style :: Active t Style
+  , _attrs :: Active t (Map Text Text)
   , _action :: Maybe (Action t)
   }
 
@@ -417,15 +435,16 @@ elConfigTransition :: Lens' (ActiveElConfig t) (Maybe (Action t))
 elConfigTransition f (ActiveElConfig c s at t)
   = ActiveElConfig c s at <$> f t
 
-elConfigAttributes :: Lens' (ActiveElConfig t) (Dynamic t (Map Text Text))
+elConfigAttributes
+  :: Lens' (ActiveElConfig t) (Active t (Map Text Text))
 elConfigAttributes f (ActiveElConfig c s at t)
   = (\at' -> ActiveElConfig c s at' t) <$> f at
 
-elConfigStyle :: Lens' (ActiveElConfig t) (Dynamic t Style)
+elConfigStyle :: Lens' (ActiveElConfig t) (Active t Style)
 elConfigStyle f (ActiveElConfig c s at t)
   = (\s' -> ActiveElConfig c s' at t) <$> f s
 
-elConfigClasses :: Lens' (ActiveElConfig t) (Dynamic t Classes)
+elConfigClasses :: Lens' (ActiveElConfig t) (Active t Classes)
 elConfigClasses f (ActiveElConfig c s at t)
   = (\c' -> ActiveElConfig c' s at t) <$> f c
 
@@ -433,13 +452,13 @@ class HasAction t a | a -> t where
   action :: Lens' a (Maybe (Action t))
 
 class HasAttributes t a | a -> t where
-  attrs :: Lens' a (Dynamic t (Map Text Text))
+  attrs :: Lens' a (Active t (Map Text Text))
 
 class HasStyle t a | a -> t where
-  style :: Lens' a (Dynamic t Style)
+  style :: Lens' a (Active t Style)
 
 class HasClasses t a | a -> t where
-  classes :: Lens' a (Dynamic t Classes)
+  classes :: Lens' a (Active t Classes)
 
 class HasElConfig t a | a -> t where
   elConfig :: Lens' a (ActiveElConfig t)
@@ -468,21 +487,27 @@ instance Reflex t => Monoid (ActiveElConfig t) where
   mempty = def
   mappend = (<>)
 
-uiElement :: MonadWidget t m => Text -> ActiveElConfig t -> m a -> m a
+type UI t m =
+  ( MonadHold t m, TriggerEvent t m, PerformEvent t m, DomBuilder t m
+  , PostBuild t m, MonadIO (Performable m), MonadFix m, Reflex t )
+
+uiElement :: UI t m => Text -> ActiveElConfig t -> m a -> m a
 uiElement elTag conf = fmap snd . uiElement' elTag conf
 
 uiElement'
-  :: MonadWidget t m => Text -> ActiveElConfig t -> m a
+  :: UI t m => Text -> ActiveElConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 uiElement' elTag ActiveElConfig {..} child = do
   AnimationAttrs dMClasses dMStyle <- runAction $ fromMaybe def _action
-  let dynAttrs
+  let mkAttrs c mClasses s mStyle as
+        = (M.fromList
+          [ ("class", getClasses (maybe c (<> c) mClasses))
+          , ("style", getStyle (maybe s (<> s) mStyle)) ]) <> as
+      dynAttrs
         = mkAttrs <$> _classes <*> dMClasses <*> _style <*> dMStyle <*> _attrs
-      mkAttrs c mClasses s mStyle as
-        = classAttr (maybe c (<> c) mClasses)
-        <> styleAttr (maybe s (<> s) mStyle)
-        <> as
-  elDynAttr' elTag dynAttrs child
+  case dynAttrs of
+    Dyn a -> elDynAttr' elTag a child
+    Static a -> elAttr' elTag a child
 
 data SetValue' t a b = SetValue
   { _initial :: a

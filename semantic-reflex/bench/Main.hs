@@ -1,68 +1,115 @@
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving #-}
+
+{-# OPTIONS_GHC -fno-full-laziness #-}
 
 -- | Testing speed differences between dynamic and static dom generation
 module Main where
 
+import Control.Applicative (liftA2)
+import Control.DeepSeq
 import Control.Monad (replicateM_, (<=<), void)
 import Control.Monad.Fix (MonadFix)
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
-import Reflex
-import Reflex.Dom.Core
+import Reflex hiding (collectDyn)
+import Reflex.Dom.SemanticUI hiding (collectDyn)
+import Criterion.Main
+import System.IO.Unsafe
 
-data Active t a
-  = Static !a
-  | Dynamic !(Dynamic t a)
+import qualified Data.Text as T
 
-putActive :: (PostBuild t m, DomBuilder t m) => Active t Text -> m ()
-putActive (Static a) = putStatic a
-putActive (Dynamic a) = putDynamic a
+collectActive :: Reflex t => [Active t (Maybe Text)] -> Active t Text
+collectActive = distributeListOverActiveWith joining
 
-putStatic :: DomBuilder t m => Text -> m ()
-putStatic = el "p" . text
+collectActive' :: Reflex t => [Active t (Maybe Text)] -> Active t Text
+collectActive'
+  = distributeListOverActiveWith' (\a b -> T.unwords [a, b]) joining
 
-putDynamic :: (PostBuild t m, DomBuilder t m) => Dynamic t Text -> m ()
-putDynamic = el "p" . dynText
+collectActive'unsafe :: [Active () (Maybe Text)] -> Text
+collectActive'unsafe = joining . fst . unzipActive
 
--- | Given an event and a list of widgets, switch between the widgets on each
--- occurance of the event. Does not cycle the list.
-ratchet :: (MonadHold t m, MonadFix m, DomBuilder t m) => Event t b -> [m a] -> m ()
-ratchet _ [] = blank
-ratchet evt (w:ws) = void $ widgetHold w =<< zipListWithEvent const ws evt
+collectDyn :: Reflex t => [Dynamic t (Maybe Text)] -> Dynamic t Text
+collectDyn = distributeListOverDynWith joining
 
--- | Alternate between the elements of the list and the given element.
--- Like intersperse, but adds an extra element at the end.
-alternate :: a -> [a] -> [a]
-alternate _ [] = []
-alternate y (x : xs) = x : y : alternate y xs
+joining :: [Maybe Text] -> Text
+joining = T.unwords . catMaybes
+
+unsafeStatic :: Active t a -> a
+unsafeStatic (Static a) = a
+
+instance NFData Classes where
+  rnf (Classes t) = rnf t
 
 main :: IO ()
-main = mainWidget $ do
+main = defaultMain
+  [ bgroup "dyn"
+    [ bench "joining" $ nf joining samples
+    , bench "IO joining" $ nf (unsafePerformIO . pure . joining) samples
+    , bench "spider joining" $ nf (unsafePerformIO . runSpiderHost . pure . joining) samples
 
-  switchEvent <- domEvent Click . fst <$> el' "button" (text "Switch")
+    , bench "ButtonConfig" $ flip nf ()
+    $ \() -> unsafePerformIO . runSpiderHost $ do
+      case buttonConfigClasses def of
+        Static a -> pure a
+        Dyn d -> sample $ current d
 
-  flipEvent <- toggle False . domEvent Click . fst <=< el' "button" $ text "Flip dyns"
+    , bench "collectActive'unsafe all Static unsafe"
+    $ nf collectActive'unsafe (Static <$> samples)
 
-  let dynContent = (\f -> if f then "dynamic.." else "DYNAMIC..") <$> flipEvent
+    , bench "collectActive all Static" $ flip nf (pure <$> samples)
+    $ \s -> unsafePerformIO . runSpiderHost $
+      case collectActive s of
+        Static a -> pure a
+        Dyn d -> sample $ current d
 
-      static = do
-        el "h1" $ text "Static"
-        replicateM_ 3000 $ putStatic "static..."
-      pureDynamic = do
-        el "h1" $ text "Pure Dynamic"
-        replicateM_ 3000 $ putDynamic $ pure "dynamic.."
-      dynamic = do
-        el "h1" $ text "Dynamic"
-        replicateM_ 3000 $ putDynamic dynContent
-      activeStatic = do
-        el "h1" $ text "Active Static"
-        replicateM_ 3000 $ putActive $ Static "static..."
-      activePureDynamic = do
-        el "h1" $ text "Active Pure Dynamic"
-        replicateM_ 3000 $ putActive $ Dynamic $ pure "dynamic.."
-      activeDynamic = do
-        el "h1" $ text "Active Dynamic"
-        replicateM_ 3000 $ putActive $ Dynamic dynContent
+    , bench "collectActive all Dyn" $ flip nf (Dyn . pure <$> samples)
+    $ \s -> unsafePerformIO . runSpiderHost $ do
+      case collectActive s of
+        Static a -> pure a
+        Dyn d -> sample $ current d
 
-      examples = [static, activeStatic, pureDynamic, activePureDynamic, dynamic, activeDynamic]
+    , bench "collectActive 3 Dyn" $ flip nf
+    ((\xs -> map (Dyn . pure . unsafeStatic) (take 3 xs) ++ drop 3 xs) $ pure <$> samples)
+    $ \s -> unsafePerformIO . runSpiderHost $ do
+      case collectActive s of
+        Static a -> pure a
+        Dyn d -> sample $ current d
 
-  ratchet switchEvent $ cycle $ alternate (el "h1" $ text "cleared") examples
+    , bench "collectActive' all Static" $ flip nf (pure <$> samples)
+    $ \s -> unsafePerformIO . runSpiderHost $
+      case collectActive' s of
+        Static a -> pure a
+        Dyn d -> sample $ current d
+
+    , bench "collectActive' all Dyn" $ flip nf (Dyn . pure <$> samples)
+    $ \s -> unsafePerformIO . runSpiderHost $ do
+      case collectActive' s of
+        Static a -> pure a
+        Dyn d -> sample $ current d
+
+    , bench "collectActive' 3 Dyn" $ flip nf
+    ((\xs -> map (Dyn . pure . unsafeStatic) (take 3 xs) ++ drop 3 xs) $ pure <$> samples)
+    $ \s -> unsafePerformIO . runSpiderHost $ do
+      case collectActive' s of
+        Static a -> pure a
+        Dyn d -> sample $ current d
+
+    , bench "collectDyn" $ flip nf (pure <$> samples)
+    $ \s -> unsafePerformIO . runSpiderHost $ do
+      sample $ current $ collectDyn s
+
+    , bench "collectDyn single" $ flip nf (pure <$> take 1 samples)
+    $ \s -> unsafePerformIO . runSpiderHost $ do
+      sample $ current $ collectDyn s
+
+    ]
+  ]
+
+samples :: [Maybe Text]
+samples = take 20 $ cycle
+  [ Nothing, Just "test", Nothing, Just "text", Just "test", Nothing
+  , Just "text", Nothing, Nothing, Just "1234", Nothing, Just "0", Just "data" ]
+

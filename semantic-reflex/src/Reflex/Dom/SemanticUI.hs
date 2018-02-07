@@ -54,17 +54,3 @@ import Reflex.Dom.Widget.Basic as Reflex hiding
 import Data.Default (def)
 import Control.Lens ((&), (.~), (?~))
 
-{-
-import Reflex.Dom.Core hiding
-  ( button, list
-  , checkbox, Checkbox (..), checkbox_value, checkbox_change
-  , CheckboxConfig (..), checkboxConfig_attributes, checkboxConfig_setValue
-  , HasSetValue (..), HasValue (..), HasAttributes (..)
-  , dropdown, Dropdown (..), DropdownConfig (..), dropdown_change, dropdown_value, Select
-  , link, Link, Input, Drop
-  , text, tag, Error
-  , element
-  , textInput, TextInput(..), TextInputConfig(..), keypress
-  )
--}
-

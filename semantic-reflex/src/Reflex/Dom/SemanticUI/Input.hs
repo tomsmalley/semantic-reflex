@@ -50,6 +50,7 @@ import GHCJS.DOM.DocumentOrShadowRoot (getActiveElement)
 import GHCJS.DOM.Types (castTo, HTMLElement(..), Element(..))
 import Reflex.Dom.Core hiding (Input, SetValue, TextInputConfig, textInput)
 
+import Reflex.Active
 import qualified Reflex.Dom.Core as Reflex
 import qualified GHCJS.DOM.HTMLElement as HTMLElement
 
@@ -69,17 +70,17 @@ instance ToClassText InputIcon where
   toClassText RightIcon = "icon"
 
 data InputConfig t = InputConfig
-  { _inputLoading     :: Dynamic t Bool
-  , _inputDisabled    :: Dynamic t Bool
-  , _inputError       :: Dynamic t Bool
-  , _inputTransparent :: Dynamic t Bool
-  , _inputInverted    :: Dynamic t Bool
-  , _inputFluid       :: Dynamic t Bool
+  { _inputLoading     :: Active t Bool
+  , _inputDisabled    :: Active t Bool
+  , _inputError       :: Active t Bool
+  , _inputTransparent :: Active t Bool
+  , _inputInverted    :: Active t Bool
+  , _inputFluid       :: Active t Bool
 
-  , _inputIcon        :: Dynamic t (Maybe InputIcon)
-  , _inputLabeled     :: Dynamic t (Maybe Labeled)
-  , _inputAction      :: Dynamic t (Maybe InputAction)
-  , _inputSize        :: Dynamic t (Maybe Size)
+  , _inputIcon        :: Active t (Maybe InputIcon)
+  , _inputLabeled     :: Active t (Maybe Labeled)
+  , _inputAction      :: Active t (Maybe InputAction)
+  , _inputSize        :: Active t (Maybe Size)
 
   , _inputElConfig    :: ActiveElConfig t
   }
@@ -100,7 +101,7 @@ instance Reflex t => Default (InputConfig t) where
     , _inputElConfig = def
     }
 
-inputConfigClasses :: Reflex t => InputConfig t -> Dynamic t Classes
+inputConfigClasses :: Reflex t => InputConfig t -> Active t Classes
 inputConfigClasses InputConfig {..} = dynClasses
   [ pure $ Just "ui input"
   , boolClass "loading" _inputLoading

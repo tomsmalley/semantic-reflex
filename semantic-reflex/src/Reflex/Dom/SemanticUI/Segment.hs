@@ -41,6 +41,7 @@ import Data.Semigroup ((<>))
 import Reflex
 import Reflex.Dom.Core
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -53,36 +54,36 @@ instance ToClassText Stacked where
   toClassText Piled = "piled"
 
 data SegmentConfig t = SegmentConfig
-  { _segmentRaised :: Dynamic t Bool
+  { _segmentRaised :: Active t Bool
   -- ^ Segments can be raised
-  , _segmentVertical :: Dynamic t Bool
+  , _segmentVertical :: Active t Bool
   -- ^ Segments can be formatted as part of a vertical group
-  , _segmentInverted :: Dynamic t Bool
+  , _segmentInverted :: Active t Bool
   -- ^ Segments can have inverted colors
-  , _segmentPadded :: Dynamic t Bool
+  , _segmentPadded :: Active t Bool
   -- ^ Segments can have extra padding
-  , _segmentCompact :: Dynamic t Bool
+  , _segmentCompact :: Active t Bool
   -- ^ If the segment should be compact
-  , _segmentCircular :: Dynamic t Bool
+  , _segmentCircular :: Active t Bool
   -- ^ Segments can be circular
-  , _segmentClearing :: Dynamic t Bool
+  , _segmentClearing :: Active t Bool
   -- ^ Segments can clear floated content
-  , _segmentBasic :: Dynamic t Bool
+  , _segmentBasic :: Active t Bool
   -- ^ A basic segment has no special formatting
 
-  , _segmentStacked :: Dynamic t (Maybe Stacked)
+  , _segmentStacked :: Active t (Maybe Stacked)
   -- ^ Segments can be stacked
-  , _segmentAttached :: Dynamic t (Maybe VerticalAttached)
+  , _segmentAttached :: Active t (Maybe VerticalAttached)
   -- ^ Segments can be attached vertically
-  , _segmentColor :: Dynamic t (Maybe Color)
+  , _segmentColor :: Active t (Maybe Color)
   -- ^ Segment color
-  , _segmentEmphasis :: Dynamic t Emphasis
+  , _segmentEmphasis :: Active t Emphasis
   -- ^ Segmants can have different emphasis
-  , _segmentFloated :: Dynamic t (Maybe Floated)
+  , _segmentFloated :: Active t (Maybe Floated)
   -- ^ Segments can be floated
-  , _segmentAligned :: Dynamic t (Maybe Aligned)
+  , _segmentAligned :: Active t (Maybe Aligned)
   -- ^ Segments can have aligned text
-  , _segmentSize :: Dynamic t (Maybe Size)
+  , _segmentSize :: Active t (Maybe Size)
   -- ^ Segments can be a different size
 
   , _segmentElConfig :: ActiveElConfig t
@@ -114,7 +115,7 @@ instance Reflex t => Default (SegmentConfig t) where
     }
 
 -- | Make the segment div classes from the configuration
-segmentConfigClasses :: Reflex t => SegmentConfig t -> Dynamic t Classes
+segmentConfigClasses :: Reflex t => SegmentConfig t -> Active t Classes
 segmentConfigClasses SegmentConfig {..} = dynClasses
   [ pure $ Just "ui segment"
   , boolClass "raised" _segmentRaised
@@ -135,7 +136,9 @@ segmentConfigClasses SegmentConfig {..} = dynClasses
   ]
 
 -- | Segment UI Element.
-segment' :: MonadWidget t m => SegmentConfig t -> m a -> m (El t, a)
+segment'
+  :: MonadWidget t m => SegmentConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 segment' config@SegmentConfig{..} = uiElement' "div" elConf
   where
     elConf = _segmentElConfig <> def { _classes = segmentConfigClasses config }
@@ -146,13 +149,13 @@ segment config = fmap snd . segment' config
 
 
 data SegmentsConfig t = SegmentsConfig
-  { _segmentsHorizontal :: Dynamic t Bool
+  { _segmentsHorizontal :: Active t Bool
   -- ^ Segments can be horizontal
-  , _segmentsRaised :: Dynamic t Bool
+  , _segmentsRaised :: Active t Bool
   -- ^ Segments can be raised
-  , _segmentsStacked :: Dynamic t (Maybe Stacked)
+  , _segmentsStacked :: Active t (Maybe Stacked)
   -- ^ Segments can be stacked
-  , _segmentsCompact :: Dynamic t Bool
+  , _segmentsCompact :: Active t Bool
   -- ^ Segments can be compact
   , _segmentsElConfig :: ActiveElConfig t
   -- ^ Config
@@ -172,7 +175,7 @@ instance Reflex t => Default (SegmentsConfig t) where
     }
 
 -- | Make the segment div classes from the configuration
-segmentsConfigClasses :: Reflex t => SegmentsConfig t -> Dynamic t Classes
+segmentsConfigClasses :: Reflex t => SegmentsConfig t -> Active t Classes
 segmentsConfigClasses SegmentsConfig {..} = dynClasses
   [ pure $ Just "ui segments"
   , boolClass "horizontal" _segmentsHorizontal
@@ -183,12 +186,14 @@ segmentsConfigClasses SegmentsConfig {..} = dynClasses
 
 
 -- | Segments UI Element.
-segments' :: MonadWidget t m => SegmentsConfig t -> m a -> m (El t, a)
+segments'
+  :: UI t m => SegmentsConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 segments' config@SegmentsConfig{..} = uiElement' "div" elConf
   where
     elConf = _segmentsElConfig <> def { _classes = segmentsConfigClasses config }
 
 -- | Segments UI Element.
-segments :: MonadWidget t m => SegmentsConfig t -> m a -> m a
+segments :: UI t m => SegmentsConfig t -> m a -> m a
 segments config = fmap snd . segments' config
 

@@ -27,6 +27,8 @@ module Reflex.Dom.SemanticUI.Button
   , buttonType
   , buttonElConfig
 
+  , buttonConfigClasses
+
   -- * Labeled buttons
   , labeledButton, labeledButton'
   , LabeledButtonConfig (..)
@@ -68,21 +70,22 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding (Error, button)
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data ButtonsConfig t = ButtonsConfig
-  { _buttonsBasic :: Dynamic t Bool
-  , _buttonsIcon :: Dynamic t Bool
-  , _buttonsLabeledIcon :: Dynamic t Bool
-  , _buttonsVertical :: Dynamic t Bool
-  , _buttonsCompact :: Dynamic t Bool
+  { _buttonsBasic :: Active t Bool
+  , _buttonsIcon :: Active t Bool
+  , _buttonsLabeledIcon :: Active t Bool
+  , _buttonsVertical :: Active t Bool
+  , _buttonsCompact :: Active t Bool
 
-  , _buttonsColor :: Dynamic t (Maybe Color)
-  , _buttonsSize :: Dynamic t (Maybe Size)
-  , _buttonsAttached :: Dynamic t (Maybe VerticalAttached)
-  , _buttonsWidth :: Dynamic t (Maybe Width)
-  , _buttonsFloated :: Dynamic t (Maybe Floated)
+  , _buttonsColor :: Active t (Maybe Color)
+  , _buttonsSize :: Active t (Maybe Size)
+  , _buttonsAttached :: Active t (Maybe VerticalAttached)
+  , _buttonsWidth :: Active t (Maybe Width)
+  , _buttonsFloated :: Active t (Maybe Floated)
 
   , _buttonsElConfig :: ActiveElConfig t
   }
@@ -109,7 +112,7 @@ instance Reflex t => Default (ButtonsConfig t) where
     }
 
 buttonsConfigClasses :: Reflex t
-  => ButtonsConfig t -> Dynamic t Classes
+  => ButtonsConfig t -> Active t Classes
 buttonsConfigClasses ButtonsConfig {..} = dynClasses
   [ pure $ Just "ui buttons"
 
@@ -127,7 +130,7 @@ buttonsConfigClasses ButtonsConfig {..} = dynClasses
   ]
 
 data LabeledButtonConfig t = LabeledButtonConfig
-  { _labeledButtonSide :: Dynamic t Labeled
+  { _labeledButtonSide :: Active t Labeled
   , _labeledButtonElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''LabeledButtonConfig
@@ -143,7 +146,7 @@ instance Reflex t
     }
 
 labeledButtonConfigClasses :: Reflex t
-  => LabeledButtonConfig t -> Dynamic t Classes
+  => LabeledButtonConfig t -> Active t Classes
 labeledButtonConfigClasses LabeledButtonConfig {..} = dynClasses
   [ pure $ Just "ui button"
   , Just . toClassText <$> _labeledButtonSide
@@ -158,7 +161,7 @@ instance ToClassText AnimatedButtonType where
   toClassText AnimatedFade = "animated fade"
 
 data AnimatedButton t m = AnimatedButton
-  { _animatedButtonType :: Dynamic t AnimatedButtonType
+  { _animatedButtonType :: Active t AnimatedButtonType
   , _animatedButtonHiddenContent :: m ()
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''AnimatedButton
@@ -187,23 +190,23 @@ toTagText = \case
   DivButton -> "div"
 
 data ButtonConfig t m = ButtonConfig
-  { _buttonDisabled     :: Dynamic t Bool
-  , _buttonCompact      :: Dynamic t Bool
-  , _buttonBasic        :: Dynamic t Bool
-  , _buttonIcon         :: Dynamic t Bool
-  , _buttonInverted     :: Dynamic t Bool
-  , _buttonLoading      :: Dynamic t Bool
-  , _buttonFluid        :: Dynamic t Bool
-  , _buttonCircular     :: Dynamic t Bool
+  { _buttonDisabled     :: Active t Bool
+  , _buttonCompact      :: Active t Bool
+  , _buttonBasic        :: Active t Bool
+  , _buttonIcon         :: Active t Bool
+  , _buttonInverted     :: Active t Bool
+  , _buttonLoading      :: Active t Bool
+  , _buttonFluid        :: Active t Bool
+  , _buttonCircular     :: Active t Bool
 
-  , _buttonColor        :: Dynamic t (Maybe Color)
-  , _buttonSize         :: Dynamic t (Maybe Size)
-  , _buttonEmphasis     :: Dynamic t (Maybe Emphasis)
-  , _buttonPositive     :: Dynamic t (Maybe Positive)
-  , _buttonSocial       :: Dynamic t (Maybe Social)
-  , _buttonFloated      :: Dynamic t (Maybe Floated)
-  , _buttonLabeledIcon  :: Dynamic t (Maybe Labeled)
-  , _buttonAttached     :: Dynamic t (Maybe ExclusiveAttached)
+  , _buttonColor        :: Active t (Maybe Color)
+  , _buttonSize         :: Active t (Maybe Size)
+  , _buttonEmphasis     :: Active t (Maybe Emphasis)
+  , _buttonPositive     :: Active t (Maybe Positive)
+  , _buttonSocial       :: Active t (Maybe Social)
+  , _buttonFloated      :: Active t (Maybe Floated)
+  , _buttonLabeledIcon  :: Active t (Maybe Labeled)
+  , _buttonAttached     :: Active t (Maybe ExclusiveAttached)
 
   , _buttonAnimated     :: Maybe (AnimatedButton t m)
   , _buttonType         :: ButtonType
@@ -248,7 +251,7 @@ filterPositive Success = Positive
 filterPositive Error = Negative
 
 buttonConfigClasses :: Reflex t
-  => ButtonConfig t m -> Dynamic t Classes
+  => ButtonConfig t m -> Active t Classes
 buttonConfigClasses ButtonConfig {..} = dynClasses
   [ pure $ Just "ui button"
   , boolClass "disabled" _buttonDisabled
@@ -272,20 +275,19 @@ buttonConfigClasses ButtonConfig {..} = dynClasses
 
 
 buttons'
-  :: MonadWidget t m
-  => ButtonsConfig t -> m a -> m (El t, a)
+  :: UI t m => ButtonsConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 buttons' config@ButtonsConfig {..} = uiElement' "div" elConf
   where
    elConf = _buttonsElConfig <> def
       { _classes = buttonsConfigClasses config }
 
-buttons
-  :: MonadWidget t m
-  => ButtonsConfig t -> m a -> m a
+buttons :: UI t m => ButtonsConfig t -> m a -> m a
 buttons c = fmap snd . buttons' c
 
 conditionalWithText'
-  :: MonadWidget t m => Dynamic t Text -> m (El t)
+  :: UI t m => Active t Text
+  -> m (Element EventResult (DomBuilderSpace m) t)
 conditionalWithText' dataText
   = fst <$> uiElement' "div" config blank
   where
@@ -293,20 +295,18 @@ conditionalWithText' dataText
       & classes |~ "or"
       & attrs .~ fmap ("data-text" =:) dataText
 
-conditionalWithText
-  :: MonadWidget t m => Dynamic t Text -> m ()
+conditionalWithText :: UI t m => Active t Text -> m ()
 conditionalWithText = void . conditionalWithText'
 
-conditional'
-  :: MonadWidget t m => m (El t)
+conditional' :: UI t m => m (Element EventResult (DomBuilderSpace m) t)
 conditional' = fst <$> divClass' "or" blank
 
-conditional :: MonadWidget t m => m ()
+conditional :: UI t m => m ()
 conditional = void conditional'
 
 button'
-  :: MonadWidget t m
-  => ButtonConfig t m -> m () -> m (El t, Event t ())
+  :: UI t m => ButtonConfig t m -> m ()
+  -> m (Element EventResult (DomBuilderSpace m) t, Event t ())
 button' config@ButtonConfig {..} content = do
   (e, _) <- uiElement' (toTagText _buttonType) elConf $
     case _buttonAnimated of
@@ -325,14 +325,12 @@ button' config@ButtonConfig {..} content = do
         _ -> mempty
       }
 
-button
-  :: MonadWidget t m
-  => ButtonConfig t m -> m () -> m (Event t ())
+button :: UI t m => ButtonConfig t m -> m () -> m (Event t ())
 button c = fmap snd . button' c
 
 labeledButton'
-  :: MonadWidget t m
-  => LabeledButtonConfig t -> m a -> m (El t, Event t ())
+  :: UI t m => LabeledButtonConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, Event t ())
 labeledButton' config@LabeledButtonConfig{..} content = do
   (e, _) <- uiElement' "div" elConf content
   pure (e, domEvent Click e)
@@ -340,8 +338,6 @@ labeledButton' config@LabeledButtonConfig{..} content = do
     elConf = _labeledButtonElConfig <> def
       { _classes = labeledButtonConfigClasses config }
 
-labeledButton
-  :: MonadWidget t m
-  => LabeledButtonConfig t -> m a -> m (Event t ())
+labeledButton :: UI t m => LabeledButtonConfig t -> m a -> m (Event t ())
 labeledButton c = fmap snd . labeledButton' c
 

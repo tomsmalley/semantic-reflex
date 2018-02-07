@@ -44,14 +44,14 @@ inputs = Section "Input" (text "An input is a field used to elicit a response fr
 
   divider $ def & dividerHidden |~ True
 
-  input (def & inputLoading .~ isLoading
+  input (def & inputLoading .~ Dyn isLoading
              & inputIcon |?~ LeftIcon) $ do
     icon "search" def
     textInput $ def & textInputPlaceholder |~ "Search..."
 
   divider $ def & dividerHidden |~ True
 
-  input (def & inputLoading .~ isLoading
+  input (def & inputLoading .~ Dyn isLoading
              & inputIcon |?~ RightIcon) $ do
     icon "search" def
     textInput $ def & textInputPlaceholder |~ "Search..."

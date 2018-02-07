@@ -26,6 +26,7 @@ import Reflex.Dom.Core
 
 import qualified Data.Set as S
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -44,11 +45,11 @@ instance ToClassText RailClose where
   toClassText VeryClose = "very close"
 
 data RailConfig t = RailConfig
-  { _railDividing :: Dynamic t Bool
-  , _railInternal :: Dynamic t Bool
-  , _railAttached :: Dynamic t Bool
-  , _railClose :: Dynamic t (Maybe RailClose)
-  , _railSize :: Dynamic t (Maybe Size)
+  { _railDividing :: Active t Bool
+  , _railInternal :: Active t Bool
+  , _railAttached :: Active t Bool
+  , _railClose :: Active t (Maybe RailClose)
+  , _railSize :: Active t (Maybe Size)
   , _railElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''RailConfig
@@ -67,7 +68,7 @@ instance Reflex t => Default (RailConfig t) where
     }
 
 -- | Make the rail div classes from the configuration
-railConfigClasses :: Reflex t => RailConfig t -> Dynamic t Classes
+railConfigClasses :: Reflex t => RailConfig t -> Active t Classes
 railConfigClasses RailConfig {..} = dynClasses
   [ pure $ Just "ui rail"
   , boolClass "dividing" _railDividing
@@ -78,7 +79,9 @@ railConfigClasses RailConfig {..} = dynClasses
   ]
 
 -- | Rail UI Element.
-rail' :: MonadWidget t m => RailSide -> RailConfig t -> m a -> m (El t, a)
+rail'
+  :: UI t m => RailSide -> RailConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 rail' railSide config@RailConfig {..} content
   = uiElement' "div" elConf content
   where
@@ -87,6 +90,6 @@ rail' railSide config@RailConfig {..} content
                <$> railConfigClasses config }
 
 -- | Rail UI Element.
-rail :: MonadWidget t m => RailSide -> RailConfig t -> m a -> m a
+rail :: UI t m => RailSide -> RailConfig t -> m a -> m a
 rail railSide config = fmap snd . rail' railSide config
 

@@ -15,6 +15,7 @@ import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.Core hiding (Link, Error, elAttr', DynamicWriterT)
+import Reflex.Active
 
 -- | Handy for filtering events to the given key
 keyIs :: Reflex t => Key -> Event t Word -> Event t ()
@@ -38,6 +39,12 @@ keyup key = fmapMaybe (\n -> guard $ keyCodeLookup (fromIntegral n) == key)
 tshow :: Show a => a -> Text
 tshow = T.pack . show
 
+-- | 'divClass' but returning the element
+divClass'
+  :: DomBuilder t m => Text -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
+divClass' = elClass' "div"
+
 ------------------------------------------------------------------------------
 
 -- | A class for converting properties to their corresponding CSS class text.
@@ -60,16 +67,19 @@ boolClass :: Functor f => Text -> f Bool -> f (Maybe Text)
 boolClass t = fmap $ \b -> t <$ guard b
 
 -- | Combine a list of dynamic CSS classes into 'Classes'
-dynClasses :: Reflex t => [Dynamic t (Maybe Text)] -> Dynamic t Classes
-dynClasses = distributeListOverDynWith $ Classes . S.fromList . catMaybes
+dynClasses
+  :: Reflex t => [Active t (Maybe Text)] -> Active t Classes
+dynClasses = distributeListOverActiveWith' (<>) $ Classes . catMaybes
 
--- | Classes can be modelled as a 'Set' of 'Text'. Since in some cases ordering
--- does count with Semantic-UI, these should be encoded in a single item such
--- as 'Classes (fromList ["left aligned"])'.
-newtype Classes = Classes (Set Text) deriving (Eq, Show)
+-- | Combine a list of dynamic CSS classes into 'Classes'
+dynClasses' :: Reflex t => [Dynamic t (Maybe Text)] -> Dynamic t Classes
+dynClasses' = distributeListOverDynWith $ Classes . catMaybes
+
+-- | Element classes
+newtype Classes = Classes [Text] deriving (Eq, Show)
 
 instance IsString Classes where
-  fromString str = Classes $ S.singleton $ fromString str
+  fromString str = Classes $ pure $ fromString str
 
 instance Semigroup Classes where
   Classes a <> Classes b = Classes $ a <> b
@@ -78,37 +88,36 @@ instance Monoid Classes where
   mempty = Classes mempty
   Classes a `mappend` Classes b = Classes $ a `mappend` b
 
+getClasses :: Classes -> Text
+getClasses (Classes []) = ""
+getClasses (Classes cs) = T.unwords cs
+
 -- | Make the "class" attribute from 'Classes'
 classAttr :: Classes -> Map Text Text
-classAttr (Classes s)
-  | S.null s = mempty
-  | otherwise = "class" =: foldr (\x acc -> x <> " " <> acc) "" s
+classAttr (Classes []) = mempty
+classAttr (Classes cs) = "class" =: T.unwords cs
 
 -- | Helper for adding a class to a 'Classes'
 addClass :: Text -> Classes -> Classes
-addClass t (Classes s) = Classes $ S.insert t s
+addClass c (Classes cs) = Classes $ c : cs
 
--- | CSS styles are modelled similar to attributes, a 'Map' from 'Text'
--- properties to 'Text' values.
-newtype Style = Style (Map Text Text) deriving (Eq, Show)
+-- | CSS styles
+newtype Style = Style Text deriving (Eq, Show)
 
 instance Semigroup Style where
-  Style a <> Style b = Style $ a <> b
+  Style a <> Style b = Style $ a <> ";" <> b
 
 instance Monoid Style where
-  mempty = Style mempty
-  Style a `mappend` Style b = Style $ a `mappend` b
+  mempty = Style ""
+  mappend = (<>)
+
+getStyle :: Style -> Text
+getStyle (Style t) = t
 
 -- | Make the "style" attribute from 'Style'
 styleAttr :: Style -> Map Text Text
-styleAttr (Style m)
-  | M.null m = mempty
-  | otherwise = "style" =: T.concat (map f $ M.toList m)
-  where f (k, x) = T.concat [k, ":", x <> ";"]
-
--- | 'divClass' but returning the element
-divClass' :: (DomBuilderSpace m ~ GhcjsDomSpace, DomBuilder t m) => Text -> m a -> m (El t, a)
-divClass' = elClass' "div"
+styleAttr (Style "") = mempty
+styleAttr (Style s) = "style" =: s
 
 -- | Set the target of a 'Lens', 'Traversal' or 'Setter' to 'pure' a value.
 --

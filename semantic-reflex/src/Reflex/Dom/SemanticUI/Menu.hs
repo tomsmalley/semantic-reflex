@@ -12,21 +12,22 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding (SetValue)
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data MenuConfig t = MenuConfig
-  { _menuColor :: Dynamic t (Maybe Color)
-  , _menuInverted :: Dynamic t Bool
-  , _menuSize :: Dynamic t (Maybe Size)
-  , _menuVertical :: Dynamic t Bool
-  , _menuSecondary :: Dynamic t Bool
-  , _menuRight :: Dynamic t Bool
-  , _menuPointing :: Dynamic t Bool
-  , _menuFluid :: Dynamic t Bool
-  , _menuText :: Dynamic t Bool
-  , _menuCompact :: Dynamic t Bool
-  , _menuFloated :: Dynamic t (Maybe Floated)
+  { _menuColor :: Active t (Maybe Color)
+  , _menuInverted :: Active t Bool
+  , _menuSize :: Active t (Maybe Size)
+  , _menuVertical :: Active t Bool
+  , _menuSecondary :: Active t Bool
+  , _menuRight :: Active t Bool
+  , _menuPointing :: Active t Bool
+  , _menuFluid :: Active t Bool
+  , _menuText :: Active t Bool
+  , _menuCompact :: Active t Bool
+  , _menuFloated :: Active t (Maybe Floated)
   , _menuElConfig :: ActiveElConfig t
   }
 makeLenses ''MenuConfig
@@ -47,7 +48,7 @@ instance Reflex t => Default (MenuConfig t) where
     , _menuElConfig = def
     }
 
-menuConfigClasses :: Reflex t => MenuConfig t -> Dynamic t Classes
+menuConfigClasses :: Reflex t => MenuConfig t -> Active t Classes
 menuConfigClasses MenuConfig {..} = dynClasses
   [ pure $ Just "ui menu"
   , boolClass "inverted" _menuInverted
@@ -64,7 +65,9 @@ menuConfigClasses MenuConfig {..} = dynClasses
   ]
 
 -- | Create a menu.
-menu' :: MonadWidget t m => MenuConfig t -> m a -> m (El t, a)
+menu'
+  :: UI t m => MenuConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 menu' config@MenuConfig {..} widget
   = uiElement' "div" elConf widget
   where
@@ -72,7 +75,7 @@ menu' config@MenuConfig {..} widget
       { _classes = menuConfigClasses config }
 
 -- | Create a menu.
-menu :: MonadWidget t m => MenuConfig t -> m a -> m a
+menu :: UI t m => MenuConfig t -> m a -> m a
 menu c = fmap snd . menu' c
 
 data MenuLink
@@ -82,8 +85,8 @@ data MenuLink
   deriving (Eq, Show)
 
 data MenuItemConfig t = MenuItemConfig
-  { _menuItemColor :: Dynamic t (Maybe Color)
-  , _menuItemDisabled :: Dynamic t Bool
+  { _menuItemColor :: Active t (Maybe Color)
+  , _menuItemDisabled :: Active t Bool
   , _menuItemLink :: MenuLink
   , _menuItemElConfig :: ActiveElConfig t
   }
@@ -97,7 +100,8 @@ instance Reflex t => Default (MenuItemConfig t) where
     , _menuItemElConfig = def
     }
 
-menuItemConfigClasses :: Reflex t => MenuItemConfig t -> Dynamic t Classes
+menuItemConfigClasses
+  :: Reflex t => MenuItemConfig t -> Active t Classes
 menuItemConfigClasses MenuItemConfig {..} = dynClasses
   [ pure $ Just "item"
   , fmap toClassText <$> _menuItemColor
@@ -105,12 +109,14 @@ menuItemConfigClasses MenuItemConfig {..} = dynClasses
   , boolClass "link" $ pure $ _menuItemLink == StyleLink
   ]
 
-menuItem' :: MonadWidget t m => MenuItemConfig t -> m a -> m (El t, a)
+menuItem'
+  :: UI t m => MenuItemConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 menuItem' config widget
   = uiElement' "div" elConf widget
   where (elTag, elConf) = itemElAttrs config
 
-menuItem :: MonadWidget t m => MenuItemConfig t -> m a -> m a
+menuItem :: UI t m => MenuItemConfig t -> m a -> m a
 menuItem c = fmap snd . menuItem' c
 
 itemElAttrs :: Reflex t => MenuItemConfig t -> (Text, ActiveElConfig t)
@@ -123,7 +129,7 @@ itemElAttrs conf@MenuItemConfig{..} = case _menuItemLink of
 {-
 data Menu f t m v b = Menu
   { _config :: MenuConfig t (f v)
-  , _items :: ReaderT (Dynamic t (f v)) (EventWriterT t (First v) m) b
+  , _items :: ReaderT (Active t (f v)) (EventWriterT t (First v) m) b
   }
 -}
 
@@ -132,13 +138,13 @@ data Menu f t m v b = Menu
 -- Menu instances
 
 instance ( t ~ t', m ~ m', Ord a, Foldable f, Eq (f a)
-         , MonadReader (Dynamic t (f a)) m, EventWriter t (First a) m)
+         , MonadReader (Active t (f a)) m, EventWriter t (First a) m)
   => Render t' m' (MenuItem t m a) where
   type Return t' m' (MenuItem t m a) = ()
   ui' (MenuItem value config@MenuItemConfig{..} widget) = do
     selected <- ask
-    --let isSelected = Dynamic $ demuxed selected $ pure value
-    let isSelected = Dynamic $ elem value <$> selected
+    --let isSelected = Active $ demuxed selected $ pure value
+    let isSelected = Active $ elem value <$> selected
 
     (e, _) <- element' "div" (elConfig isSelected) widget
     tellEvent $ First value <$ domEvent Click e
@@ -163,7 +169,7 @@ instance (t ~ t', m ~ m') => Render t' m' (MenuItem' t m b) where
 
 instance (Selectable f, Ord (f a), Ord a, t ~ t', m ~ m')
   => Render t' m' (Menu f t m a b) where
-  type Return t' m' (Menu f t m a b) = (Dynamic t (f a), b)
+  type Return t' m' (Menu f t m a b) = (Active t (f a), b)
   ui' (Menu config@MenuConfig{..} items)
     = element' "div" elConfig $ do
     rec
@@ -184,7 +190,7 @@ instance (Selectable f, Ord (f a), Ord a, t ~ t', m ~ m')
 
 {-
 instance ( Ord a, m ~ m', t ~ t'
-         , MonadReader (Dynamic t (f a)) m, EventWriter t (First a) m)
+         , MonadReader (Active t (f a)) m, EventWriter t (First a) m)
   => Render t' m' (Menu f t m a b) where
   type Return t' m' (Menu f t m a b) = b
   ui' (Menu config@MenuConfig{..} items) = do

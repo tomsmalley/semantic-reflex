@@ -22,7 +22,7 @@ spaceBeforeUpper (c:cs)
   | isUpper c = ' ' : c : spaceBeforeUpper cs
   | otherwise = c : spaceBeforeUpper cs
 
-animalUrl :: Reflex t => Text -> Dynamic t Text
+animalUrl :: Reflex t => Text -> Active t Text
 animalUrl a = pure $ "images/animals/" <> a <> ".png"
 
 mkButton :: MonadWidget t m => TransitionType
@@ -83,7 +83,7 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
   divClass "ui six column vertically padded grid" $
     for_ (zip [Jiggle .. Bounce] ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]) $
       \(anim, animal) -> divClass "center aligned column" $ do
-        run <- button (def & style |~ Style ("margin-bottom" =: "1em")) $
+        run <- button (def & style |~ Style "margin-bottom: 1em") $
           text $ tshow anim
         image (animalUrl animal) $ def
           & imageSize |?~ Small
@@ -97,7 +97,7 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
   divClass "ui six column vertically padded grid" $
     for_ (zip [Jiggle .. Bounce] ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]) $
       \(anim, animal) -> divClass "center aligned column" $ do
-        run <- button (def & style |~ Style ("margin-bottom" =: "1em")) $
+        run <- button (def & style |~ Style "margin-bottom: 1em") $
           text $ tshow anim
         image (animalUrl animal) $ def
           & imageSize |?~ Small

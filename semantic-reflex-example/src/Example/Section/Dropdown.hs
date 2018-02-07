@@ -46,9 +46,9 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
 
     e <- dyn $ ffor on $ \o -> case o of
       True -> dropdown (def & dropdownPlaceholder |~ "Static") Nothing $
-        Static render
+        TaggedStatic render
       False -> dropdown (def & dropdownPlaceholder |~ "Dynamic") Nothing $
-        Dynamic $ pure render
+        TaggedDynamic $ pure render
     join <$> holdDyn (pure Nothing) e
       |]
 
@@ -57,7 +57,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     & subtitle ?~ text "A standard dropdown")
     [resetExample|
   \resetEvent -> do
-    dropdown def (Just 1) $ Static $ 1 =: (text "one") <> 2 =: (text "two")
+    dropdown def (Just 1) $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
   |]
 
   mkExample "Dropdown" (def
@@ -65,7 +65,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     & subtitle ?~ text "A standard dropdown")
     [resetExample|
   \resetEvent -> do
-    dropdown def (Identity 1) $ Static $ 1 =: (text "one") <> 2 =: (text "two")
+    dropdown def (Identity 1) $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
   |]
 
   mkExample "Dropdown" (def
@@ -73,7 +73,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     & subtitle ?~ text "A standard dropdown")
     [resetExample|
   \resetEvent -> do
-    dropdown def [2] $ Static $ 1 =: (text "one") <> 2 =: (text "two")
+    dropdown def [2] $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
   |]
 
 {-
@@ -93,7 +93,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
 --  ui_ $ Divider def
 --
 --  ddval <- ui $ MenuDropdown (mkDropdownConfig Nothing & selection |~ True) $
---    for_ [1..100] $ \i -> ui $ MenuItem i def $ text $ Static $ tshow i
+--    for_ [1..100] $ \i -> ui $ MenuItem i def $ text $ TaggedStatic $ tshow i
 --
 --  ui_ $ Divider $ def & hidden |~ True
 --
@@ -102,7 +102,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
 --  ui_ $ Divider def
 
 --  ddval <- ui $ SelectionDropdown (mkDropdownConfig Nothing & selection |~ True) (return ()) $
---    Static $ for [1..100] $ \i -> simpleItem i
+--    TaggedStatic $ for [1..100] $ \i -> simpleItem i
 
   return ()
 {-

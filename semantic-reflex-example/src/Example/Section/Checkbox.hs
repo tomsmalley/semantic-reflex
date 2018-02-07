@@ -79,7 +79,7 @@ checkboxes = Section "Checkbox" (simpleLink "https://semantic-ui.com/modules/che
 
     normal <- checkbox (text "Initially disabled") $ def
       & checkboxSetValue . event ?~ (False <$ resetEvent)
-      & checkboxDisabled .~ fmap not enabled
+      & checkboxDisabled .~ Dyn (fmap not enabled)
 
     divider $ def & dividerHidden |~ True
 
@@ -87,7 +87,7 @@ checkboxes = Section "Checkbox" (simpleLink "https://semantic-ui.com/modules/che
       & checkboxType |?~ Toggle
       & checkboxSetValue . event ?~ (True <$ resetEvent)
       & checkboxSetValue . initial .~ True
-      & checkboxDisabled .~ fmap not enabled
+      & checkboxDisabled .~ Dyn (fmap not enabled)
 
     return $ traverse (view checkboxValue) [normal, toggle]
   |]

@@ -21,15 +21,16 @@ import Data.Default
 import Data.Semigroup ((<>))
 import Reflex.Dom.Core
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data DividerConfig t = DividerConfig
-  { _dividerInverted :: Dynamic t Bool
-  , _dividerFitted :: Dynamic t Bool
-  , _dividerHidden :: Dynamic t Bool
-  , _dividerSection :: Dynamic t Bool
-  , _dividerClearing :: Dynamic t Bool
+  { _dividerInverted :: Active t Bool
+  , _dividerFitted :: Active t Bool
+  , _dividerHidden :: Active t Bool
+  , _dividerSection :: Active t Bool
+  , _dividerClearing :: Active t Bool
   , _dividerElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) 'DividerConfig
@@ -47,7 +48,7 @@ instance Reflex t => Default (DividerConfig t) where
     , _dividerElConfig = def
     }
 
-dividerConfigClasses :: Reflex t => DividerConfig t -> Dynamic t Classes
+dividerConfigClasses :: Reflex t => DividerConfig t -> Active t Classes
 dividerConfigClasses DividerConfig {..} = dynClasses
   [ pure $ Just "ui divider"
   , boolClass "inverted" _dividerInverted
@@ -60,7 +61,9 @@ dividerConfigClasses DividerConfig {..} = dynClasses
 -- | In semantic-ui terms, this is a horizontal divider. Vertical dividers are
 -- not implemented due to them being broken:
 -- https://github.com/Semantic-Org/Semantic-UI/issues/4342
-divider' :: MonadWidget t m => DividerConfig t -> m (El t)
+divider'
+  :: UI t m => DividerConfig t
+  -> m (Element EventResult (DomBuilderSpace m) t)
 divider' config@DividerConfig {..}
   = fst <$> uiElement' "div" elConf blank
   where
@@ -70,16 +73,18 @@ divider' config@DividerConfig {..}
 -- | In semantic-ui terms, this is a horizontal divider. Vertical dividers are
 -- not implemented due to them being broken:
 -- https://github.com/Semantic-Org/Semantic-UI/issues/4342
-divider :: MonadWidget t m => DividerConfig t -> m ()
+divider :: UI t m => DividerConfig t -> m ()
 divider = void . divider'
 
-contentDivider' :: MonadWidget t m => DividerConfig t -> m a -> m (El t, a)
+contentDivider'
+  :: UI t m => DividerConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 contentDivider' config@DividerConfig {..} content
   = uiElement' "div" elConf content
   where
     elConf = _dividerElConfig <> def
       { _classes = addClass "horizontal" <$> dividerConfigClasses config }
 
-contentDivider :: MonadWidget t m => DividerConfig t -> m a -> m a
+contentDivider :: UI t m => DividerConfig t -> m a -> m a
 contentDivider c = fmap snd . contentDivider' c
 

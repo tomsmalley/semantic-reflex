@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Reflex.Dom.SemanticUI.Sticky where
 
@@ -9,6 +10,7 @@ import Data.Semigroup hiding (First)
 import Reflex
 import Reflex.Dom.Core
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
@@ -21,7 +23,7 @@ import qualified GHCJS.DOM.Element as Element
 import qualified GHCJS.DOM.Window as Window
 import qualified GHCJS.DOM.DOMRect as DOMRect
 import qualified GHCJS.DOM.DOMTokenList as DOMTokenList
-import Language.Javascript.JSaddle (liftJSM)
+import Language.Javascript.JSaddle (MonadJSM, liftJSM)
 
 data StickyConfig t = StickyConfig
   { _stickyPushing :: Bool
@@ -38,7 +40,7 @@ instance Reflex t => Default (StickyConfig t) where
     , _stickyElConfig = def
     }
 
-stickyConfigClasses :: Reflex t => StickyConfig t -> Dynamic t Classes
+stickyConfigClasses :: Reflex t => StickyConfig t -> Active t Classes
 stickyConfigClasses StickyConfig {..} = dynClasses
   [ pure $ Just "ui sticky top bound"
   ]
@@ -116,7 +118,9 @@ runSticky pushing stickyEl = do
 
   return ()
 
-sticky' :: MonadWidget t m => StickyConfig t -> m a -> m (El t, a)
+sticky'
+  :: (MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace, UI t m)
+  => StickyConfig t -> m a -> m (El t, a)
 sticky' config@StickyConfig{..} content = do
 
   (stickyEl, a) <- uiElement' "div" elConf content

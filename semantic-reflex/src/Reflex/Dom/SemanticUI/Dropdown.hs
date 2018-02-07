@@ -90,7 +90,7 @@ instance Reflex t => Default (DropdownConfig t) where
 
 dropdownConfigClasses
   :: Reflex t => DropdownConfig t -> Dynamic t Bool -> Dynamic t Classes
-dropdownConfigClasses DropdownConfig {..} isOpen = dynClasses
+dropdownConfigClasses DropdownConfig {..} isOpen = dynClasses'
   [ pure $ Just "ui selection dropdown"
   , boolClass "compact" _dropdownCompact
   , boolClass "fluid" _dropdownFluid
@@ -123,14 +123,14 @@ lookupPrevKey ini mCurrent m
 dropdown
   :: forall active t m k f.
     (SingActive active, Monad f, Ord k, MonadWidget t m, Ord (f k), Foldable f)
-  => DropdownConfig t -> f k -> Active active t (Map k (m ()))
+  => DropdownConfig t -> f k -> TaggedActive active t (Map k (m ()))
   -> m (Dynamic t (f k))
 dropdown conf ini = fmap snd . dropdown' conf ini
 
 dropdown'
   :: forall active t m k f.
     (SingActive active, Monad f, Ord k, MonadWidget t m, Ord (f k), Foldable f)
-  => DropdownConfig t -> f k -> Active active t (Map k (m ()))
+  => DropdownConfig t -> f k -> TaggedActive active t (Map k (m ()))
   -> m (El t, Dynamic t (f k))
 dropdown' config@DropdownConfig {..} ini items = mdo
   (e, a) <- uiElement' "div" (elConf isOpen) $ mdo
@@ -139,17 +139,17 @@ dropdown' config@DropdownConfig {..} ini items = mdo
     void $ dyn $ ffor dSelection $ \f ->
       if null f
       then divClass "default text" $ dynText _dropdownPlaceholder
-      else for_ f $ \k -> void $ divClass "text" $ active id (void . dyn) $
-        fromMaybe blank . M.lookup k <$> items
+      else for_ f $ \k -> void $ divClass "text" $ taggedActive id (void . dyn)
+        $ fromMaybe blank . M.lookup k <$> items
 
     let menuEl = Types.uncheckedCastTo Types.Element $ _element_raw menuEl'
     (menuEl', dSelection) <- menu eOpen $ do
-      (elemMap, eMaybeK) <- activeSelectViewListWithKey dSelection
+      (elemMap, eMaybeK) <- taggedActiveSelectViewListWithKey dSelection
         (M.mapKeysMonotonic pure <$> items) renderItem
 
         -- Alter the scroll position of the dropdown menu when the selected item
         -- is outside of its bounds
-      performEvent_ $ ffor (updated $ M.lookup <$> dSelection <*> active pure id elemMap) $
+      performEvent_ $ ffor (updated $ M.lookup <$> dSelection <*> taggedActive pure id elemMap) $
         traverse_ $ \itemEl' -> liftJSM $ do
 
         let itemEl = Types.uncheckedCastTo Types.Element
@@ -166,9 +166,9 @@ dropdown' config@DropdownConfig {..} ini items = mdo
 
       holdDyn ini $ leftmost
         [ flip tag (keydown ArrowDown e) $ lookupNextKey ini
-            <$> current dSelection <*> active pure current items
+            <$> current dSelection <*> taggedActive pure current items
         , flip tag (keydown ArrowUp e) $ lookupPrevKey ini
-            <$> current dSelection <*> active pure current items
+            <$> current dSelection <*> taggedActive pure current items
         , case _dropdownUnselectable of
           True -> attachWith (\old new -> if old == new then ini else new)
             (current dSelection) eMaybeK
@@ -202,17 +202,17 @@ dropdown' config@DropdownConfig {..} ini items = mdo
 
   where
     elConf isOpen = {- _dropdownElConfig <> -} def
-      { _classes = dropdownConfigClasses config isOpen
+      { _classes = Dyn $ dropdownConfigClasses config isOpen
       , _attrs = pure ("tabindex" =: "0")
       }
 
     renderItem _k v dSelected = do
-      let itemConf = def & classes .~ dClasses
+      let itemConf = def & classes .~ Dyn dClasses
           dClasses = dSelected <&> \case
             True -> "item active selected"
             False -> "item"
 
-      (e, _) <- uiElement' "div" itemConf $ active id (void . dyn) v
+      (e, _) <- uiElement' "div" itemConf $ taggedActive id (void . dyn) v
       pure (e, domEvent Click e)
 
     menu eOpen = uiElement' "div" $ def

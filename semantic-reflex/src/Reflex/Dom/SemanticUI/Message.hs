@@ -29,6 +29,7 @@ import Data.Semigroup ((<>))
 import Reflex
 import Reflex.Dom.Core
 
+import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Icon (Icon(Icon), icon, icon')
 import Reflex.Dom.SemanticUI.Transition
@@ -46,18 +47,18 @@ instance ToClassText MessageType where
 
 -- | Configuration of a message.
 data MessageConfig t = MessageConfig
-  { _messageFloating :: Dynamic t Bool
+  { _messageFloating :: Active t Bool
   -- ^ Messages can be floating (note: not the same as float: left|right)
-  , _messageCompact :: Dynamic t Bool
+  , _messageCompact :: Active t Bool
   -- ^ If the message should be compact
 
-  , _messageAttached :: Dynamic t (Maybe VerticalAttached)
+  , _messageAttached :: Active t (Maybe VerticalAttached)
   -- ^ Messages can be attached vertically
-  , _messageType :: Dynamic t (Maybe MessageType)
+  , _messageType :: Active t (Maybe MessageType)
   -- ^ Message type (essentially more color choices)
-  , _messageColor :: Dynamic t (Maybe Color)
+  , _messageColor :: Active t (Maybe Color)
   -- ^ Message color
-  , _messageSize :: Dynamic t (Maybe Size)
+  , _messageSize :: Active t (Maybe Size)
   -- ^ Message size
 
   , _messageDismissable :: Maybe Transition
@@ -87,7 +88,7 @@ instance Reflex t => Default (MessageConfig t) where
     }
 
 -- | Make the message div classes from the configuration
-messageConfigClasses :: Reflex t => MessageConfig t -> Dynamic t Classes
+messageConfigClasses :: Reflex t => MessageConfig t -> Active t Classes
 messageConfigClasses MessageConfig {..} = dynClasses
   [ pure $ Just "ui message"
   , pure $ "icon" <$ _messageIcon
@@ -99,12 +100,14 @@ messageConfigClasses MessageConfig {..} = dynClasses
   , fmap toClassText <$> _messageSize
   ]
 
-message :: MonadWidget t m => MessageConfig t -> m a -> m a
+message :: UI t m => MessageConfig t -> m a -> m a
 message c = fmap snd . message' c
 
 -- | Message UI Element. The minimum useful message only needs a label and a
 -- default configuration.
-message' :: MonadWidget t m => MessageConfig t -> m a -> m (El t, a)
+message'
+  :: UI t m => MessageConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 message' config@MessageConfig{..} content = do
   uiElement' "div" elConf $ case _messageIcon of
     Just (Icon i c) -> do
@@ -116,11 +119,12 @@ message' config@MessageConfig{..} content = do
       { _classes = messageConfigClasses config }
 
 dismissableMessage
-  :: MonadWidget t m => Transition -> MessageConfig t -> m a -> m a
+  :: UI t m => Transition -> MessageConfig t -> m a -> m a
 dismissableMessage t c = fmap snd . dismissableMessage' t c
 
 dismissableMessage'
-  :: MonadWidget t m => Transition -> MessageConfig t -> m a -> m (El t, a)
+  :: UI t m => Transition -> MessageConfig t -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
 dismissableMessage' t config@MessageConfig{..} content = do
   rec
     let config' = config & action %~ (\old -> old <> (Just $ def

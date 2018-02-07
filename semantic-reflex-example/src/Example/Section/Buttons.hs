@@ -133,14 +133,14 @@ buttonSection = Section "Button" (text "") $ do
     for_ [minBound .. maxBound] $ \c -> do
       let conf = def & buttonInverted |~ True
                      & buttonColor |?~ c
-                     & style |~ Style ("margin-bottom" =: "0.75em")
+                     & style |~ Style "margin-bottom: 0.75em"
       button conf $ text $ tshow c
     divider def
     for_ [minBound .. maxBound] $ \c -> do
       let conf = def & buttonBasic |~ True
                      & buttonInverted |~ True
                      & buttonColor |?~ c
-                     & style |~ Style ("margin-bottom" =: "0.75em")
+                     & style |~ Style "margin-bottom: 0.75em"
       button conf $ text $ "Basic " <> tshow c
   |]
 
@@ -159,13 +159,13 @@ buttonSection = Section "Button" (text "") $ do
   stop <- button def $ text "Stop"
   isLoading <- holdDyn True $ leftmost [True <$ start, False <$ stop]
   divider (def & dividerHidden |~ True)
-  button (def & buttonLoading .~ isLoading) $ text "Loaded"
+  button (def & buttonLoading .~ Dyn isLoading) $ text "Loaded"
   button (def & buttonBasic |~ True
-              & buttonLoading .~ isLoading) $ text "Loaded"
+              & buttonLoading .~ Dyn isLoading) $ text "Loaded"
   button (def & buttonEmphasis |?~ Primary
-              & buttonLoading .~ isLoading) $ text "Loaded"
+              & buttonLoading .~ Dyn isLoading) $ text "Loaded"
   button (def & buttonEmphasis |?~ Secondary
-              & buttonLoading .~ isLoading) $ text "Loaded"
+              & buttonLoading .~ Dyn isLoading) $ text "Loaded"
   |]
 
   mkExample "Social" (def
@@ -173,7 +173,7 @@ buttonSection = Section "Button" (text "") $ do
     [example|
   for_ [minBound .. maxBound] $ \s -> do
     let conf = def & buttonSocial |?~ s
-                   & style |~ Style ("margin-bottom" =: "0.75em")
+                   & style |~ Style "margin-bottom: 0.75em"
     button conf $ do
      icon (pure $ toClassText s) def
      text $ tshow s
@@ -198,7 +198,7 @@ buttonSection = Section "Button" (text "") $ do
     [example|
   for_ [minBound .. maxBound] $ \c -> do
     let conf = def & buttonColor |?~ c
-                   & style |~ Style ("margin-bottom" =: "0.75em")
+                   & style |~ Style "margin-bottom: 0.75em"
     button conf $ text $ tshow c
   |]
 
@@ -223,11 +223,11 @@ buttonSection = Section "Button" (text "") $ do
         text "Semantic UI has some sneaky javascript that gives state to anything with a 'toggle' class. Here you must deal with state explicitly."))
     ([str|
   \resetEvent -> do
-    rec let conf = def & buttonEmphasis .~ (bool Nothing (Just Primary) <$> on)
+    rec let conf = def & buttonEmphasis .~ Dyn (bool Nothing (Just Primary) <$> on)
         on <- toggle False <=< button conf $ text "Toggle"
     return on
   |], Left $ do
-    rec let conf = def & buttonEmphasis .~ (bool Nothing (Just Primary) <$> on)
+    rec let conf = def & buttonEmphasis .~ Dyn (bool Nothing (Just Primary) <$> on)
         on <- toggle False <=< button conf $ text "Toggle"
     return on
     )
