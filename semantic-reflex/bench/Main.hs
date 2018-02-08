@@ -50,12 +50,6 @@ main = defaultMain
     , bench "IO joining" $ nf (unsafePerformIO . pure . joining) samples
     , bench "spider joining" $ nf (unsafePerformIO . runSpiderHost . pure . joining) samples
 
-    , bench "ButtonConfig" $ flip nf ()
-    $ \() -> unsafePerformIO . runSpiderHost $ do
-      case buttonConfigClasses def of
-        Static a -> pure a
-        Dyn d -> sample $ current d
-
     , bench "collectActive'unsafe all Static unsafe"
     $ nf collectActive'unsafe (Static <$> samples)
 

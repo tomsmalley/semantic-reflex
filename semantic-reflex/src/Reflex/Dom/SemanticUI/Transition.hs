@@ -491,9 +491,11 @@ type UI t m =
   ( MonadHold t m, TriggerEvent t m, PerformEvent t m, DomBuilder t m
   , PostBuild t m, MonadIO (Performable m), MonadFix m, Reflex t )
 
+{-# INLINABLE uiElement #-}
 uiElement :: UI t m => Text -> ActiveElConfig t -> m a -> m a
 uiElement elTag conf = fmap snd . uiElement' elTag conf
 
+{-# INLINABLE uiElement' #-}
 uiElement'
   :: UI t m => Text -> ActiveElConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)

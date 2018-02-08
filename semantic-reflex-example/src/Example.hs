@@ -187,6 +187,16 @@ toId = T.intercalate "-" . T.words . T.toLower
 main :: JSM ()
 main = mainWidget runWithLoader
 
+testApp :: MonadWidget t m => m ()
+testApp = do
+  tog <- toggle True <=< button def $ text "Toggle"
+  dyn $ ffor tog $ \case
+    False -> for_ [1..2000] $ \i ->
+      button (def & buttonColor .~ Dyn (pure Nothing)) $
+        text $ "Dynamic " <> tshow i
+    True -> for_ [1..2000] $ \i -> button def $ text $ "Static " <> tshow i
+  pure ()
+
 runWithLoader :: MonadWidget t m => m ()
 runWithLoader = do
   pb <- delay 0 =<< getPostBuild

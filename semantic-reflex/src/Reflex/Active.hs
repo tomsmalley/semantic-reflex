@@ -154,9 +154,8 @@ unzipActive = foldr f ([], []) where
 -- | Usually this function is called on a list with many static items and a few
 -- dynamic items. Hence we optimise this case - for a full list of dynamics,
 -- it's slightly slower than distributeListOverActiveWith. For cases where all
--- items are static, it is slightly faster. For cases where all items are
--- dynamic, it is slower by 20%. For cases where only a few items are dynamic,
--- it can be 2x faster.
+-- items are static, it is much faster. For cases where only a few items are
+-- dynamic, it can be ~2x faster.
 distributeListOverActiveWith'
   :: Reflex t
   => (b -> b -> b) -> ([a] -> b) -> [Active t a] -> Active t b
