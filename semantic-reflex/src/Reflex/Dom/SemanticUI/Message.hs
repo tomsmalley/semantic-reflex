@@ -16,7 +16,6 @@ module Reflex.Dom.SemanticUI.Message
   , messageType
   , messageColor
   , messageSize
-  , messageDismissable
   , messageIcon
   , messageElConfig
 
@@ -61,8 +60,6 @@ data MessageConfig t = MessageConfig
   , _messageSize :: Active t (Maybe Size)
   -- ^ Message size
 
-  , _messageDismissable :: Maybe Transition
-  -- ^ Messages can be dismissable using the given transition
   , _messageIcon :: Maybe (Icon t)
   -- ^ Messages have a main icon
   , _messageElConfig :: ActiveElConfig t
@@ -75,8 +72,7 @@ instance HasElConfig t (MessageConfig t) where
 
 instance Reflex t => Default (MessageConfig t) where
   def = MessageConfig
-    { _messageDismissable = Nothing
-    , _messageIcon = Nothing
+    { _messageIcon = Nothing
 
     , _messageFloating = pure False
     , _messageAttached = pure Nothing

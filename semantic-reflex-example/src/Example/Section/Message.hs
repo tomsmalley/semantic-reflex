@@ -68,14 +68,12 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
     & subtitle ?~ text "A message that the user can choose to hide")
     [resetExample|
   \resetEvent -> do
-    let config = def
-          & messageDismissable ?~ Transition Fade
-              (def & transitionDuration .~ 0.2)
-          & action ?~ (def & actionEvent ?~ (Transition Instant
+    let trans = Transition Fade $ def & transitionDuration .~ 0.2
+        config = def & action ?~ (def & actionEvent ?~ (Transition Instant
               (def & transitionDirection ?~ In) <$ resetEvent))
-    message config $ do
+    dismissableMessage trans config $ do
       header def $ text "Welcome back!"
-      paragraph $ text "This is a special notification which you can dismiss if you're bored with it. The dismissable setting uses the given transition to hide the message when the user clicks on the close icon."
+      paragraph $ text "This is a special notification which you can dismiss if you're bored with it. It uses the given transition to hide the message when the user clicks on the close icon."
   |]
 
   mkExample "Floating" (def
