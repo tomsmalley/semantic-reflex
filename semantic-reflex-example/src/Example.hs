@@ -16,16 +16,11 @@
 
 module Example where
 
-import Control.Monad.Trans.Class (lift)
-import Control.Monad.IO.Class (liftIO)
-import Control.Lens ((^.), (?~))
 import Control.Monad (void, (<=<))
 import Data.Bool (bool)
 import Data.Foldable (for_)
-import Data.List (sortBy)
 import Data.Maybe (mapMaybe)
 import Data.Monoid ((<>))
-import Data.Ord (comparing)
 import Data.Text (Text)
 import Reflex.Dom.SemanticUI
 import Reflex.Dom.Core (text)
@@ -51,6 +46,7 @@ import Example.Section.Input (inputs)
 import Example.Section.Label (labels)
 import Example.Section.List (lists)
 import Example.Section.Message (messages)
+import Example.Section.Progress (progressSection)
 import Example.Section.RadioGroup (radioGroups)
 import Example.Section.Transition (transitions)
 
@@ -105,7 +101,7 @@ progressTable =
     , ("Modal", NotImplemented, Nothing)
     , ("Nag", NotImplemented, Nothing)
     , ("Popup", NotImplemented, Nothing)
-    , ("Progress", NotImplemented, Nothing)
+    , ("Progress", PartiallyImplemented, Just progressSection)
     , ("Rating", NotImplemented, Nothing)
     , ("Search", NotImplemented, Nothing)
     , ("Shape", NotImplemented, Nothing)
@@ -191,10 +187,10 @@ testApp :: MonadWidget t m => m ()
 testApp = do
   tog <- toggle True <=< button def $ text "Toggle"
   dyn $ ffor tog $ \case
-    False -> for_ [1..2000] $ \i ->
+    False -> for_ [1 :: Int ..2000] $ \i ->
       button (def & buttonColor .~ Dyn (pure Nothing)) $
         text $ "Dynamic " <> tshow i
-    True -> for_ [1..2000] $ \i -> button def $ text $ "Static " <> tshow i
+    True -> for_ [1 :: Int ..2000] $ \i -> button def $ text $ "Static " <> tshow i
   pure ()
 
 runWithLoader :: MonadWidget t m => m ()

@@ -19,7 +19,6 @@ module Reflex.Active
 
   , Active (..)
   , distributeListOverActiveWith
-  , distributeListOverActiveWith'
   , unzipActive
 
   ) where
@@ -138,7 +137,7 @@ instance (Reflex t, Monoid a) => Monoid (Active t a) where
   Static a `mappend` Dyn b = Dyn (pure a `mappend` b)
   Dyn a `mappend` Static b = Dyn (a `mappend` pure b)
   Dyn a `mappend` Dyn b = Dyn (a `mappend` b)
-  mconcat = distributeListOverActiveWith mconcat
+  mconcat = distributeListOverActiveWith mappend mconcat
 
 instance IsString a => IsString (Active t a) where
   fromString = Static . fromString
@@ -152,30 +151,17 @@ unzipActive = foldr f ([], []) where
   f (Dyn dA) (as, dAs) = (as, dA : dAs)
 
 -- | Usually this function is called on a list with many static items and a few
--- dynamic items. Hence we optimise this case - for a full list of dynamics,
--- it's slightly slower than distributeListOverActiveWith. For cases where all
--- items are static, it is much faster. For cases where only a few items are
--- dynamic, it can be ~2x faster.
-distributeListOverActiveWith'
+-- dynamic items. Hence we optimise this case - for cases where all items are
+-- static, it is much faster. For cases where only a few items are dynamic, it
+-- can be ~2x faster.
+distributeListOverActiveWith
   :: Reflex t
   => (b -> b -> b) -> ([a] -> b) -> [Active t a] -> Active t b
-distributeListOverActiveWith' joinB f as
+distributeListOverActiveWith joinB f as
   = if null dynamics
     then Static $ f consts
     else Dyn $ zipDynWith joinB
       (pure $ f consts)
       (distributeListOverDynWith f dynamics)
   where (consts, dynamics) = unzipActive as
-
-distributeListOverActive
-  :: Reflex t => [Active t a] -> Active t [a]
-distributeListOverActive = distributeListOverActiveWith id
-
--- | This is faster than the dynamic version if *all* elements are static
-distributeListOverActiveWith
-  :: Reflex t => ([a] -> b) -> [Active t a] -> Active t b
-distributeListOverActiveWith f as
-  = if any (\case Dyn _ -> True; _ -> False) as
-    then Dyn $ distributeListOverDynWith f $ map (\case Dyn x -> x; Static x -> pure x) as
-    else Static $ f $ map (\case Static x -> x) as
 

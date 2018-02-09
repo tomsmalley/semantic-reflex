@@ -60,6 +60,15 @@ instance DynShow t (Checkbox t) where
       , pure "\n  }"
       ]
 
+instance DynShow t (Progress t) where
+  dynShow Progress {..} = do
+    pure $ mconcat
+      [ pure "Progress"
+      , (("\n  { _progressValue = " <>) . show) <$> _progressValue
+      , (("\n  , _progressPercent = " <>) . show) <$> _progressPercent
+      , pure "\n  }"
+      ]
+
 instance DynShow t (TextInput t) where
   dynShow TextInput {..} = do
     input <- countWithLast _textInput_input

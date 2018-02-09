@@ -37,6 +37,7 @@ library
     , Example.Section.List
     , Example.Section.Menu
     , Example.Section.Message
+    , Example.Section.Progress
     , Example.Section.RadioGroup
     , Example.Section.Transition
 

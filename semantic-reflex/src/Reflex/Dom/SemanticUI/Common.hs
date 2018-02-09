@@ -1,10 +1,12 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE RecursiveDo #-}
 
 module Reflex.Dom.SemanticUI.Common where
 
 import Control.Lens (set, ASetter)
-import Control.Monad (void, guard)
+import Control.Monad (void, guard, (<=<))
 import Data.String
 import Data.Semigroup
 import Data.Map (Map)
@@ -16,6 +18,71 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.Core hiding (Link, Error, elAttr', DynamicWriterT)
 import Reflex.Active
+
+import qualified Control.Concurrent.Thread.Delay as Concurrent
+import Control.Concurrent
+import Control.Monad.Fix
+import Control.Monad.IO.Class
+import Data.Time
+import Data.Sequence as Seq
+import Data.Align
+import Data.These
+
+-- | Generate a stream of @i@ events, triggered by @evt@ and separated by time @t@
+echo :: MonadWidget t m => Int -> NominalDiffTime -> Event t () -> m (Event t Int)
+echo n t trigger = fmap getLast <$> go 0 trigger
+  where
+    go !i evt
+      | i < n = do
+        eNext <- delay t evt
+        ((Last i <$ evt) <>) <$> go (succ i) eNext
+      | otherwise = pure never
+
+-- | Internal type for 'batchOccurrencesImmediate'.
+data Some a = None | Only a | Some (Seq a)
+
+-- | When the given 'Event' occurs, wait the given amount of time and collect
+-- all occurrences during that time, not including the initial event.
+-- Then, fire the returned 'Event' with the collected values. The initial
+-- triggering event will be returned immediately in a single value 'Seq'.
+batchOccurrencesImmediate :: forall t m a. (MonadFix m, MonadHold t m, PerformEvent t m, TriggerEvent t m, MonadIO (Performable m)) => NominalDiffTime -> Event t a -> m (Event t (Seq a))
+batchOccurrencesImmediate t newValues = do
+  rec (buffer, toDelay) <- mapAccumMaybe f None $ align newValues delayed
+      delayed <- delaySelf_ toDelay
+  pure $ fforCheap (tag buffer delayed) $ \case
+    None -> mempty
+    Only a -> pure a
+    Some s -> s
+  where
+    f s t = let (s', m) = g s t in (Just s', m)
+    g :: Some a -> These a () -> (Some a, Maybe NominalDiffTime)
+    g None (This a) = (Only a, Just 0)
+    g None (That _) = (None, Nothing)
+    g None (These a _) = g None (This a)
+    g (Only _) (This a) = (Some $ pure a, Nothing)
+    g (Only _) (That _) = (Some mempty, Just t)
+    g (Only _) (These a _) = (fst $ g (Some mempty) (This a), Just t)
+    g (Some s) (This a) = (Some $ s |> a, Nothing)
+    g (Some s) (That _)
+      | Seq.null s = (None, Nothing)
+      | otherwise = (Some mempty, Just t)
+    g (Some s) (These a _)
+      | Seq.null s = g None (This a)
+      | otherwise = g (Some mempty) (This a)
+
+-- | Delay individual Event occurrences by the amount given in the event, in seconds.
+delaySelf_ :: (PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))
+          => Event t NominalDiffTime -> m (Event t ())
+delaySelf_ e = performEventAsync $ ffor e $ \dt cb -> liftIO $ void $ forkIO $ do
+  Concurrent.delay $ ceiling $ dt * 1000000
+  cb ()
+
+-- | Delay individual Event occurrences by the amount given in the event, in seconds.
+delaySelf :: (PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))
+          => Event t (NominalDiffTime, a) -> m (Event t a)
+delaySelf e = performEventAsync $ ffor e $ \(dt, a) cb -> liftIO $ void $ forkIO $ do
+  Concurrent.delay $ ceiling $ dt * 1000000
+  cb a
 
 -- | Handy for filtering events to the given key
 keyIs :: Reflex t => Key -> Event t Word -> Event t ()
@@ -69,7 +136,7 @@ boolClass t = fmap $ \b -> t <$ guard b
 -- | Combine a list of dynamic CSS classes into 'Classes'
 dynClasses
   :: Reflex t => [Active t (Maybe Text)] -> Active t Classes
-dynClasses = distributeListOverActiveWith' (<>) $ Classes . catMaybes
+dynClasses = distributeListOverActiveWith (<>) $ Classes . catMaybes
 
 -- | Combine a list of dynamic CSS classes into 'Classes'
 dynClasses' :: Reflex t => [Dynamic t (Maybe Text)] -> Dynamic t Classes

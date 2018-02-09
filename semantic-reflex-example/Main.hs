@@ -22,7 +22,7 @@ main = Example.main
 #else
 
 port :: Int
-port = 3708
+port = 8080
 
 css :: ByteString
 css = $(embedFile =<< makeRelativeToProject "resources/styling.css")
