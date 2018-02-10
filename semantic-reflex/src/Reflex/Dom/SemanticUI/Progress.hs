@@ -36,14 +36,38 @@ data ProgressConfig t m = ProgressConfig
   , _progressLabel :: Maybe (m ())
   -- ^ (default: 'Nothing') Widget below the bar
   , _progressIndicating :: Dynamic t Bool
-  -- ^ (default: 'False') If enabled, changes the bar colour according to the percentage
+  -- ^ (default: 'False') If 'True', changes the bar colour according to the
+  -- percentage
   , _progressActive :: Dynamic t Bool
-  -- ^ (default: 'False') If enabled, show a pulsing animation on the bar
+  -- ^ (default: 'False') If 'True', show a pulsing animation on the bar
+  , _progressDisabled :: Dynamic t Bool
+  -- ^ (default: 'False') If 'True', the progress bar is stylised as being
+  -- disabled and the update events are ignored
+  , _progressWarning :: Dynamic t Bool
+  -- ^ (default: 'False') If 'True', show the bar in a "warning" state. Takes
+  -- CSS precedence over "success".
+  , _progressError :: Dynamic t Bool
+  -- ^ (default: 'False') If 'True', show the bar in an "error" state. Takes
+  -- CSS precedence over "success" and "warning".
+  , _progressInverted :: Dynamic t Bool
+  -- ^ (default: 'False') If 'True', the progress widget will have inverted
+  -- colours
+  , _progressAttached :: Dynamic t (Maybe VerticalAttached)
+  -- ^ (default: 'Nothing') Progress widgets can be vertically attached. This
+  -- should only be used when '_progressBar' and '_progressLabel' properties are
+  -- 'Nothing'.
+  , _progressSize :: Dynamic t (Maybe Size)
+  -- ^ (default: 'Nothing') 'Size' of the progress widget. Note: Only sizes 'Tiny'
+  -- to 'Big' are supported, values outside the range will be set to the closest
+  -- value. Smaller sizes may not be able to fit bar content.
+  , _progressColor :: Dynamic t (Maybe Color)
+  -- ^ (default: 'Nothing') 'Color' of the progress widget.
   , _progressBatchUpdates :: Bool
-  -- ^ (default: 'True') If enabled, updates which occur faster than '_progressDuration' are
-  -- batched together and applied simultaneously. This is to allow smooth
-  -- animations, but the bar state will then be behind the actual state by
-  -- time equal to '_progressDuration' (in cases where batching is triggered).
+  -- ^ (default: 'True') If enabled, updates which occur faster than
+  -- '_progressDuration' are batched together and applied simultaneously. This
+  -- is to allow smooth animations, but the bar state will then be behind the
+  -- actual state by time equal to '_progressDuration' (in cases where batching
+  -- is triggered).
   , _progressDuration :: NominalDiffTime
   -- ^ (default: '0.3') Duration of bar animation in seconds
   , _progressElConfig :: ActiveElConfig t
@@ -60,6 +84,13 @@ instance Reflex t => Default (ProgressConfig t m) where
     , _progressLabel = Nothing
     , _progressIndicating = pure False
     , _progressActive = pure False
+    , _progressDisabled = pure False
+    , _progressWarning = pure False
+    , _progressError = pure False
+    , _progressInverted = pure False
+    , _progressAttached = pure Nothing
+    , _progressSize = pure Nothing
+    , _progressColor = pure Nothing
     , _progressBatchUpdates = True
     , _progressDuration = 0.3
     , _progressElConfig = def
@@ -71,8 +102,20 @@ progressConfigClasses dPercent ProgressConfig {..} = dynClasses'
   [ pure $ Just "ui progress"
   , boolClass "indicating" _progressIndicating
   , boolClass "active" _progressActive
+  , boolClass "disabled" _progressDisabled
+  , boolClass "warning" _progressWarning
+  , boolClass "error" _progressError
+  , boolClass "inverted" _progressInverted
+  , fmap toClassText <$> _progressAttached
+  , fmap (toClassText . fixSizes) <$> _progressSize
+  , fmap toClassText <$> _progressColor
   , ffor dPercent $ \p -> if p == 100 then Just "success" else Nothing
   ]
+    where fixSizes = \case
+            Mini -> Tiny
+            Huge -> Big
+            Massive -> Big
+            x -> x
 
 -- | Result of running a progress widget.
 data Progress t = Progress
@@ -91,25 +134,26 @@ progress mm i evt = fmap snd . progress' mm i evt
 
 -- | Display a progress widget, given minimum and maximum values, the initial
 -- value, and an 'Event' to update the current value. Also returns the
--- "progress" div widget.
+-- "progress" div element.
 progress'
   :: UI t m => (Int, Int) -> Int -> Event t (Int -> Int) -> ProgressConfig t m
-  -> m (Element EventResult (DomBuilderSpace m) t, (Progress t))
-progress' (vMin, vMax) initialValue eUpdate config@ProgressConfig{..} = do
+  -> m (Element EventResult (DomBuilderSpace m) t, Progress t)
+progress' (minValue, maxValue) initialValue eUpdate config@ProgressConfig{..} = do
 
-  let clamp = min vMax . max vMin
+  let clamp = min maxValue . max minValue
+      eUpdate' = gate (not <$> current _progressDisabled) eUpdate
 
   -- Batch updates to smooth animations
   eUpdateBatch <- case _progressBatchUpdates of
-    True -> fmap (foldr (flip (.)) id) <$> batchOccurrencesImmediate _progressDuration eUpdate
-    False -> pure eUpdate
+    True -> fmap (foldr (flip (.)) id) <$> batchOccurrencesImmediate _progressDuration eUpdate'
+    False -> pure eUpdate'
 
   -- Apply the functions to the initial value, clamping the results
   dValue <- holdUniqDyn =<< foldDyn (\f x -> clamp $ f x) (clamp initialValue) eUpdateBatch
 
-  let vDiff = vMax - vMin
+  let vDiff = maxValue - minValue
       -- Feature scale the value to a percent scale (0-100)
-      dPercent = ffor dValue $ \v -> 100 * (v - vMin) `div` vDiff
+      dPercent = ffor dValue $ \v -> 100 * (v - minValue) `div` vDiff
 
   let progressConfig = _progressElConfig <> def
         { _classes = Dyn $ progressConfigClasses dPercent config
@@ -134,7 +178,7 @@ progress' (vMin, vMax) initialValue eUpdate config@ProgressConfig{..} = do
           text "%"
         FractionDoneBar -> do
           dynText $ tshow <$> dValue
-          text $ " / " <> tshow vMax
+          text $ " / " <> tshow maxValue
         Bar f -> f
 
     for_ _progressLabel $ divClass "label"

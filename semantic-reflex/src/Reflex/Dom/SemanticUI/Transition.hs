@@ -501,10 +501,10 @@ uiElement'
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 uiElement' elTag ActiveElConfig {..} child = do
   AnimationAttrs dMClasses dMStyle <- runAction $ fromMaybe def _action
-  let mkAttrs c mClasses s mStyle as
-        = (M.fromList
-          [ ("class", getClasses (maybe c (<> c) mClasses))
-          , ("style", getStyle (maybe s (<> s) mStyle)) ]) <> as
+  let mkAttrs c mClasses s mStyle as = sconcat
+        [ classAttr $ maybe c (<> c) mClasses
+        , styleAttr $ maybe s (<> s) mStyle
+        , as ]
       dynAttrs
         = mkAttrs <$> _classes <*> dMClasses <*> _style <*> dMStyle <*> _attrs
   case dynAttrs of

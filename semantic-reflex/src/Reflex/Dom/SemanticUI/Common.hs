@@ -27,6 +27,8 @@ import Data.Time
 import Data.Sequence as Seq
 import Data.Align
 import Data.These
+import Control.Monad.IO.Class (MonadIO(..))
+import System.Random (randomRIO)
 
 -- | Generate a stream of @i@ events, triggered by @evt@ and separated by time @t@
 echo :: MonadWidget t m => Int -> NominalDiffTime -> Event t () -> m (Event t Int)
@@ -83,6 +85,12 @@ delaySelf :: (PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))
 delaySelf e = performEventAsync $ ffor e $ \(dt, a) cb -> liftIO $ void $ forkIO $ do
   Concurrent.delay $ ceiling $ dt * 1000000
   cb a
+
+-- | Get a random 'Int' from the given range when triggered by the input
+-- 'Event'. Uses the global random number generator through 'randomRIO'.
+randomREvent
+  :: (PerformEvent t m, MonadIO (Performable m)) => (Int, Int) -> Event t () -> m (Event t Int)
+randomREvent range trigger = performEvent $ liftIO (randomRIO range) <$ trigger
 
 -- | Handy for filtering events to the given key
 keyIs :: Reflex t => Key -> Event t Word -> Event t ()
@@ -172,6 +180,8 @@ addClass c (Classes cs) = Classes $ c : cs
 newtype Style = Style Text deriving (Eq, Show)
 
 instance Semigroup Style where
+  Style "" <> Style b = Style b
+  Style a <> Style "" = Style a
   Style a <> Style b = Style $ a <> ";" <> b
 
 instance Monoid Style where
