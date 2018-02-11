@@ -73,10 +73,10 @@ progressSection = Section "Progress" blank $ do
       pure $ leftmost [ succ <$ plus, pred <$ minus, const 4 <$ reset ]
 
     rec
-      let render = dynText $ ffor dPercent $ \case
+      let render = dynText $ ffor _progressPercent $ \case
             100 -> "Project Funded!"
             x -> tshow x <> "% Funded"
-      Progress _ dPercent <- progress (0, 10) 4 update $ def
+      Progress {..} <- progress (0, 10) 4 update $ def
         & progressLabel ?~ render
         & progressIndicating |~ True
 
@@ -88,10 +88,10 @@ progressSection = Section "Progress" blank $ do
       pure $ leftmost [ succ <$ plus, pred <$ minus, const 4 <$ reset ]
 
     rec
-      let render = dynText $ ffor dPercent $ \case
-            100 -> "Project Funded!"
-            x -> tshow x <> "% Funded"
-      Progress _ dPercent <- progress (0, 10) 4 update $ def
+      let render = dynText $ ffor _progressPercent $ \case
+            Percent 100 -> "Project Funded!"
+            p -> tshow p <> " Funded"
+      Progress {..} <- progress (0, 10) 4 update $ def
         & progressLabel ?~ render
         & progressIndicating |~ True
 

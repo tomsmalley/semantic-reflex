@@ -60,7 +60,7 @@ instance DynShow t (Checkbox t) where
       , pure "\n  }"
       ]
 
-instance DynShow t (Progress t) where
+instance DynShow t (Progress t m) where
   dynShow Progress {..} = do
     pure $ mconcat
       [ pure "Progress"

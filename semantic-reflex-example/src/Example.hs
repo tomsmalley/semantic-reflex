@@ -101,7 +101,7 @@ progressTable =
     , ("Modal", NotImplemented, Nothing)
     , ("Nag", NotImplemented, Nothing)
     , ("Popup", NotImplemented, Nothing)
-    , ("Progress", PartiallyImplemented, Just progressSection)
+    , ("Progress", Implemented, Just progressSection)
     , ("Rating", NotImplemented, Nothing)
     , ("Search", NotImplemented, Nothing)
     , ("Shape", NotImplemented, Nothing)
@@ -116,6 +116,19 @@ progressTable =
     , ("Visibility", NotImplemented, Nothing)
     ]
   ]
+
+progressProgress :: forall t m. MonadWidget t m => m (Progress t m)
+progressProgress = progress (0, vMax) v never $ def
+  & progressColor |?~ Teal
+  & progressBar ?~ PercentageBar
+  where
+    categories = progressTable :: [Category t m]
+    v = sum $ concatMap (fmap (\(_,i,_) -> implementedNum i) . categoryItems) categories
+    vMax = sum $ map ((*2) . length . categoryItems) categories
+    implementedNum = \case
+      NotImplemented -> 0
+      PartiallyImplemented -> 1
+      Implemented -> 2
 
 intro :: forall t m. (RouteWriter t Text m, MonadWidget t m) => Section t m
 intro = Section "Introduction" blank $ do
@@ -133,6 +146,8 @@ intro = Section "Introduction" blank $ do
   paragraph $ text "This page serves to provide an example of the library and components in use. Examples are shown along with the code that generated them."
 
   pageHeader H3 def $ text "Progress"
+
+  void progressProgress
 
   -- Progress chart
   segments def $ for_ (progressTable @t @m) $ \(Category name items) -> mdo

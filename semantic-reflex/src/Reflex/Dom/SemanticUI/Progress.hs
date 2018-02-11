@@ -29,6 +29,21 @@ data Bar m
   -- ^ Display a custom widget. If you wish to use the current value or
   -- percentage, use RecursiveDo to reference the 'Progress' output.
 
+newtype Percent = Percent { unPercent :: Int } deriving (Eq, Ord)
+instance Enum Percent where
+  fromEnum (Percent p) = p
+  toEnum p = if p >= 0 && p <= 100 then Percent p else error "fromEnum: Percent out of range"
+instance Bounded Percent where
+  minBound = Percent 0
+  maxBound = Percent 100
+instance Show Percent where
+  show (Percent p) = show p ++ "%"
+
+-- | Given a range @(min, max)@ and a value, feature scale the value to a
+-- percent scale (0-100) according to the given range.
+mkPercent :: (Int, Int) -> Int -> Percent
+mkPercent (vMin, vMax) v = Percent $ 100 * (v - vMin) `div` (vMax - vMin)
+
 -- | Configuration of a progress bar widget.
 data ProgressConfig t m = ProgressConfig
   { _progressBar :: Maybe (Bar m)
@@ -69,7 +84,7 @@ data ProgressConfig t m = ProgressConfig
   -- actual state by time equal to '_progressDuration' (in cases where batching
   -- is triggered).
   , _progressDuration :: NominalDiffTime
-  -- ^ (default: '0.3') Duration of bar animation in seconds
+  -- ^ (default: @0.3@) Duration of bar animation in seconds
   , _progressElConfig :: ActiveElConfig t
   -- ^ Underlying element config
   }
@@ -97,7 +112,8 @@ instance Reflex t => Default (ProgressConfig t m) where
     }
 
 -- | Make the progress div classes from the configuration
-progressConfigClasses :: Reflex t => Dynamic t Int -> ProgressConfig t m -> Dynamic t Classes
+progressConfigClasses
+  :: Reflex t => Dynamic t Percent -> ProgressConfig t m -> Dynamic t Classes
 progressConfigClasses dPercent ProgressConfig {..} = dynClasses'
   [ pure $ Just "ui progress"
   , boolClass "indicating" _progressIndicating
@@ -109,7 +125,7 @@ progressConfigClasses dPercent ProgressConfig {..} = dynClasses'
   , fmap toClassText <$> _progressAttached
   , fmap (toClassText . fixSizes) <$> _progressSize
   , fmap toClassText <$> _progressColor
-  , ffor dPercent $ \p -> if p == 100 then Just "success" else Nothing
+  , ffor dPercent $ \p -> if p == maxBound then Just "success" else Nothing
   ]
     where fixSizes = \case
             Mini -> Tiny
@@ -118,27 +134,23 @@ progressConfigClasses dPercent ProgressConfig {..} = dynClasses'
             x -> x
 
 -- | Result of running a progress widget.
-data Progress t = Progress
+data Progress t m = Progress
   { _progressValue :: Dynamic t Int
   -- ^ The current value (can range from min to max)
-  , _progressPercent :: Dynamic t Int
+  , _progressPercent :: Dynamic t Percent
   -- ^ The current percentage (can range from 0 to 100)
+  , _progressElement :: Element EventResult (DomBuilderSpace m) t
+  -- ^ The 'Element' of the wrapping "progress" div
+  , _progressBarElement :: Element EventResult (DomBuilderSpace m) t
+  -- ^ The 'Element' of the "bar" div
   }
 
 -- | Display a progress widget, given minimum and maximum values, the initial
 -- value, and an 'Event' to update the current value.
 progress
-  :: UI t m
-  => (Int, Int) -> Int -> Event t (Int -> Int) -> ProgressConfig t m -> m (Progress t)
-progress mm i evt = fmap snd . progress' mm i evt
-
--- | Display a progress widget, given minimum and maximum values, the initial
--- value, and an 'Event' to update the current value. Also returns the
--- "progress" div element.
-progress'
   :: UI t m => (Int, Int) -> Int -> Event t (Int -> Int) -> ProgressConfig t m
-  -> m (Element EventResult (DomBuilderSpace m) t, Progress t)
-progress' (minValue, maxValue) initialValue eUpdate config@ProgressConfig{..} = do
+  -> m (Progress t m)
+progress range@(minValue, maxValue) initialValue eUpdate config@ProgressConfig{..} = do
 
   let clamp = min maxValue . max minValue
       eUpdate' = gate (not <$> current _progressDisabled) eUpdate
@@ -151,31 +163,27 @@ progress' (minValue, maxValue) initialValue eUpdate config@ProgressConfig{..} = 
   -- Apply the functions to the initial value, clamping the results
   dValue <- holdUniqDyn =<< foldDyn (\f x -> clamp $ f x) (clamp initialValue) eUpdateBatch
 
-  let vDiff = maxValue - minValue
-      -- Feature scale the value to a percent scale (0-100)
-      dPercent = ffor dValue $ \v -> 100 * (v - minValue) `div` vDiff
+  let dPercent = mkPercent range <$> dValue
 
-  let progressConfig = _progressElConfig <> def
+      progressConfig = _progressElConfig <> def
         { _classes = Dyn $ progressConfigClasses dPercent config
-        , _attrs = Dyn $ (\p -> "data-percent" =: tshow p) <$> dPercent
+        , _attrs = Dyn $ (\(Percent p) -> "data-percent" =: tshow p) <$> dPercent
         }
 
-  let barConfig = def
+      barConfig = def
         { _classes = "bar"
-        , _style = Dyn $ ffor dPercent $ \w -> Style $ T.intercalate ";" $ catMaybes
+        , _style = Dyn $ ffor dPercent $ \p -> Style $ T.intercalate ";" $ catMaybes
           [ if _progressBatchUpdates
             then Just $ "transition-duration: " <> tshow _progressDuration
             else Nothing
-          , Just $ "width:" <> tshow w <> "%"
+          , Just $ "width:" <> tshow p
           ]
         }
 
-  (progressEl, _) <- uiElement' "div" progressConfig $ do
-    uiElement "div" barConfig $ do
+  (progressEl, barEl) <- uiElement' "div" progressConfig $ do
+    (barEl, _) <- uiElement' "div" barConfig $ do
       for_ _progressBar $ \pContent -> divClass "progress" $ case pContent of
-        PercentageBar -> do
-          dynText $ tshow <$> dPercent
-          text "%"
+        PercentageBar -> dynText $ tshow <$> dPercent
         FractionDoneBar -> do
           dynText $ tshow <$> dValue
           text $ " / " <> tshow maxValue
@@ -183,5 +191,7 @@ progress' (minValue, maxValue) initialValue eUpdate config@ProgressConfig{..} = 
 
     for_ _progressLabel $ divClass "label"
 
-  pure (progressEl, Progress dValue dPercent)
+    pure barEl
+
+  pure $ Progress dValue dPercent progressEl barEl
 
