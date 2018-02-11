@@ -1,10 +1,8 @@
 name:                semantic-reflex-example
 version:             0.1
-synopsis:            A reflex-dom API for semantic-ui components
-description:         This package provides a Reflex wrapper around the
-                     Semantic UI components. The goal is to make it fast
-                     and easy to build nice looking applications and make
-                     Semantic UI functionality a lot more discoverable.
+license:             BSD3
+license-file:        LICENSE
+synopsis:            Examples for the semantic-reflex library
 author:              Tom Smalley
 maintainer:          tfsmalley@gmail.com
 category:            Web
