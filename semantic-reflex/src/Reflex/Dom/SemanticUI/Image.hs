@@ -122,8 +122,7 @@ contentImage' src config@ImageConfig {..} content
   where
     elConf = _imageElConfig <> def
       { _classes = imageConfigClasses config }
-    imgConfig = def { _attrs = mkAttrs <$> src <*> _imageTitle
-                    , _classes = imageConfigClasses config }
+    imgConfig = def { _attrs = mkAttrs <$> src <*> _imageTitle }
     mkAttrs s t = "src" =: s <> maybe mempty ("title" =:) t
 
 contentImage :: UI t m => Active t Text -> ImageConfig t -> m a -> m a
