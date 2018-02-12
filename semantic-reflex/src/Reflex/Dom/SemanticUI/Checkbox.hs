@@ -99,20 +99,19 @@ data Checkbox t = Checkbox
   -- ^ The current indeterminate state
   , _checkboxHasFocus :: Dynamic t Bool
   -- ^ The current focused state
+  , _checkboxDivElement :: El t
+  -- ^ The checkbox div element
+  , _checkboxInputElement :: El t
+  -- ^ The checkbox input element
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''Checkbox
 
 -- | Checkbox UI Element. The minimum useful checkbox only needs a label and a
 -- default configuration.
-checkbox :: MonadWidget t m => m () -> CheckboxConfig t -> m (Checkbox t)
-checkbox m = fmap snd . checkbox' m
-
--- | Checkbox UI Element. The minimum useful checkbox only needs a label and a
--- default configuration.
-checkbox'
+checkbox
   :: forall t m. MonadWidget t m
-  => m () -> CheckboxConfig t -> m (El t, Checkbox t)
-checkbox' content config@CheckboxConfig {..} = do
+  => m () -> CheckboxConfig t -> m (Checkbox t)
+checkbox content config@CheckboxConfig {..} = do
 
   let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
         & initialAttributes .~ constAttrs
@@ -201,12 +200,14 @@ checkbox' content config@CheckboxConfig {..} = do
     , True <$ select (_element_events inputEl) (WrapArg Focus)
     ]
 
-  return (divEl, Checkbox
+  return Checkbox
     { _checkboxValue = value
     , _checkboxChange = fst <$> uiEvent
     , _checkboxIsIndeterminate = indeterminate
     , _checkboxHasFocus = focus
-    })
+    , _checkboxDivElement = divEl
+    , _checkboxInputElement = inputEl
+    }
 
   where
     divAttrs = _checkboxElConfig <> def
