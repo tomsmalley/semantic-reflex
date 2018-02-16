@@ -2,7 +2,7 @@ name:                semantic-reflex
 version:             0.1
 license:             BSD3
 license-file:        LICENSE
-synopsis:            Semantic UI components for Reflex Dom
+synopsis:            Semantic UI components for Reflex-DOM
 description:         This package provides a Reflex reimplementation of Semantic
                      UI components.
 author:              Tom Smalley
@@ -36,6 +36,7 @@ library
     Reflex.Dom.SemanticUI.Divider
     Reflex.Dom.SemanticUI.Dropdown
     Reflex.Dom.SemanticUI.Field
+    Reflex.Dom.SemanticUI.Flag
     Reflex.Dom.SemanticUI.Form
     Reflex.Dom.SemanticUI.Header
     Reflex.Dom.SemanticUI.Icon

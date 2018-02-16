@@ -60,7 +60,7 @@ instance Reflex t => Default (DimmerConfig t) where
     , _dimmerPage = False
     , _dimmerDimmed = SetValue Out Nothing
     , _dimmerTransitionType = pure Fade
-    , _dimmerDuration = pure 0.75
+    , _dimmerDuration = pure 0.5
     , _dimmerCloseOnClick = pure True
     , _dimmerElConfig = def
     }

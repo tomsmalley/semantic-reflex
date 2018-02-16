@@ -1,17 +1,24 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+-- | Semantic-UI Header elements
+--
+-- https://semantic-ui.com/elements/header.html
 module Reflex.Dom.SemanticUI.Header
   (
 
-  -- * Header
-    header, header'
-  , pageHeader, pageHeader'
-  , subHeader, subHeader'
-  , HeaderSize (..)
+  -- * Header config
+    HeaderSize (..)
   , HeaderConfig (..)
+
+  -- * Content headers
+  , header, header'
+  -- * Page headers
+  , pageHeader, pageHeader'
+  -- * Sub headers
+  , subHeader, subHeader'
+
+  -- * Lenses
   , headerLargeIcon
-  , headerIcon
-  , headerImage
   , headerDividing
   , headerSub
   , headerDisabled
@@ -22,9 +29,8 @@ module Reflex.Dom.SemanticUI.Header
   , headerAligned
   , headerColor
   , headerAttached
-  , headerComponent
-  , headerItem
   , headerElConfig
+  , headerPreContent
 
   ) where
 
@@ -37,14 +43,13 @@ import Reflex.Dom.Core
 
 import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
-import Reflex.Dom.SemanticUI.Icon (Icon(Icon), icon)
-import Reflex.Dom.SemanticUI.Image (Image(Image), image)
 import Reflex.Dom.SemanticUI.Transition
 
 -- | Valid sizes of headers. We can't use 'Size' because the content header css
 -- only implements 5 specific sizes.
 data HeaderSize = H1 | H2 | H3 | H4 | H5 deriving (Eq, Show)
 
+-- | 'HeaderSize' HTML element tag text
 headerSizeEl :: HeaderSize -> Text
 headerSizeEl H1 = "h1"
 headerSizeEl H2 = "h2"
@@ -52,6 +57,7 @@ headerSizeEl H3 = "h3"
 headerSizeEl H4 = "h4"
 headerSizeEl H5 = "h5"
 
+-- | Convert 'HeaderSize' to corresponding size
 headerSizeText :: HeaderSize -> Text
 headerSizeText H1 = "huge"
 headerSizeText H2 = "large"
@@ -59,38 +65,46 @@ headerSizeText H3 = "medium"
 headerSizeText H4 = "small"
 headerSizeText H5 = "tiny"
 
-data HeaderConfig t = HeaderConfig
+-- | Optional configuration settings for 'header's
+data HeaderConfig t m = HeaderConfig
   { _headerLargeIcon  :: Active t Bool
+  -- ^ (default: 'False') Headers can emphasise an icon
   , _headerDividing   :: Active t Bool
+  -- ^ (default: 'False') Headers can be dividing
   , _headerSub        :: Active t Bool
+  -- ^ (default: 'False') Headers can label de-emphasised content
   , _headerDisabled   :: Active t Bool
+  -- ^ (default: 'False') Headers can be "disabled" (less emphasis)
   , _headerBlock      :: Active t Bool
+  -- ^ (default: 'False') Headers can have a border around them
   , _headerInverted   :: Active t Bool
+  -- ^ (default: 'False') Headers can have inverted colors
 
   , _headerSize       :: Active t (Maybe HeaderSize)
+  -- ^ (default: 'Nothing') Headers can have a different size. 'H3' equates to
+  -- 'Medium'.
   , _headerFloated    :: Active t (Maybe Floated)
+  -- ^ (default: 'Nothing') Headers can be floated
   , _headerAligned    :: Active t (Maybe Aligned)
+  -- ^ (default: 'Nothing') Headers can have different text alignment
   , _headerColor      :: Active t (Maybe Color)
+  -- ^ (default: 'Nothing') Headers can have a color
   , _headerAttached   :: Active t (Maybe VerticalAttached)
+  -- ^ (default: 'Nothing') Headers can be vertically attached to other content
 
-  , _headerIcon       :: Maybe (Icon t)
-  , _headerImage      :: Maybe (Image t)
-
-  , _headerComponent  :: Bool -- This controls the "ui" class
-  , _headerItem       :: Bool
+  , _headerPreContent :: Maybe (m ())
+  -- ^ (default: 'Nothing') Widget placed before the main content, causes the
+  -- main content to be placed into a div with class "content".
   , _headerElConfig   :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''HeaderConfig
 
-instance HasElConfig t (HeaderConfig t) where
+instance HasElConfig t (HeaderConfig t m) where
   elConfig = headerElConfig
 
-instance Reflex t => Default (HeaderConfig t) where
+instance Reflex t => Default (HeaderConfig t m) where
   def = HeaderConfig
     { _headerLargeIcon = pure False
-    , _headerIcon = Nothing
-    , _headerImage = Nothing
-
     , _headerDividing = pure False
     , _headerSub = pure False
     , _headerDisabled = pure False
@@ -103,14 +117,15 @@ instance Reflex t => Default (HeaderConfig t) where
     , _headerColor = pure Nothing
     , _headerAttached = pure Nothing
 
-    , _headerComponent = False
-    , _headerItem = False
+    , _headerPreContent = Nothing
     , _headerElConfig = def
     }
 
-headerConfigClasses :: Reflex t => HeaderConfig t -> Active t Classes
+-- | Make the header classes
+headerConfigClasses :: Reflex t => HeaderConfig t m -> Active t Classes
 headerConfigClasses HeaderConfig {..} = dynClasses
-  [ pure $ Just "header"
+  [ pure $ Just "ui header"
+
   , boolClass "icon" _headerLargeIcon
   , boolClass "dividing" _headerDividing
   , boolClass "sub" _headerSub
@@ -122,60 +137,51 @@ headerConfigClasses HeaderConfig {..} = dynClasses
   , fmap toClassText <$> _headerAligned
   , fmap toClassText <$> _headerColor
   , fmap toClassText <$> _headerAttached
-
-  , boolClass "ui" $ pure $ not _headerComponent
-  , boolClass "item" $ pure _headerItem
   ]
 
--- | Create a top level header
--- https://semantic-ui.com/elements/header.html
-pageHeader'
-  :: UI t m => HeaderSize -> HeaderConfig t -> m a
+-- | Header common implementation.
+headerInternal
+  :: UI t m => Maybe HeaderSize -> HeaderConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-pageHeader' size config@HeaderConfig {..} widget
-  = uiElement' (headerSizeEl size) elConf $ case _headerImage of
-    Nothing -> case _headerIcon of
-      Nothing -> widget
-      Just (Icon i c) -> do
-        icon i c
-        divClass "content" widget
-    Just (Image i c) -> do
-      image i c
-      divClass "content" widget
+headerInternal mSize config@HeaderConfig {..} content
+  = uiElement' elType elConf $ case _headerPreContent of
+    Nothing -> content
+    Just m -> m >> divClass "content" content
   where
-    elConf = _headerElConfig <> def { _classes = headerConfigClasses config }
+    elConf = _headerElConfig <> def
+      { _classes = addSize <*> headerConfigClasses config }
+    (elType, addSize) = case mSize of
+      Just size -> (headerSizeEl size, pure id)
+      Nothing -> (,) "div" $ maybe id addClass <$>
+        (fmap . fmap) headerSizeText _headerSize
 
-pageHeader :: UI t m => HeaderSize -> HeaderConfig t -> m a -> m a
+-- | Create a top level header (uses HTML @header@ elements), returning the
+-- 'Element'.
+pageHeader'
+  :: UI t m => HeaderSize -> HeaderConfig t m -> m a
+  -> m (Element EventResult (DomBuilderSpace m) t, a)
+pageHeader' size config = headerInternal (Just size) config
+
+-- | Create a top level header (uses HTML @header@ elements).
+pageHeader :: UI t m => HeaderSize -> HeaderConfig t m -> m a -> m a
 pageHeader s c = fmap snd . pageHeader' s c
 
--- | Create a content header
--- https://semantic-ui.com/elements/header.html
+-- | Create a content header (uses HTML @div@ element), returning the 'Element'.
 header'
-  :: UI t m => HeaderConfig t -> m a
+  :: UI t m => HeaderConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-header' config@HeaderConfig {..} widget
-  = uiElement' "div" elConf $ case _headerImage of
-    Nothing -> case _headerIcon of
-      Nothing -> widget
-      Just (Icon i c) -> do
-        icon i c
-        divClass "content" widget
-    Just (Image i c) -> do
-      image i c
-      divClass "content" widget
-  where
-    msize = (fmap . fmap) headerSizeText _headerSize
-    addSize = maybe id addClass <$> msize
-    elConf = _headerElConfig <> def
-      { _classes = addSize <*> headerConfigClasses config
-      }
+header' config = headerInternal Nothing config
 
-header :: UI t m => HeaderConfig t -> m a -> m a
+-- | Create a content header (uses HTML @div@ element).
+header :: UI t m => HeaderConfig t m -> m a -> m a
 header c = fmap snd . header' c
 
+-- | Create a subheader, returning the 'Element'. A subheader can be placed
+-- into a 'header's content.
 subHeader' :: UI t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 subHeader' = divClass' "sub header"
 
+-- | Create a subheader. A subheader can be placed into a 'header's content.
 subHeader :: UI t m => m a -> m a
 subHeader = fmap snd . subHeader'
 

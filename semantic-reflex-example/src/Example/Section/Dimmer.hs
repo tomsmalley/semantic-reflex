@@ -52,7 +52,7 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
 
     dimmer (def & dimmerDimmed . event ?~ evt) $ do
       divClass "content" $ divClass "center" $ do
-        let conf = def & headerIcon ?~ Icon "heart" def
+        let conf = def & headerPreContent ?~ icon "heart" def
                        & headerLargeIcon |~ True
                        & headerInverted |~ True
         pageHeader H2 conf $ do
@@ -67,7 +67,7 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
   dimmer (def & dimmerPage .~ True
               & dimmerDimmed . event ?~ (Just In <$ on)) $ do
     divClass "content" $ divClass "center" $ do
-      let conf = def & headerIcon ?~ Icon "mail" def
+      let conf = def & headerPreContent ?~ icon "mail" def
                      & headerLargeIcon |~ True
                      & headerInverted |~ True
       pageHeader H2 conf $ do
@@ -76,9 +76,7 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
   |]
 
   mkExample "Persitent Dimmer" (def
-    & subtitle ?~ text "A dimmer can disable close on click")
-    --[example|
-      ("code", Left $ mdo
+    & subtitle ?~ text "A dimmer can disable close on click") $ (,) [str|
     on <- button def $ icon "plus" def >> text "Show"
 
     let conf = def
@@ -89,7 +87,29 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
 
     close <- dimmer conf $ do
       divClass "content" $ divClass "center" $ do
-        let conf = def & headerIcon ?~ Icon "warning sign" def
+        let conf = def & headerPreContent ?~ icon "warning sign" def
+                       & headerLargeIcon |~ True
+                       & headerInverted |~ True
+        pageHeader H2 conf $ do
+          text "Persistent Dimmer"
+          subHeader $ text "You can't dismiss me without clicking the button"
+
+        divider $ def & dividerHidden |~ True
+
+        button def $ text "Dismiss"
+    |] $ Left $ mdo
+
+    on <- button def $ icon "plus" def >> text "Show"
+
+    let conf = def
+          & dimmerDimmed . event ?~ leftmost
+            [ Just In <$ on, Just Out <$ close ]
+          & dimmerPage .~ True
+          & dimmerCloseOnClick |~ False
+
+    close <- dimmer conf $ do
+      divClass "content" $ divClass "center" $ do
+        let conf = def & headerPreContent ?~ icon "warning sign" def
                        & headerLargeIcon |~ True
                        & headerInverted |~ True
         pageHeader H2 conf $ do
@@ -101,30 +121,40 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
         button def $ text "Dismiss"
 
     return ()
-    )
---  |]
 
   mkExample "Dimmer Events" (def
-    & subtitle ?~ text "A dimmer can respond to events")
-    --[example|
-      ("code", Left $ mdo
-
+    & subtitle ?~ text "A dimmer can respond to events") $ (,) [str|
     let evt = leftmost
           [ Just In <$ domEvent Mouseenter e
           , Just Out <$ domEvent Mouseleave e ]
-        imgConf = def & imageSize |?~ Medium
 
-    (e, _) <- contentImage' "images/animals/cat.png" imgConf $ do
+    e <- image' (def & imageSize |?~ Medium) $ Right $ do
       dimmer (def & dimmerDimmed . event ?~ evt
                   & dimmerCloseOnClick |~ False) $ do
         divClass "content" $ divClass "center" $ do
           pageHeader H2 (def & headerInverted |~ True) $ text "Title"
           button (def & buttonEmphasis |?~ Primary) $ text "Add"
           button def $ text "View"
+      image (def & imageSize |?~ Medium) $ Left $
+        Img "images/animals/cat.png" def
+
+    |] $ Left $ mdo
+
+    let evt = leftmost
+          [ Just In <$ domEvent Mouseenter e
+          , Just Out <$ domEvent Mouseleave e ]
+
+    e <- image' (def & imageSize |?~ Medium) $ Right $ do
+      dimmer (def & dimmerDimmed . event ?~ evt
+                  & dimmerCloseOnClick |~ False) $ do
+        divClass "content" $ divClass "center" $ do
+          pageHeader H2 (def & headerInverted |~ True) $ text "Title"
+          button (def & buttonEmphasis |?~ Primary) $ text "Add"
+          button def $ text "View"
+      image (def & imageSize |?~ Medium) $ Left $
+        Img "images/animals/cat.png" def
 
     return ()
-    )
---  |]
 
   return ()
 

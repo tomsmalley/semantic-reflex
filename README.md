@@ -1,4 +1,4 @@
-# Semantic UI for Reflex Dom
+# Semantic UI for Reflex-DOM
 
 This library aims to provide a type safe Haskell reimplementation of Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It started as a fork of the reflex-dom-semui library.
 

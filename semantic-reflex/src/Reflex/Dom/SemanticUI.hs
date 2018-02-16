@@ -17,6 +17,7 @@ import Reflex.Dom.SemanticUI.Dimmer     as Components
 import Reflex.Dom.SemanticUI.Divider    as Components
 import Reflex.Dom.SemanticUI.Dropdown   as Components
 import Reflex.Dom.SemanticUI.Field      as Components
+import Reflex.Dom.SemanticUI.Flag       as Components
 import Reflex.Dom.SemanticUI.Form       as Components
 import Reflex.Dom.SemanticUI.Header     as Components
 import Reflex.Dom.SemanticUI.Icon       as Components

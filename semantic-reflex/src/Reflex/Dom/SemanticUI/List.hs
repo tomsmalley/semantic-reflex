@@ -11,8 +11,6 @@ import Reflex.Dom.Core
 
 import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
-import Reflex.Dom.SemanticUI.Icon (Icon(Icon), icon)
-import Reflex.Dom.SemanticUI.Image (Image(Image), image)
 import Reflex.Dom.SemanticUI.Transition
 
 data ListType = Bulleted | Ordered
@@ -99,27 +97,25 @@ listItemElementText ListItemLink = "a"
 
 data ListItemElement = ListItemDiv | ListItemLink
 
-data ListItemConfig t = ListItemConfig
-  { _listItemIcon :: Maybe (Icon t)
-  , _listItemImage :: Maybe (Image t)
+data ListItemConfig t m = ListItemConfig
+  { _listItemPreContent :: Maybe (m ())
   , _listItemElement :: ListItemElement
   , _listItemElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''ListItemConfig
 
-instance HasElConfig t (ListItemConfig t) where
+instance HasElConfig t (ListItemConfig t m) where
   elConfig = listItemElConfig
 
-instance Reflex t => Default (ListItemConfig t) where
+instance Reflex t => Default (ListItemConfig t m) where
   def = ListItemConfig
-    { _listItemIcon = Nothing
-    , _listItemImage = Nothing
+    { _listItemPreContent = Nothing
     , _listItemElement = ListItemDiv
     , _listItemElConfig = def
     }
 
 listItemConfigClasses
-  :: Reflex t => ListItemConfig t -> Active t Classes
+  :: Reflex t => ListItemConfig t m -> Active t Classes
 listItemConfigClasses ListItemConfig {..} = dynClasses
   [ pure $ Just "item"
   ]
@@ -143,24 +139,17 @@ list :: UI t m => ListConfig t -> m a -> m a
 list c = fmap snd . list' c
 
 listItem'
-  :: UI t m => ListItemConfig t -> m a
+  :: UI t m => ListItemConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-listItem' config@ListItemConfig {..} widget
-  = uiElement' (listItemElementText _listItemElement) elConf $
-    case _listItemImage of
-      Nothing -> case _listItemIcon of
-        Nothing -> widget
-        Just (Icon i c) -> do
-          icon i c
-          divClass "content" widget
-      Just (Image i c) -> do
-        image i c
-        divClass "content" widget
+listItem' config@ListItemConfig {..} content
+  = uiElement' (listItemElementText _listItemElement) elConf $ case _listItemPreContent of
+    Nothing -> content
+    Just m -> m >> divClass "content" content
   where
     elConf = _listItemElConfig <> def
       { _classes = listItemConfigClasses config }
 
-listItem :: UI t m => ListItemConfig t -> m a -> m a
+listItem :: UI t m => ListItemConfig t m -> m a -> m a
 listItem c = fmap snd . listItem' c
 
 listHeader' :: UI t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)

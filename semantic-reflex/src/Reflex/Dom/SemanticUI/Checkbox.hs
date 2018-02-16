@@ -113,7 +113,10 @@ checkbox
   => m () -> CheckboxConfig t -> m (Checkbox t)
 checkbox content config@CheckboxConfig {..} = do
 
-  let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
+  let divAttrs = _checkboxElConfig <> def
+        { _classes = checkboxConfigClasses config }
+      constAttrs = "type" =: "checkbox" <> "class" =: "hidden"
+      cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
         & initialAttributes .~ constAttrs
         & elementConfig_eventSpec %~ addEventSpecFlags
           (Proxy :: Proxy (DomBuilderSpace m)) Click (const stopPropagation)
@@ -208,10 +211,3 @@ checkbox content config@CheckboxConfig {..} = do
     , _checkboxDivElement = divEl
     , _checkboxInputElement = inputEl
     }
-
-  where
-    divAttrs = _checkboxElConfig <> def
-      { _classes = checkboxConfigClasses config
-      }
-    constAttrs = "type" =: "checkbox" <> "class" =: "hidden"
-
