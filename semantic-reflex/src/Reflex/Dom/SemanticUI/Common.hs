@@ -2,10 +2,11 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE TupleSections #-}
 
 module Reflex.Dom.SemanticUI.Common where
 
-import Control.Lens (set, ASetter)
+import Control.Lens (set, ASetter, (<&>))
 import Control.Monad (void, guard, (<=<))
 import Data.String
 import Data.Semigroup
@@ -30,15 +31,42 @@ import Data.These
 import Control.Monad.IO.Class (MonadIO(..))
 import System.Random (randomRIO)
 
--- | Generate a stream of @i@ events, triggered by @evt@ and separated by time @t@
-echo :: MonadWidget t m => Int -> NominalDiffTime -> Event t () -> m (Event t Int)
-echo n t trigger = fmap getLast <$> go 0 trigger
-  where
-    go !i evt
-      | i < n = do
-        eNext <- delay t evt
-        ((Last i <$ evt) <>) <$> go (succ i) eNext
-      | otherwise = pure never
+-- | Generate a stream of events, triggered by the given event, and separated by
+-- /at least/ the given time. The returned event will fire immediately upon
+-- triggering, and will contain the triggering event's value and the current
+-- event count (counts from @0@ to @n - 1@).
+--
+-- For example: after waiting enough time, the result of the expression:
+--
+-- > foldDyn (:) [] =<< echo_ n t =<< getPostBuild
+--
+-- Will be a list equal to @enumFromTo (n - 1) (n - 2) 0@.
+echo
+  :: MonadWidget t m
+  => Int              -- ^ How many events there should be
+  -> NominalDiffTime  -- ^ Minimum time separating the events
+  -> Event t a        -- ^ Triggering event
+  -> m (Event t (a, Int))
+echo n t trigger = fmap getLast <$> go 0 trigger where
+  go !i evt
+    | i < n = do
+      eNext <- delay t evt
+      ((Last . (,i) <$> evt) <>) <$> go (succ i) eNext
+    | otherwise = pure never
+
+-- | Like 'echo', but throws away the triggering event's value.
+echo_
+  :: MonadWidget t m
+  => Int              -- ^ How many events there should be
+  -> NominalDiffTime  -- ^ Minimum time separating the events
+  -> Event t a        -- ^ Triggering event
+  -> m (Event t Int)
+echo_ n t trigger = fmap getLast <$> go 0 trigger where
+  go !i evt
+    | i < n = do
+      eNext <- delay t evt
+      ((Last i <$ evt) <>) <$> go (succ i) eNext
+    | otherwise = pure never
 
 -- | Internal type for 'batchOccurrencesImmediate'.
 data Some a = None | Only a | Some (Seq a)
@@ -47,14 +75,18 @@ data Some a = None | Only a | Some (Seq a)
 -- all occurrences during that time, not including the initial event.
 -- Then, fire the returned 'Event' with the collected values. The initial
 -- triggering event will be returned immediately in a single value 'Seq'.
-batchOccurrencesImmediate :: forall t m a. (MonadFix m, MonadHold t m, PerformEvent t m, TriggerEvent t m, MonadIO (Performable m)) => NominalDiffTime -> Event t a -> m (Event t (Seq a))
+batchOccurrencesImmediate
+  :: forall t m a.
+    ( MonadHold t m, PerformEvent t m, TriggerEvent t m
+    , MonadFix m, MonadIO (Performable m))
+  => NominalDiffTime -> Event t a -> m (Event t (Seq a))
 batchOccurrencesImmediate t newValues = do
   rec (buffer, toDelay) <- mapAccumMaybe f None $ align newValues delayed
       delayed <- delaySelf_ toDelay
-  pure $ fforCheap (tag buffer delayed) $ \case
-    None -> mempty
-    Only a -> pure a
-    Some s -> s
+  pure $ fforMaybe (tag buffer delayed) $ \case
+    None -> Nothing
+    Only a -> Just $ pure a
+    Some s -> if Seq.null s then Nothing else Just s
   where
     f s t = let (s', m) = g s t in (Just s', m)
     g :: Some a -> These a () -> (Some a, Maybe NominalDiffTime)
@@ -71,6 +103,16 @@ batchOccurrencesImmediate t newValues = do
     g (Some s) (These a _)
       | Seq.null s = g None (This a)
       | otherwise = g (Some mempty) (This a)
+
+-- | Prevent a 'Dynamic' from updating faster than the given time step.
+rateLimitDyn
+  :: ( MonadSample t m, PostBuild t m, MonadHold t m, MonadFix m
+     , PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))
+  => NominalDiffTime -> Dynamic t a -> m (Dynamic t a)
+rateLimitDyn t d = do
+  eUpdate <- batchOccurrencesImmediate t $ updated d
+  init <- sample $ current d
+  holdDyn init $ tag (current d) eUpdate
 
 -- | Delay individual Event occurrences by the amount given in the event, in seconds.
 delaySelf_ :: (PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))

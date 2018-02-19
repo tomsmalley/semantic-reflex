@@ -1,15 +1,25 @@
+{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE TypeFamilies #-}
+
 module CommonSpec where
 
 import Data.Semigroup ((<>))
 
+import Data.Foldable (toList)
+import Control.Monad.IO.Class
+import Control.Concurrent
 import Test.Hspec
-import Test.QuickCheck (property, Arbitrary(..))
+import Test.QuickCheck hiding (sample)
 import Test.QuickCheck.Instances
 import Test.Hspec.QuickCheck
+import Control.Concurrent.MVar
+import Data.Time.Clock
 
 import Reflex.Dom.SemanticUI
+import Language.Javascript.JSaddle.Null
 
 import qualified Data.Map as M
+import qualified Data.Sequence as Seq
 
 instance Arbitrary Classes where
   arbitrary = Classes <$> arbitrary
@@ -57,4 +67,74 @@ spec = do
     it "works with boolClass" $ do
       c <- runSpiderHost $ sampleActive $ buttonConfigClasses $ def & buttonInverted |~ True
       c `shouldBe` Classes ["ui button", "inverted"]
+
+  describe "Time functions" $ do
+    describe "echo" $ do
+      it "produces the correct number of events in the correct order" $ do
+        es <- collectEventsFor 0.06 $ do
+          pb <- getPostBuild
+          pbd <- delay 0.005 pb
+          echo 5 0.01 $ leftmost [True <$ pb, False <$ pbd]
+        es `shouldBe`
+          [ (False, 4), (True, 4)
+          , (False, 3), (True, 3)
+          , (False, 2), (True, 2)
+          , (False, 1), (True, 1)
+          , (False, 0), (True, 0)
+          ]
+
+    describe "echo_" $ do
+      it "produces the correct number of events in the correct order" $ do
+        es <- collectEventsFor 0.06 $ do
+          pb <- getPostBuild
+          pbd <- delay 0.005 pb
+          echo_ 5 0.01 $ leftmost [pb, pbd]
+        es `shouldBe` [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+
+--      it "is timed correctly" $ do
+--        mvar <- newEmptyMVar
+--        run $ mainWidget $ do
+--          es <- echo 20 0.001 =<< echo_ 20 0.01 =<< getPostBuild
+--          performEvent_ $ ffor es $ liftIO . putMVar mvar
+--        let loop t0 = do
+--              x <- takeMVar mvar
+--              t1 <- getCurrentTime
+--              putStrLn $ show x ++ " " ++ show (diffUTCTime t1 t0)
+--              case x of
+--                (19,19) -> pure ()
+--                _ -> loop t0
+--        loop =<< getCurrentTime
+
+    let doubleToTime = fromRational . toRational :: Double -> NominalDiffTime
+    describe "batchOccurrencesImmediate" $ do
+      it "never drops events" $ property $ do
+        t' :: Double <- generate $ choose (0,0.001)
+        n :: Int <- generate $ choose (0, 10)
+        dt' :: Double <- generate $ choose (0, t' * fromIntegral n)
+        let t = doubleToTime t'
+            dt = doubleToTime dt'
+        -- Give the system some extra time
+        es <- collectEventsFor (0.01 + fromIntegral n * t) $ do
+          batchOccurrencesImmediate dt =<< echo_ n t =<< getPostBuild
+        (reverse . toList =<< es) `shouldBe` enumFromThenTo (n - 1) (n - 2) 0
+
+      it "batches correctly" $ do
+        es <- collectEventsFor 0.02 $ do
+          pb <- getPostBuild
+          pb1 <- delay 0.01 pb
+          batchOccurrencesImmediate 0.005 $ leftmost
+            [(1 :: Int) <$ pb, 2 <$ pb1]
+        es `shouldBe` [Seq.singleton 2, Seq.singleton 1]
+
+-- | Run a widget for the specified time, collecting the event firings into a
+-- list
+collectEventsFor :: NominalDiffTime -> Widget () (Event DomTimeline a) -> IO [a]
+collectEventsFor t m = do
+  mvar <- newMVar []
+  run $ mainWidget' $ do
+    e <- m
+    performEvent_ $ ffor e $ \a -> liftIO . modifyMVar_ mvar $ pure . (a :)
+  threadDelay $ round $ t * 1000000
+  takeMVar mvar
+
 
