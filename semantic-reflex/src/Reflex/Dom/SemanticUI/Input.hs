@@ -162,7 +162,7 @@ instance Reflex t => Default (TextInputConfig t) where
     }
 
 input' :: MonadWidget t m => InputConfig t -> m a -> m (El t, a)
-input' config@InputConfig {..} = uiElement' "div" elConf
+input' config@InputConfig {..} = ui' "div" elConf
   where elConf = _inputElConfig <> def { _classes = inputConfigClasses config }
 
 input :: MonadWidget t m => InputConfig t -> m a -> m a

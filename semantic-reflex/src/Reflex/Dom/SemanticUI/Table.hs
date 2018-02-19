@@ -53,7 +53,7 @@ table'
   :: UI t m => TableConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 table' config@TableConfig {..} widget
-  = uiElement' "table" elConf widget
+  = ui' "table" elConf widget
   where
     elConf = _tableElConfig <> def
       { _classes = tableConfigClasses config }

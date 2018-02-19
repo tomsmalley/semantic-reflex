@@ -123,7 +123,7 @@ sticky'
   => StickyConfig t -> m a -> m (El t, a)
 sticky' config@StickyConfig{..} content = do
 
-  (stickyEl, a) <- uiElement' "div" elConf content
+  (stickyEl, a) <- ui' "div" elConf content
 
   liftJSM $ runSticky _stickyPushing (_element_raw stickyEl)
 

@@ -89,8 +89,8 @@ image'
   -- content should include an 'img' somewhere.
   -> m (Element EventResult (DomBuilderSpace m) t)
 image' config@ImageConfig {..} eImg = fmap fst $ case eImg of
-  Left _ -> uiElement' "img" elConf blank
-  Right m -> uiElement' "div" elConf m
+  Left _ -> ui' "img" elConf blank
+  Right m -> ui' "div" elConf m
   where elConf = _imageElConfig <> def
           { _classes = imageConfigClasses config
           , _attrs = case eImg of
@@ -159,6 +159,6 @@ img'
   => Active t Text  -- ^ @src@ attribute text
   -> ImgConfig t    -- ^ Optional config
   -> m (Element EventResult (DomBuilderSpace m) t)
-img' src config = fst <$> uiElement' "img" elConf blank
+img' src config = fst <$> ui' "img" elConf blank
   where elConf = def { _attrs = imgConfigAttrs src config }
 

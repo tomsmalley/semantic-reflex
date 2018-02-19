@@ -277,7 +277,7 @@ buttonConfigClasses ButtonConfig {..} = dynClasses
 buttons'
   :: UI t m => ButtonsConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-buttons' config@ButtonsConfig {..} = uiElement' "div" elConf
+buttons' config@ButtonsConfig {..} = ui' "div" elConf
   where
    elConf = _buttonsElConfig <> def
       { _classes = buttonsConfigClasses config }
@@ -289,7 +289,7 @@ conditionalWithText'
   :: UI t m => Active t Text
   -> m (Element EventResult (DomBuilderSpace m) t)
 conditionalWithText' dataText
-  = fst <$> uiElement' "div" config blank
+  = fst <$> ui' "div" config blank
   where
     config = def
       & classes |~ "or"
@@ -308,7 +308,7 @@ button'
   :: UI t m => ButtonConfig t m -> m ()
   -> m (Element EventResult (DomBuilderSpace m) t, Event t ())
 button' config@ButtonConfig {..} content = do
-  (e, _) <- uiElement' (toTagText _buttonType) elConf $
+  (e, _) <- ui' (toTagText _buttonType) elConf $
     case _buttonAnimated of
       Just (AnimatedButton _ hiddenContent) -> do
         divClass "visible content" content
@@ -332,7 +332,7 @@ labeledButton'
   :: UI t m => LabeledButtonConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, Event t ())
 labeledButton' config@LabeledButtonConfig{..} content = do
-  (e, _) <- uiElement' "div" elConf content
+  (e, _) <- ui' "div" elConf content
   pure (e, domEvent Click e)
   where
     elConf = _labeledButtonElConfig <> def

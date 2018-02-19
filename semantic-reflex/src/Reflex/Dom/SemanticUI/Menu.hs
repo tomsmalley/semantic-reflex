@@ -69,7 +69,7 @@ menu'
   :: UI t m => MenuConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 menu' config@MenuConfig {..} widget
-  = uiElement' "div" elConf widget
+  = ui' "div" elConf widget
   where
     elConf = _menuElConfig <> def
       { _classes = menuConfigClasses config }
@@ -113,7 +113,7 @@ menuItem'
   :: UI t m => MenuItemConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 menuItem' config widget
-  = uiElement' "div" elConf widget
+  = ui' "div" elConf widget
   where (elTag, elConf) = itemElAttrs config
 
 menuItem :: UI t m => MenuItemConfig t -> m a -> m a

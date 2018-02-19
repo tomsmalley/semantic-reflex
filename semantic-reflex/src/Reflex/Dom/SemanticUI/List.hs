@@ -127,7 +127,7 @@ list'
   :: UI t m => ListConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 list' config@ListConfig {..} widget
-  = uiElement' "div" elConf widget
+  = ui' "div" elConf widget
   where
     elConf = _listElConfig <> def
       { _classes = listConfigClasses config }
@@ -142,9 +142,10 @@ listItem'
   :: UI t m => ListItemConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 listItem' config@ListItemConfig {..} content
-  = uiElement' (listItemElementText _listItemElement) elConf $ case _listItemPreContent of
-    Nothing -> content
-    Just m -> m >> divClass "content" content
+  = ui' (listItemElementText _listItemElement) elConf $
+    case _listItemPreContent of
+      Nothing -> content
+      Just m -> m >> divClass "content" content
   where
     elConf = _listItemElConfig <> def
       { _classes = listItemConfigClasses config }

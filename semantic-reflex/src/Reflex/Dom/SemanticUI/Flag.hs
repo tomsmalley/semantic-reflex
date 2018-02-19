@@ -30,7 +30,7 @@ instance Reflex t => Default (FlagConfig t) where
 flag'
   :: UI t m => Active t Text -> FlagConfig t
   -> m (Element EventResult (DomBuilderSpace m) t)
-flag' dynFlag FlagConfig {..} = fst <$> uiElement' "i" elConf blank
+flag' dynFlag FlagConfig {..} = fst <$> ui' "i" elConf blank
   where
     elConf = _flagElConfig <> def
       { _classes = flip addClass "flag" <$> dynFlag }

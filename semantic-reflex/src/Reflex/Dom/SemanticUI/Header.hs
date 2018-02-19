@@ -144,7 +144,7 @@ headerInternal
   :: UI t m => Maybe HeaderSize -> HeaderConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 headerInternal mSize config@HeaderConfig {..} content
-  = uiElement' elType elConf $ case _headerPreContent of
+  = ui' elType elConf $ case _headerPreContent of
     Nothing -> content
     Just m -> m >> divClass "content" content
   where

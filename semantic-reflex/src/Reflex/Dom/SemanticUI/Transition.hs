@@ -34,8 +34,8 @@ module Reflex.Dom.SemanticUI.Transition
   , dynClasses
   , ActiveElConfig (..)
   , UI
-  , uiElement
-  , uiElement'
+  , ui
+  , ui'
   , elConfigTransition
   , elConfigAttributes
   , elConfigStyle
@@ -51,6 +51,9 @@ module Reflex.Dom.SemanticUI.Transition
   , SetValue' (..)
   , SetValue
   , initial, event
+
+  , AnimationAttrs(..)
+  , runAction
   ) where
 
 import Control.Applicative (Alternative(..))
@@ -491,15 +494,15 @@ type UI t m =
   ( MonadHold t m, TriggerEvent t m, PerformEvent t m, DomBuilder t m
   , PostBuild t m, MonadIO (Performable m), MonadFix m, Reflex t )
 
-{-# INLINABLE uiElement #-}
-uiElement :: UI t m => Text -> ActiveElConfig t -> m a -> m a
-uiElement elTag conf = fmap snd . uiElement' elTag conf
+{-# INLINABLE ui #-}
+ui :: UI t m => Text -> ActiveElConfig t -> m a -> m a
+ui elTag conf = fmap snd . ui' elTag conf
 
-{-# INLINABLE uiElement' #-}
-uiElement'
+{-# INLINABLE ui' #-}
+ui'
   :: UI t m => Text -> ActiveElConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-uiElement' elTag ActiveElConfig {..} child = do
+ui' elTag ActiveElConfig {..} child = do
   AnimationAttrs dMClasses dMStyle <- runAction $ fromMaybe def _action
   let mkAttrs c mClasses s mStyle as = sconcat
         [ classAttr $ maybe c (<> c) mClasses

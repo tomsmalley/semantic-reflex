@@ -50,7 +50,7 @@ field'
   :: UI t m => FieldConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 field' config@FieldConfig {..} content
-  = uiElement' "div" elConf content
+  = ui' "div" elConf content
   where
     elConf = _fieldElConfig <> def
       { _classes = fieldConfigClasses config }

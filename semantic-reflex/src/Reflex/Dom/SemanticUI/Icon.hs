@@ -140,7 +140,7 @@ icon'
   :: UI t m => Active t Text -> IconConfig t
   -> m (Element EventResult (DomBuilderSpace m) t)
 icon' dynIcon config@IconConfig {..}
-  = fst <$> uiElement' "i" elConf blank
+  = fst <$> ui' "i" elConf blank
   where
     elConf = _iconElConfig <> def
       { _classes = addClass <$> dynIcon <*> iconConfigClasses config
@@ -172,7 +172,7 @@ iconsConfigClasses IconsConfig {..} = dynClasses
 icons'
   :: UI t m => IconsConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-icons' config@IconsConfig {..} = uiElement' "i" elConf
+icons' config@IconsConfig {..} = ui' "i" elConf
   where
     elConf = _iconsElConfig <> def
       { _classes = iconsConfigClasses config }

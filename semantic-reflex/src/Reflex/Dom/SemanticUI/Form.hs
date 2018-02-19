@@ -58,7 +58,7 @@ formConfigClasses FormConfig {..} = dynClasses
 -- | Form UI Element.
 form' :: MonadWidget t m => FormConfig t -> m a -> m (El t, a)
 form' config@FormConfig {..} content = do
-  (formEl, formResult) <- uiElement' "form" elConf content
+  (formEl, formResult) <- ui' "form" elConf content
 
   let e = DOM.uncheckedCastTo DOM.HTMLFormElement $ _element_raw formEl
 

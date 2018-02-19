@@ -139,7 +139,7 @@ dropdown' config@DropdownConfig {..} ini items = mdo
         , _attrs = pure ("tabindex" =: "0")
         }
 
-  (e, a) <- uiElement' "div" elConf $ mdo
+  (e, a) <- ui' "div" elConf $ mdo
     icon "dropdown" def
 
     void $ dyn $ ffor dSelection $ \f ->
@@ -158,14 +158,14 @@ dropdown' config@DropdownConfig {..} ini items = mdo
           & transitionCancelling .~ True
           & transitionDirection ?~ if open then In else Out
 
-    (menuEl', dSelection) <- uiElement' "div" (def & classes |~ "menu" & action ?~ menuA) $ do
+    (menuEl', dSelection) <- ui' "div" (def & classes |~ "menu" & action ?~ menuA) $ do
       (elemMap, eMaybeK) <- taggedActiveSelectViewListWithKey dSelection
         (M.mapKeysMonotonic pure <$> items) $ \_k v dSelected -> do
           let itemConf = def & classes .~ Dyn dClasses
               dClasses = dSelected <&> \case
                 True -> "item active selected"
                 False -> "item"
-          (e, _) <- uiElement' "div" itemConf $ taggedActive id (void . dyn) v
+          (e, _) <- ui' "div" itemConf $ taggedActive id (void . dyn) v
           pure (e, domEvent Click e)
 
         -- Alter the scroll position of the dropdown menu when the selected item

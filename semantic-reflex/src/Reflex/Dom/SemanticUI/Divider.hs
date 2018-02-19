@@ -65,7 +65,7 @@ divider'
   :: UI t m => DividerConfig t
   -> m (Element EventResult (DomBuilderSpace m) t)
 divider' config@DividerConfig {..}
-  = fst <$> uiElement' "div" elConf blank
+  = fst <$> ui' "div" elConf blank
   where
     elConf = _dividerElConfig <> def
       { _classes = dividerConfigClasses config }
@@ -80,7 +80,7 @@ contentDivider'
   :: UI t m => DividerConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 contentDivider' config@DividerConfig {..} content
-  = uiElement' "div" elConf content
+  = ui' "div" elConf content
   where
     elConf = _dividerElConfig <> def
       { _classes = addClass "horizontal" <$> dividerConfigClasses config }

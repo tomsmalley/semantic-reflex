@@ -104,8 +104,8 @@ message c = fmap snd . message' c
 message'
   :: UI t m => MessageConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-message' config@MessageConfig{..} content = do
-  uiElement' "div" elConf $ case _messageIcon of
+message' config@MessageConfig{..} content
+  = ui' "div" elConf $ case _messageIcon of
     Just (Icon i c) -> do
       icon i c
       divClass "content" content

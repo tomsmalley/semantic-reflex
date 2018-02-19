@@ -139,7 +139,7 @@ segmentConfigClasses SegmentConfig {..} = dynClasses
 segment'
   :: MonadWidget t m => SegmentConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-segment' config@SegmentConfig{..} = uiElement' "div" elConf
+segment' config@SegmentConfig{..} = ui' "div" elConf
   where
     elConf = _segmentElConfig <> def { _classes = segmentConfigClasses config }
 
@@ -189,7 +189,7 @@ segmentsConfigClasses SegmentsConfig {..} = dynClasses
 segments'
   :: UI t m => SegmentsConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-segments' config@SegmentsConfig{..} = uiElement' "div" elConf
+segments' config@SegmentsConfig{..} = ui' "div" elConf
   where
     elConf = _segmentsElConfig <> def { _classes = segmentsConfigClasses config }
 

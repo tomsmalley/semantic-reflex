@@ -88,7 +88,7 @@ dimmer' config@DimmerConfig {..} content = do
           [ fromMaybe never $ _dimmerDimmed ^. event
           , Just Out <$ click ]
 
-    (e, a) <- uiElement' "div" (mkElConfig $ updated dDir) content
+    (e, a) <- ui' "div" (mkElConfig $ updated dDir) content
 
   pure (e, a)
 

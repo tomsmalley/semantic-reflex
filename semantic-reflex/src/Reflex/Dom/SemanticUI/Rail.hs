@@ -83,7 +83,7 @@ rail'
   :: UI t m => RailSide -> RailConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 rail' railSide config@RailConfig {..} content
-  = uiElement' "div" elConf content
+  = ui' "div" elConf content
   where
     elConf = _railElConfig <> def
       { _classes = addClass (toClassText railSide)

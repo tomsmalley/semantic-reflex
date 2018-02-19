@@ -34,7 +34,7 @@ import qualified GHCJS.DOM.Types as DOM
 import qualified GHCJS.DOM.HTMLInputElement as Input
 import Language.Javascript.JSaddle (liftJSM)
 
--- | Checkbox types. If you need a radio type, see <RadioGroup>.
+-- | Checkbox types. If you need a radio type, see "Reflex.Dom.SemanticUI.RadioGroup".
 data CheckboxType =  Slider | Toggle deriving (Eq, Show)
 
 instance ToClassText CheckboxType where
@@ -121,7 +121,7 @@ checkbox content config@CheckboxConfig {..} = do
         & elementConfig_eventSpec %~ addEventSpecFlags
           (Proxy :: Proxy (DomBuilderSpace m)) Click (const stopPropagation)
 
-  (divEl, inputEl) <- uiElement' "div" divAttrs $ do
+  (divEl, inputEl) <- ui' "div" divAttrs $ do
     (inputEl, _) <- element "input" cfg blank
     el "label" content
     return inputEl

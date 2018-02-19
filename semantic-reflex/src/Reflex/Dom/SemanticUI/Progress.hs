@@ -183,7 +183,7 @@ data Progress t m = Progress
 progress
   :: UI t m
   => Dynamic t Range      -- ^ Dynamic range
-  -> Dynamic t Int
+  -> Dynamic t Int        -- ^ Current value
   -> ProgressConfig t m   -- ^ Optional config
   -> m (Progress t m)
 progress dRange dValue' config@ProgressConfig{..} = do
@@ -223,8 +223,8 @@ progress dRange dValue' config@ProgressConfig{..} = do
           <$> dIndeterminate <*> dMaybePercent <*> _progressMinWidth
         }
 
-  (progressEl, barEl) <- uiElement' "div" progressConfig $ do
-    (barEl, _) <- uiElement' "div" barConfig $ do
+  (progressEl, barEl) <- ui' "div" progressConfig $ do
+    (barEl, _) <- ui' "div" barConfig $ do
       for_ _progressBar $ \pContent -> divClass "progress" $ case pContent of
         PercentageBar -> dynText $ maybe mempty percentText <$> dMaybePercent
         FractionDoneBar -> do

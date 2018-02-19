@@ -95,7 +95,7 @@ radioGroup' name _config@RadioGroupConfig{..} items
 
 putRadioItem :: MonadWidget t m => Text -> Maybe CheckboxType -> m () -> m ()
 putRadioItem name mType m = do
-  void $ uiElement "div" def $ do
+  void $ ui "div" def $ do
     checkbox m $ def
       & checkboxType |~ mType
       & attrs |~ ("name" =: name)
