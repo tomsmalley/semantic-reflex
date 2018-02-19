@@ -47,7 +47,7 @@ dividers = Section "Divider" (text "A divider visually segments content into gro
     & subtitle ?~ text "A content divider can include a header")
     [example|
   contentDivider def $
-    pageHeader H4 (def & headerIcon ?~ Icon "tag" def) $ text "Description"
+    pageHeader H4 (def & headerPreContent ?~ icon "tag" def) $ text "Description"
   paragraph $ text "Quisque ac efficitur dolor. Vestibulum ut elit id eros congue dapibus. Pellentesque sollicitudin a erat bibendum placerat. Curabitur in tellus sollicitudin, dapibus eros sit amet, eleifend risus. Vestibulum tempor erat a tellus gravida venenatis. Nulla auctor metus quis leo posuere, eget dignissim leo condimentum. In hac habitasse platea dictumst. Donec."
   |]
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE GADTs                #-}
@@ -14,10 +15,12 @@
 
 module Example.Section.Progress where
 
+import Data.Proxy
 import Control.Lens
 import Control.Monad.IO.Class (MonadIO(..))
-import Control.Monad ((<=<))
+import Control.Monad ((<=<), guard)
 import Data.Foldable (for_)
+import Data.Maybe (fromJust)
 import Data.Semigroup ((<>))
 import Reflex.Dom.SemanticUI
 import Reflex.Dom.Core (text)
@@ -33,6 +36,44 @@ randomRangeControl range reset = buttons def $ do
   performEvent $ liftIO . ffor (randomRIO range) <$> leftmost
     [(+) <$ plus, subtract <$ minus, const . const <$> reset]
 
+data Thumbs = Up | Down deriving (Eq, Show)
+
+thumbRating
+  :: MonadWidget t m
+  => Dynamic t (Int, Int) -> m (Dynamic t (Maybe Thumbs))
+thumbRating state' = segment (def & segmentCompact |~ True) $ mdo
+
+  -- Don't allow either state to go below 0
+  let state = state' <&> \(a, b) -> (max 0 a, max 0 b)
+
+  let dColor a c = thumbState <&> \x -> c <$ guard (x == Just a)
+  up <- button (def & buttonColor .~ Dyn (dColor Up Green)) $ do
+    icon "thumbs up" def
+    dynText $ tshow . fst <$> dValues
+  down <- button (def & buttonColor .~ Dyn (dColor Down Red)) $ do
+    icon "thumbs down" def
+    dynText $ tshow . snd <$> dValues
+  let f a (Just b) | a == b = Nothing
+      f a _ = Just a
+  thumbState <- foldDyn f Nothing $ leftmost [Up <$ up, Down <$ down]
+
+  let updateState (up, down) = \case
+        Nothing -> (up, down)
+        Just Up -> (succ up, down)
+        Just Down -> (up, succ down)
+      dValues = updateState <$> state <*> thumbState
+      -- fromJust is fine because we check the state is 0 or more
+      range = dValues <&> \(up, down) -> Range 0 (up + down)
+
+  progress range (fst <$> dValues) $ def
+    & progressAttached |?~ BottomAttached
+    & progressSuccess |?~ True
+    & progressMinWidth |~ False
+    & progressRateLimit ?~ 0.1
+    & style |~ Style "background-color: #CCC"
+
+  pure thumbState
+
 progressSection :: forall t m. MonadWidget t m => Section t m
 progressSection = Section "Progress" blank $ do
 
@@ -40,17 +81,52 @@ progressSection = Section "Progress" blank $ do
 
   pageHeader H3 def $ text "Examples"
 
+
+  (range, upControl, downControl) <- buttons (def & buttonsIcon |~ True) $ mdo
+    upPlus <- button def $ icon "plus" def
+    upMinus <- button def $ icon "minus" def
+    let upControl = leftmost [succ <$ upPlus, pred <$ upMinus]
+
+    range <- foldDyn ($) (Range 0 0) $ leftmost
+      [ (\f (Range x y) -> Range (f x) y) <$> upControl
+      , (\f (Range x y) -> Range x (f y)) <$> downControl
+      ]
+    button (def & buttonDisabled |~ True) $ display range
+
+    downPlus <- button def $ icon "plus" def
+    downMinus <- button def $ icon "minus" def
+    let downControl = leftmost [succ <$ downPlus, pred <$ downMinus]
+
+    pure (range, upControl, downControl)
+
+  value <- buttons (def & buttonsIcon |~ True) $ do
+    plus <- button def $ icon "plus" def
+    reset <- button def $ icon "refresh" def
+    minus <- button def $ icon "minus" def
+    foldDyn ($) 0 $ leftmost [succ <$ plus, pred <$ minus, const 0 <$ reset]
+
+  button (def & buttonDisabled |~ True) $ display value
+
+  dynShowCode =<< progress range value def
+
+  thumbState <- foldDyn (\eF (up, down) -> case eF of
+    Left f -> (f up, down)
+    Right f -> (up, f down)) (0,0) $ leftmost
+      [Left <$> upControl, Right <$> downControl]
+
+  display =<< thumbRating thumbState
+
   mkExample "Standard" (def
     & dynamic ?~ dynShowCode
     & subtitle ?~ text "A blank progress bar")
     [resetExample|
   \reset -> do
-    update <- buttons def $ do
+    value <- buttons def $ do
       minus <- button (def & buttonIcon |~ True) $ icon "minus" def
       plus <- button (def & buttonIcon |~ True) $ icon "plus" def
-      pure $ leftmost [ succ <$ plus, pred <$ minus, const 4 <$ reset ]
+      foldDyn ($) 0 $ leftmost [ succ <$ plus, pred <$ minus, const 4 <$ reset ]
 
-    progress (0, 5) 4 update def
+    progress (pure $ Range 0 5) value def
   |]
 
   mkExample "Standard" (def
@@ -58,8 +134,9 @@ progressSection = Section "Progress" blank $ do
     [resetExample|
   \reset -> do
     update <- randomRangeControl (5,20) $ 40 <$ reset
+    value <- foldDyn ($) 40 update
 
-    progress (0, 100) 40 update $ def
+    progress (pure $ Range 0 100) value $ def
       & progressBar ?~ PercentageBar
       & progressLabel ?~ text "Uploading Files"
   |]
@@ -67,31 +144,32 @@ progressSection = Section "Progress" blank $ do
   mkExample "Indicating" (def
     & subtitle ?~ text "An indicating progress bar visually indicates the current level of progress of a task")
     $ ([str|\reset -> do
-    update <- buttons def $ do
+    value <- buttons def $ do
       minus <- button (def & buttonIcon |~ True) $ icon "minus" def
       plus <- button (def & buttonIcon |~ True) $ icon "plus" def
-      pure $ leftmost [ succ <$ plus, pred <$ minus, const 4 <$ reset ]
+      foldDyn ($) 4 $ leftmost [ succ <$ plus, pred <$ minus, const 4 <$ reset ]
 
     rec
       let render = dynText $ ffor _progressPercent $ \case
             100 -> "Project Funded!"
             x -> tshow x <> "% Funded"
-      Progress {..} <- progress (0, 10) 4 update $ def
+      Progress {..} <- progress (pure $ Range 0 10) 4 update $ def
         & progressLabel ?~ render
         & progressIndicating |~ True
 
     pure ()|]
     , Right $ \reset -> do
-    update <- buttons def $ do
+    value <- buttons def $ do
       minus <- button (def & buttonIcon |~ True) $ icon "minus" def
       plus <- button (def & buttonIcon |~ True) $ icon "plus" def
-      pure $ leftmost [ succ <$ plus, pred <$ minus, const 4 <$ reset ]
+      foldDyn ($) 4 $ leftmost [ succ <$ plus, pred <$ minus, const 4 <$ reset ]
 
     rec
       let render = dynText $ ffor _progressPercent $ \case
-            Percent 100 -> "Project Funded!"
-            p -> tshow p <> " Funded"
-      Progress {..} <- progress (0, 10) 4 update $ def
+            Just (Percent 100) -> "Project Funded!"
+            Just p -> tshow p <> " Funded"
+            Nothing -> ""
+      Progress {..} <- progress (pure $ Range 0 10) value $ def
         & progressLabel ?~ render
         & progressIndicating |~ True
 
@@ -101,7 +179,7 @@ progressSection = Section "Progress" blank $ do
   mkExample "Activity" (def
     & subtitle ?~ text "A progress bar can show activity")
     [example|
-    progress (0, 100) 40 never $ def
+    progress (pure $ Range 0 100) (pure 40) $ def
       & progressBar ?~ PercentageBar
       & progressActive |~ True
   |]
@@ -109,7 +187,7 @@ progressSection = Section "Progress" blank $ do
   mkExample "Success" (def
     & subtitle ?~ text "A progress bar can show a success state (automatic on 100%)")
     [example|
-    progress (0, 100) 100 never $ def
+    progress (pure $ Range 0 100) (pure 100) $ def
       & progressBar ?~ PercentageBar
       & progressLabel ?~ text "Everything worked, your file is all ready."
   |]
@@ -117,7 +195,7 @@ progressSection = Section "Progress" blank $ do
   mkExample "Warning" (def
     & subtitle ?~ text "A progress bar can show a warning state (overrides success state)")
     [example|
-    progress (0, 100) 100 never $ def
+    progress (pure $ Range 0 100) (pure 100) $ def
       & progressBar ?~ PercentageBar
       & progressLabel ?~ text "Your file didn't meet the minimum resolution requirements."
       & progressWarning |~ True
@@ -126,40 +204,42 @@ progressSection = Section "Progress" blank $ do
   mkExample "Error" (def
     & subtitle ?~ text "A progress bar can show an error state (overrides warning and success states)")
     [example|
-    progress (0, 100) 100 never $ def
+    progress (pure $ Range 0 100) (pure 100) $ def
       & progressBar ?~ PercentageBar
       & progressLabel ?~ text "There was an error."
       & progressError |~ True
   |]
 
   mkExample "Disabled" (def
-    & subtitle ?~ text "A progress bar can be disabled (update events are also ignored)")
+    & subtitle ?~ text "A progress bar can appear to be disabled")
     [resetExample|
   \reset -> do
     update <- randomRangeControl (5,20) $ 40 <$ reset
+    value <- foldDyn ($) 40 update
     disabled <- toggle True <=< button (def & buttonFloated |?~ RightFloated) $ text "Toggle Disabled"
 
-    progress (0, 100) 40 update $ def & progressDisabled .~ disabled
+    progress (pure $ Range 0 100) value $ def & progressDisabled .~ disabled
   |]
 
   mkExample "Inverted" (def
     & subtitle ?~ text "A progress bar can have inverted colors")
     [example|
   segment (def & segmentInverted |~ True) $ do
-    progress (0, 100) 6 never $ def
+    let range = Range 0 100
+    progress (pure range) (pure 6) $ def
       & progressInverted |~ True
       & progressBar ?~ PercentageBar
       & progressLabel ?~ text "Uploading Files"
-    progress (0, 100) 100 never $ def
+    progress (pure range) (pure 100) $ def
       & progressInverted |~ True
       & progressBar ?~ PercentageBar
       & progressLabel ?~ text "Success"
-    progress (0, 100) 100 never $ def
+    progress (pure range) (pure 100) $ def
       & progressInverted |~ True
       & progressBar ?~ PercentageBar
       & progressLabel ?~ text "Warning"
       & progressWarning |~ True
-    progress (0, 100) 100 never $ def
+    progress (pure range) (pure 100) $ def
       & progressInverted |~ True
       & progressBar ?~ PercentageBar
       & progressLabel ?~ text "Error"
@@ -170,12 +250,13 @@ progressSection = Section "Progress" blank $ do
     & subtitle ?~ text "A progress bar can be vertically attached to other elements")
     [resetExample|
   \reset -> do
-    update <- randomRangeControl (5, 20) $ 50 <$ reset
+    value <- foldDyn ($) 50 <=< randomRangeControl (5, 20) $ 50 <$ reset
 
+    let range = Range 0 100
     segment def $ do
-      progress (0, 100) 50 update $ def & progressAttached |?~ TopAttached
+      progress (pure range) value $ def & progressAttached |?~ TopAttached
       paragraph $ text "Segment with progress"
-      progress (0, 100) 50 update $ def & progressAttached |?~ BottomAttached
+      progress (pure range) value $ def & progressAttached |?~ BottomAttached
   |]
 
   mkExample "Size" (def
@@ -183,7 +264,7 @@ progressSection = Section "Progress" blank $ do
     [resetExample|
   \reset -> do
     for_ [Tiny .. Big] $ \size ->
-      progress (0, 100) 40 never $ def
+      progress (pure $ Range 0 100) (pure 40) $ def
         & progressSize |?~ size
         & progressLabel ?~ text (tshow size)
   |]
@@ -193,7 +274,7 @@ progressSection = Section "Progress" blank $ do
     [resetExample|
   \reset -> do
     for_ [minBound .. maxBound] $ \color ->
-      progress (0, 100) 40 never $ def & progressColor |?~ color
+      progress (pure $ Range 0 100) (pure 40) $ def & progressColor |?~ color
   |]
 
   mkExample "Inverted Color" (def
@@ -202,7 +283,7 @@ progressSection = Section "Progress" blank $ do
   \reset -> do
     segment (def & segmentInverted |~ True) $ do
       for_ [minBound .. maxBound] $ \color ->
-        progress (0, 100) 40 never $ def & progressColor |?~ color & progressInverted |~ True
+        progress (pure $ Range 0 100) (pure 40) $ def & progressColor |?~ color & progressInverted |~ True
   |]
 
   mkExample "Batching" (def
@@ -210,24 +291,25 @@ progressSection = Section "Progress" blank $ do
     [resetExample|
   \reset -> do
     prog <- buttons def $ do
-      go <- echo 200 0.01 <=< button (def & buttonIcon |~ True) $ icon "right arrow" def
+      go <- echo_ 200 0.01 <=< button (def & buttonIcon |~ True) $ icon "right arrow" def
       button (def & buttonDisabled |~ True) . display <=< holdDyn 0 $ leftmost [succ <$> go, 0 <$ reset]
-      pure $ leftmost [ succ <$ go, const 0 <$ reset ]
+      foldDyn ($) 0 $ leftmost [ succ <$ go, const 0 <$ reset ]
 
-    progress (0, 200) 0 prog $ def
+    let range = Range 0 200
+    progress (pure range) prog $ def
       & progressLabel ?~ text "No batching"
-      & progressBatchUpdates .~ False
-    progress (0, 200) 0 prog $ def
+      & progressRateLimit .~ Nothing
+    progress (pure range) prog $ def
       & progressLabel ?~ text "Batching: 0.1s animation"
-      & progressDuration .~ 0.1
-    progress (0, 200) 0 prog $ def
+      & progressRateLimit ?~ 0.1
+    progress (pure range) prog $ def
       & progressLabel ?~ text "Batching: 0.3s animation (default)"
-    progress (0, 200) 0 prog $ def
+    progress (pure range) prog $ def
       & progressLabel ?~ text "Batching: 0.5s animation"
-      & progressDuration .~ 0.5
-    progress (0, 200) 0 prog $ def
+      & progressRateLimit ?~ 0.5
+    progress (pure range) prog $ def
       & progressLabel ?~ text "Batching: 1s animation"
-      & progressDuration .~ 1
+      & progressRateLimit ?~ 1
   |]
 
   return ()

@@ -35,10 +35,10 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
   mkExample "" def
     [example|
   list def $ do
-    listItem (def & listItemIcon ?~ Icon "users" def) $ text "Semantic UI"
-    listItem (def & listItemIcon ?~ Icon "marker" def) $ text "New York, NY"
-    listItem (def & listItemIcon ?~ Icon "mail" def) $ simpleLink "jack@semantic-ui.com"
-    listItem (def & listItemIcon ?~ Icon "linkify" def) $ simpleLink "semantic-ui.com"
+    listItem (def & listItemPreContent ?~ icon "users" def) $ text "Semantic UI"
+    listItem (def & listItemPreContent ?~ icon "marker" def) $ text "New York, NY"
+    listItem (def & listItemPreContent ?~ icon "mail" def) $ simpleLink "jack@semantic-ui.com"
+    listItem (def & listItemPreContent ?~ icon "linkify" def) $ simpleLink "semantic-ui.com"
   |]
 
   mkExample "" def
@@ -49,10 +49,10 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
                 , ("Semantic-Org/Semantic-UI-Docs", 22)
                 , ("Semantic-Org/Semantic-UI-Meteor", 34) ]
 
-    let github = Icon "github" $ def
+    let github = icon "github" $ def
           & iconSize |?~ Large & classes |~ "middle aligned"
 
-    for_ repos $ \(name, time) -> listItem (def & listItemIcon ?~ github) $ do
+    for_ repos $ \(name, time) -> listItem (def & listItemPreContent ?~ github) $ do
       listHeader $ text name
       listDescription $ text $ "Updated " <> tshow time <> " mins ago"
   |]
@@ -75,10 +75,10 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
 
     listFiles [] = blank
     listFiles fs = list def $ for_ fs $ \f -> case f of
-      File (name, description) -> listItem (def & listItemIcon ?~ Icon "file" def) $ do
+      File (name, description) -> listItem (def & listItemPreContent ?~ icon "file" def) $ do
         listHeader $ text name
         listDescription $ text description
-      Folder (name, description) fs' -> listItem (def & listItemIcon ?~ Icon "folder" def) $ do
+      Folder (name, description) fs' -> listItem (def & listItemPreContent ?~ icon "folder" def) $ do
         listHeader $ text name
         listDescription $ text description
         listFiles fs'
@@ -156,15 +156,15 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
     [example|
   list def $ do
     let conf = def & listItemElement .~ ListItemLink
-    listItem (conf & listItemIcon ?~ Icon "help" def) $ do
+    listItem (conf & listItemPreContent ?~ icon "help" def) $ do
       listHeader $ text "Floated Icon"
       listDescription $ text "This text will always have a left margin to make sure it sits alongside your icon"
 
-    listItem (conf & listItemIcon ?~ Icon "right triangle" def) $ do
+    listItem (conf & listItemPreContent ?~ icon "right triangle" def) $ do
       listHeader $ text "Icon Alignment"
       listDescription $ text "Floated icons are by default top aligned"
 
-    listItem (def & listItemIcon ?~ Icon "help" def) $ text "Inline Text"
+    listItem (def & listItemPreContent ?~ icon "help" def) $ text "Inline Text"
   |]
 
   mkExample "Image" (def
@@ -172,26 +172,26 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
     [example|
   list def $ do
 
-    let animalImage animal = Image ("images/animals/" <> animal <> ".png") $ def
-          & imageShape |?~ Avatar
+    let animalImage animal = image (def & imageShape |?~ Avatar) $
+          Left $ Img ("images/animals/" <> animal <> ".png") def
 
-    listItem (def & listItemImage ?~ animalImage "fox") $ do
+    listItem (def & listItemPreContent ?~ animalImage "fox") $ do
       listHeader $ hyperlink "#" $ text "Fiona"
       listDescription $ text "Last seen rummaging through the bins just now."
 
-    listItem (def & listItemImage ?~ animalImage "elephant") $ do
+    listItem (def & listItemPreContent ?~ animalImage "elephant") $ do
       listHeader $ hyperlink "#" $ text "Ethan"
       listDescription $ text "Last seen playing in the water 2 hours ago."
 
-    listItem (def & listItemImage ?~ animalImage "monkey") $ do
+    listItem (def & listItemPreContent ?~ animalImage "monkey") $ do
       listHeader $ hyperlink "#" $ text "Marcus"
       listDescription $ text "Last seen swinging on his tyre yesterday."
 
-    listItem (def & listItemImage ?~ animalImage "giraffe") $ do
+    listItem (def & listItemPreContent ?~ animalImage "giraffe") $ do
       listHeader $ hyperlink "#" $ text "Ginny"
       listDescription $ text "Last seen nibbling on a tree 3 days ago."
 
-    listItem (def & listItemImage ?~ animalImage "spider") $ do
+    listItem (def & listItemPreContent ?~ animalImage "spider") $ do
       listHeader $ hyperlink "#" $ text "Stanley"
       listDescription $ text "Last seen spooking people a week ago."
   |]
@@ -233,11 +233,11 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
     [example|
   list def $ do
 
-    listItem (def & listItemIcon ?~ Icon "map marker" def) $ do
+    listItem (def & listItemPreContent ?~ icon "map marker" def) $ do
       listHeader $ hyperlink "#" $ text "Krolewskie Jadlo"
       listDescription $ text "An excellent polish restaurant, quick delivery and hearty, filling meals."
 
-    listItem (def & listItemIcon ?~ Icon "map marker" def) $ do
+    listItem (def & listItemPreContent ?~ icon "map marker" def) $ do
       listHeader $ hyperlink "#" $ text "Sapporo Haru"
       listDescription $ text "Greenpoint's best choice for quick and delicious sushi."
   |]
@@ -247,18 +247,18 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
     [example|
   list (def & listHorizontal |~ True) $ do
 
-    let animalImage animal = Image ("images/animals/" <> animal <> ".png") $ def
-          & imageShape |?~ Avatar
+    let animalImage animal = image (def & imageShape |?~ Avatar) $
+          Left $ Img ("images/animals/" <> animal <> ".png") def
 
-    listItem (def & listItemImage ?~ animalImage "eagle") $ do
+    listItem (def & listItemPreContent ?~ animalImage "eagle") $ do
       listHeader $ text "Eddie"
       text "Top Contributor"
 
-    listItem (def & listItemImage ?~ animalImage "tiger") $ do
+    listItem (def & listItemPreContent ?~ animalImage "tiger") $ do
       listHeader $ text "Tommy"
       text "Admin"
 
-    listItem (def & listItemImage ?~ animalImage "kangaroo") $ do
+    listItem (def & listItemPreContent ?~ animalImage "kangaroo") $ do
       listHeader $ text "Katie"
       text "Top Rated User"
   |]
@@ -289,16 +289,16 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
     [example|
   list (def & listSelection |~ True & listAligned |?~ ListMiddle) $ do
 
-    let animalImage animal = Image ("images/animals/" <> animal <> ".png") $ def
-          & imageShape |?~ Avatar
+    let animalImage animal = image (def & imageShape |?~ Avatar) $
+          Left $ Img ("images/animals/" <> animal <> ".png") def
 
-    listItem (def & listItemImage ?~ animalImage "horse") $
+    listItem (def & listItemPreContent ?~ animalImage "horse") $
       listHeader $ text "Helen"
 
-    listItem (def & listItemImage ?~ animalImage "chicken") $
+    listItem (def & listItemPreContent ?~ animalImage "chicken") $
       listHeader $ text "Christian"
 
-    listItem (def & listItemImage ?~ animalImage "duck") $
+    listItem (def & listItemPreContent ?~ animalImage "duck") $
       listHeader $ text "Daniel"
   |]
 
@@ -307,16 +307,16 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
     [example|
   list (def & listAnimated |~ True & listAligned |?~ ListMiddle) $ do
 
-    let animalImage animal = Image ("images/animals/" <> animal <> ".png") $ def
-          & imageShape |?~ Avatar
+    let animalImage animal = image (def & imageShape |?~ Avatar) $
+          Left $ Img ("images/animals/" <> animal <> ".png") def
 
-    listItem (def & listItemImage ?~ animalImage "horse") $
+    listItem (def & listItemPreContent ?~ animalImage "horse") $
       listHeader $ text "Helen"
 
-    listItem (def & listItemImage ?~ animalImage "chicken") $
+    listItem (def & listItemPreContent ?~ animalImage "chicken") $
       listHeader $ text "Christian"
 
-    listItem (def & listItemImage ?~ animalImage "duck") $
+    listItem (def & listItemPreContent ?~ animalImage "duck") $
       listHeader $ text "Daniel"
   |]
 
@@ -369,16 +369,16 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
     [example|
   list (def & listDivided |~ True & listAligned |?~ ListMiddle) $ do
 
-    let animalImage animal = Image ("images/animals/" <> animal <> ".png") $ def
-          & imageShape |?~ Avatar
+    let animalImage animal = image (def & imageShape |?~ Avatar) $
+          Left $ Img ("images/animals/" <> animal <> ".png") def
 
-    listItem (def & listItemImage ?~ animalImage "cow") $
+    listItem (def & listItemPreContent ?~ animalImage "cow") $
       listHeader $ text "Charlie"
 
-    listItem (def & listItemImage ?~ animalImage "turtle") $
+    listItem (def & listItemPreContent ?~ animalImage "turtle") $
       listHeader $ text "Tammy"
 
-    listItem (def & listItemImage ?~ animalImage "bear") $
+    listItem (def & listItemPreContent ?~ animalImage "bear") $
       listHeader $ text "Betty"
 
   divider $ def & dividerHidden |~ True
@@ -394,18 +394,18 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
     [example|
   list (def & listCelled |~ True & listAligned |?~ ListMiddle) $ do
 
-    let animalImage animal = Image ("images/animals/" <> animal <> ".png") $ def
-          & imageShape |?~ Avatar
+    let animalImage animal = image (def & imageShape |?~ Avatar) $
+          Left $ Img ("images/animals/" <> animal <> ".png") def
 
-    listItem (def & listItemImage ?~ animalImage "cow") $ do
+    listItem (def & listItemPreContent ?~ animalImage "cow") $ do
       listHeader $ text "Charlie"
       text "A cow"
 
-    listItem (def & listItemImage ?~ animalImage "turtle") $ do
+    listItem (def & listItemPreContent ?~ animalImage "turtle") $ do
       listHeader $ text "Tammy"
       text "A turtle"
 
-    listItem (def & listItemImage ?~ animalImage "bear") $ do
+    listItem (def & listItemPreContent ?~ animalImage "bear") $ do
       listHeader $ text "Betty"
       text "A bear"
 
@@ -421,16 +421,16 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
     & subtitle ?~ text "A list can vary in size")
     [example|
   let conf = def & listHorizontal |~ True & listAligned |?~ ListMiddle
-      animalImage animal = Image ("images/animals/" <> animal <> ".png") $ def
-        & imageShape |?~ Avatar
+      animalImage animal = image (def & imageShape |?~ Avatar) $
+        Left $ Img ("images/animals/" <> animal <> ".png") def
 
   for_ [minBound .. maxBound] $ \s -> do
     list (conf & listSize |?~ s) $ do
-      listItem (def & listItemImage ?~ animalImage "cow") $ do
+      listItem (def & listItemPreContent ?~ animalImage "cow") $ do
         listHeader $ text "Charlie"
-      listItem (def & listItemImage ?~ animalImage "turtle") $ do
+      listItem (def & listItemPreContent ?~ animalImage "turtle") $ do
         listHeader $ text "Tammy"
-      listItem (def & listItemImage ?~ animalImage "bear") $ do
+      listItem (def & listItemPreContent ?~ animalImage "bear") $ do
         listHeader $ text "Betty"
     divider $ def & dividerHidden |~ True
   |]
@@ -438,29 +438,29 @@ lists = Section "List" (text "A list is used to group related content. " >> simp
   mkExample "Floated" (def
     & subtitle ?~ text "A list can be floated")
     [example|
-  let animalImage animal = Image ("images/animals/" <> animal <> ".png") $ def
-        & imageShape |?~ Avatar
+  let animalImage animal = image (def & imageShape |?~ Avatar) $
+        Left $ Img ("images/animals/" <> animal <> ".png") def
 
   list (def & listFloated |?~ LeftFloated) $ do
 
-    listItem (def & listItemImage ?~ animalImage "cow") $ do
+    listItem (def & listItemPreContent ?~ animalImage "cow") $ do
       listHeader $ text "Charlie"
 
-    listItem (def & listItemImage ?~ animalImage "turtle") $ do
+    listItem (def & listItemPreContent ?~ animalImage "turtle") $ do
       listHeader $ text "Tammy"
 
-    listItem (def & listItemImage ?~ animalImage "bear") $ do
+    listItem (def & listItemPreContent ?~ animalImage "bear") $ do
       listHeader $ text "Betty"
 
   list (def & listFloated |?~ RightFloated) $ do
 
-    listItem (def & listItemImage ?~ animalImage "cow") $ do
+    listItem (def & listItemPreContent ?~ animalImage "cow") $ do
       listHeader $ text "Charlie"
 
-    listItem (def & listItemImage ?~ animalImage "turtle") $ do
+    listItem (def & listItemPreContent ?~ animalImage "turtle") $ do
       listHeader $ text "Tammy"
 
-    listItem (def & listItemImage ?~ animalImage "bear") $ do
+    listItem (def & listItemPreContent ?~ animalImage "bear") $ do
       listHeader $ text "Betty"
   |]
 

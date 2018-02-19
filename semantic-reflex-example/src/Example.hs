@@ -118,7 +118,7 @@ progressTable =
   ]
 
 progressProgress :: forall t m. MonadWidget t m => m (Progress t m)
-progressProgress = progress (0, vMax) v never $ def
+progressProgress = progress (pure $ Range 0 vMax) (pure v) $ def
   & progressColor |?~ Teal
   & progressBar ?~ PercentageBar
   where
@@ -229,10 +229,10 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
   segment (def & attrs |~ ("id" =: "masthead") & segmentVertical |~ True) $
     divClass "ui container" $ do
       let conf = def
-            & headerImage ?~ semanticLogo
+            & headerPreContent ?~ semanticLogo
             & style |~ Style "cursor: pointer"
       (e, _) <- pageHeader' H1 conf $ do
-        text "Semantic UI for Reflex Dom"
+        text "Semantic UI for Reflex-DOM"
         subHeader $ text "Documentation and examples"
       tellRoute $ [] <$ domEvent Click e
       hackageButton
@@ -246,10 +246,10 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
         & elConfigClasses |~ "ui container"
       linkHeaderConfig = def
         & headerSub |~ True
-        & headerIcon ?~ Icon "info" (def & iconColor |?~ Teal)
+        & headerPreContent ?~ icon "info" (def & iconColor |?~ Teal)
         & style |~ Style "cursor: pointer"
       categoryConfig isOpen = linkHeaderConfig
-        & headerIcon ?~ Icon (Dyn $ bool "right angle" "down angle" <$> isOpen) def
+        & headerPreContent ?~ icon (Dyn $ bool "right angle" "down angle" <$> isOpen) def
       wrapper isOpen = def
         & style |~ Style "margin-top: 1em"
         & action ?~ (def
@@ -257,7 +257,7 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
           & actionInitialDirection .~ Out)
 
   -- Main content
-  uiElement "div" mainConfig $ do
+  ui "div" mainConfig $ do
 
     -- Menu
     let s = Style "overflow: auto"
@@ -267,7 +267,7 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
       for_ (progressTable @t @m) $ \Category {..} -> mdo
         (e, _) <- pageHeader' H4 (categoryConfig isOpen) $ text categoryName
         isOpen <- toggle False $ domEvent Click e
-        uiElement "div" (wrapper isOpen) $
+        ui "div" (wrapper isOpen) $
           menu (def & menuVertical |~ True & menuSecondary |~ True) $ do
             for_ categoryItems $ \(item, status, mWidget) -> do
               case mWidget of
@@ -299,8 +299,8 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
     let url = "https://www.creativetail.com/40-free-flat-animal-icons/"
     hyperlink url $ text "Creative Tail"
 
-semanticLogo :: Reflex t => Image t
-semanticLogo = Image url $ def & imageShape |?~ Rounded
+semanticLogo :: MonadWidget t m => m ()
+semanticLogo = image (def & imageShape |?~ Rounded) $ Left $ Img url def
   where url = "https://semantic-ui.com/images/logo.png"
 
 githubButton :: MonadWidget t m => m ()

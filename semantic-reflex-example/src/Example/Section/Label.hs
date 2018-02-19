@@ -38,13 +38,13 @@ labels = Section "Label" blank $ do
     & subtitle ?~ text "A label can emphasize an image")
     [example|
   label (def & labelImage |~ True) $ do
-    image "images/animals/duck.png" def
+    image def $ Left $ Img "images/animals/duck.png" def
     text "Donald"
   label (def & labelImage |~ True) $ do
-    image "images/animals/sheep.png" def
+    image def $ Left $ Img "images/animals/sheep.png" def
     text "Sam"
   label (def & labelImage |~ True) $ do
-    image "images/animals/bee.png" def
+    image def $ Left $ Img "images/animals/bee.png" def
     text "Betty"
   |]
 
@@ -80,15 +80,17 @@ labels = Section "Label" blank $ do
   let conf = def & imageShape |?~ Rounded
                  & style |~ Style "overflow: hidden"
 
-  contentImage "images/animals/flamingo.png" conf $
+  image conf $ Right $ do
     label (def & labelCorner |?~ LeftCorner
                & labelColor |?~ Pink
                & labelLink .~ True) $ icon "heart" def
+    img "images/animals/flamingo.png" def
   divider $ def & dividerHidden |~ True
-  contentImage "images/animals/shark.png" conf $
+  image conf $ Right $ do
     label (def & labelCorner |?~ RightCorner
                & labelColor |?~ Blue
                & labelLink .~ True) $ icon "heart" def
+    img "images/animals/shark.png" def
   |]
 
   mkExample "Tag" (def
@@ -125,19 +127,21 @@ labels = Section "Label" blank $ do
 
   mkExample "" def
     [example|
-  contentImage "images/animals/duck.png" def $ do
+  image def $ Right $ do
     label (def & labelLink .~ True & labelColor |?~ Yellow
                & labelRibbon |?~ LeftRibbon) $ do
       icon "tag" def
       text "Duck"
+    img "images/animals/duck.png" def
 
   divider $ def & dividerHidden |~ True
 
-  contentImage "images/animals/dinosaur.png" def $ do
+  image def $ Right $ do
     label (def & labelLink .~ True & labelColor |?~ Blue
                & labelRibbon |?~ LeftRibbon) $ do
       icon "tag" def
       text "Dinosaur"
+    img "images/animals/dinosaur.png" def
   |]
 
   mkExample "Attached" (def
@@ -202,17 +206,17 @@ labels = Section "Label" blank $ do
     & subtitle ?~ text "A label can include a detail")
     [example|
   label (def & labelColor |?~ Orange & labelImage |~ True) $ do
-    image "images/animals/mouse.png" def
+    image def $ Left $ Img "images/animals/mouse.png" def
     text "Michael"
     detail "Mouse"
 
   label (def & labelColor |?~ Yellow & labelImage |~ True) $ do
-    image "images/animals/spider.png" def
+    image def $ Left $ Img "images/animals/spider.png" def
     text "Sabrina"
     detail "Spider"
 
   label (def & labelColor |?~ Blue & labelImage |~ True) $ do
-    image "images/animals/wolf.png" def
+    image def $ Left $ Img "images/animals/wolf.png" def
     text "William"
     detail "Wolf"
   |]
@@ -232,7 +236,7 @@ labels = Section "Label" blank $ do
               , Transition Scale (def & transitionDirection ?~ Out) <$ eClose
               ]))
           eClose <- label conf $ do
-            image (pure $ src animal) def
+            image def $ Left $ Img (pure $ src animal) def
             text name
             domEvent Click <$> icon' "delete" def
           pure ()
@@ -257,7 +261,7 @@ labels = Section "Label" blank $ do
               , Transition Scale (def & transitionDirection ?~ Out) <$ eClose
               ]))
           eClose <- label conf $ do
-            image (pure $ src animal) def
+            image def $ Left $ Img (pure $ src animal) def
             text name
             domEvent Click <$> icon' "delete" def
           pure ()
@@ -271,27 +275,6 @@ labels = Section "Label" blank $ do
       , ("Cathy", "Cat", Just Red)
       ]
     )
-
-  mkExample "Image" (def
-    & inbetween ?~ (message (def & messageType |?~ WarningMessage) $ do
-        paragraph $ do
-          icon "warning sign" def
-          text "Images must have a 'Spaced' attribute when inside labels or they will cause a line break." )
-    & subtitle ?~ text "A label can include an image")
-    [example|
-  label def $ do
-    image "images/animals/kangaroo.png" $ def
-      & imageShape |?~ Rounded & imageSpaced |?~ RightSpaced
-    text "Kevin"
-  label def $ do
-    text "Billy"
-    image "images/animals/bug.png" $ def & imageSpaced |?~ Spaced & imageShape |?~ Rounded
-    text "Bug"
-  label def $ do
-    text "Dorothy"
-    image "images/animals/dove.png" $ def
-      & imageShape |?~ Rounded & imageSpaced |?~ LeftSpaced
-  |]
 
   return ()
 

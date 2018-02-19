@@ -116,6 +116,9 @@ test-suite test
     , containers
     , semantic-reflex
 
+    , jsaddle
+    , time
+
     , hspec
     , QuickCheck
     , quickcheck-instances

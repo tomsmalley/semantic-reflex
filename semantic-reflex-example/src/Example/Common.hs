@@ -64,8 +64,7 @@ instance DynShow t (Progress t m) where
   dynShow Progress {..} = do
     pure $ mconcat
       [ pure "Progress"
-      , (("\n  { _progressValue = " <>) . show) <$> _progressValue
-      , (("\n  , _progressPercent = " <>) . show) <$> _progressPercent
+      , (("\n  { _progressPercent = " <>) . show) <$> _progressPercent
       , pure "\n  }"
       ]
 
@@ -120,7 +119,7 @@ upstreamIssue :: MonadWidget t m => Int -> Text -> m ()
 upstreamIssue issue msg = message def $ paragraph $ do
   icon "warning sign" def
   text msg
-  hyperlink url $ image (pure shield) $ def & imageFloated |?~ RightFloated
+  hyperlink url $ image (def & imageFloated |?~ RightFloated) $ Left $ Img (pure shield) def
   where
     shield = "https://img.shields.io/github/issues/detail/s/"
           <> "Semantic-Org/Semantic-UI/" <> tshow issue <> ".svg?maxAge=2592000"

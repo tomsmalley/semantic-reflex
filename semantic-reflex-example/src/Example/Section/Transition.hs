@@ -37,12 +37,11 @@ mkImages animal evt = do
   divider $ def & dividerHidden |~ True
   let imgConfig =  def
         & imageSize |?~ Small & imageShape |?~ Rounded & imageInline |~ True
-  image (animalUrl animal) $ imgConfig
-    & imageSpaced |?~ RightSpaced
-    & action ?~ (def & actionEvent ?~ evt)
-  image (animalUrl animal) $ imgConfig
-    & imageSpaced |?~ LeftSpaced
-    & action ?~ (def & actionEvent ?~ fmap (\(Transition t c) -> Transition t $ c & transitionCancelling .~ True) evt)
+  image (imgConfig & imageSpaced |?~ RightSpaced
+                   & action ?~ (def & actionEvent ?~ evt)) $ Left $ Img (animalUrl animal) def
+  image (imgConfig & imageSpaced |?~ LeftSpaced
+                   & action ?~ (def
+                   & actionEvent ?~ fmap (\(Transition t c) -> Transition t $ c & transitionCancelling .~ True) evt)) $ Left $ Img (animalUrl animal) def
 
 mkButtons :: MonadWidget t m => Text -> [TransitionType] -> m ()
 mkButtons _ [] = return ()
@@ -85,10 +84,9 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
       \(anim, animal) -> divClass "center aligned column" $ do
         run <- button (def & style |~ Style "margin-bottom: 1em") $
           text $ tshow anim
-        image (animalUrl animal) $ def
-          & imageSize |?~ Small
-          & imageShape |?~ Rounded
-          & action ?~ (def & actionEvent ?~ (Animation anim def <$ run))
+        image (def & imageSize |?~ Small & imageShape |?~ Rounded
+                   & action ?~ (def & actionEvent ?~ (Animation anim def <$ run))) $
+          Left $ Img (animalUrl animal) def
   |]
 
   mkExample "Cancelling Animations" (def
@@ -99,10 +97,11 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
       \(anim, animal) -> divClass "center aligned column" $ do
         run <- button (def & style |~ Style "margin-bottom: 1em") $
           text $ tshow anim
-        image (animalUrl animal) $ def
-          & imageSize |?~ Small
-          & imageShape |?~ Rounded
-          & action ?~ (def & actionEvent ?~ (Animation anim (def & transitionCancelling .~ True) <$ run))
+        image (def & imageSize |?~ Small & imageShape |?~ Rounded
+                   & action ?~ (def
+                      & actionEvent ?~ (Animation anim (def
+                        & transitionCancelling .~ True) <$ run)))
+          $ Left $ Img (animalUrl animal) def
   |]
 
   mkExample "Transitions" (def
@@ -120,10 +119,9 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
 
   divider $ def & dividerHidden |~ True
 
-  image (animalUrl "crocodile") $ def
-    & imageSize |?~ Small
-    & imageShape |?~ Rounded
-    & action ?~ (def & actionEvent ?~ eTransition)
+  image (def
+    & imageSize |?~ Small & imageShape |?~ Rounded
+    & action ?~ (def & actionEvent ?~ eTransition)) $ Left $ Img (animalUrl "crocodile") def
   |]
 
   mkExample "Scale" (def

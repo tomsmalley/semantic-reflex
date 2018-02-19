@@ -73,7 +73,7 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
     & subtitle ?~ text "A header can be formatted to emphasise an icon")
     [example|
   pageHeader H2 (def
-    & headerIcon ?~ Icon "settings" def
+    & headerPreContent ?~ icon "settings" def
     & headerLargeIcon |~ True
     & headerAligned |?~ CenterAligned) $ do
     text "Account Settings"
@@ -81,7 +81,7 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
 
   header (def
     & headerLargeIcon |~ True
-    & headerIcon ?~ Icon "users" (def & iconCircular |~ True & iconInverted |~ True)
+    & headerPreContent ?~ icon "users" (def & iconCircular |~ True & iconInverted |~ True)
     & headerAligned |?~ CenterAligned) $ do
     text "Friends"
   |]
@@ -90,18 +90,17 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
     & subtitle ?~ text "A header may be formatted to label smaller or de-emphasised content")
     [example|
   list (def & listHorizontal |~ True) $ do
-    let animal name = Image (pure $ "images/animals/" <> name <> ".png") $ def
-          & imageSize |?~ Mini & imageShape |?~ Circular
-
-    listItem (def & listItemImage ?~ animal "bat") $ do
+    let animal name = image (def & imageSize |?~ Mini & imageShape |?~ Circular) $
+          Left $ Img (pure $ "images/animals/" <> name <> ".png") def
+    listItem (def & listItemPreContent ?~ animal "bat") $ do
       header (def & headerSub |~ True) $ text "Benjamin"
       text "Bat"
 
-    listItem (def & listItemImage ?~ animal "horse") $ do
+    listItem (def & listItemPreContent ?~ animal "horse") $ do
       header (def & headerSub |~ True) $ text "Harriet"
       text "Horse"
 
-    listItem (def & listItemImage ?~ animal "monkey") $ do
+    listItem (def & listItemPreContent ?~ animal "monkey") $ do
       header (def & headerSub |~ True) $ text "Molly"
       text "Monkey"
   |]
@@ -110,7 +109,7 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
     & subtitle ?~ text "A header may contain an image before the content")
     [example|
   let url = "images/animals/penguin.png"
-  header (def & headerImage ?~ Image url (def & imageShape |?~ Circular)) $ do
+  header (def & headerPreContent ?~ image (def & imageShape |?~ Circular) (Left $ Img url def)) $ do
     text "Penelope"
     subHeader $ text "Penguin"
   |]
@@ -118,9 +117,9 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
   mkExample "Icon" (def
     & subtitle ?~ text "A header may contain an icon before the content")
     [example|
-  pageHeader H2 (def & headerIcon ?~ Icon "plug" def) $ text "Uptime Guarantee"
+  pageHeader H2 (def & headerPreContent ?~ icon "plug" def) $ text "Uptime Guarantee"
 
-  pageHeader H2 (def & headerIcon ?~ Icon "settings" def) $ do
+  pageHeader H2 (def & headerPreContent ?~ icon "settings" def) $ do
     text "Account Settings"
     subHeader $ text "Manage your preferences"
   |]

@@ -77,7 +77,7 @@ data ProgressConfig t m = ProgressConfig
   -- ^ (default: 'False') If 'True', show a pulsing animation on the bar
   , _progressDisabled :: Dynamic t Bool
   -- ^ (default: 'False') If 'True', the progress bar is stylised as being
-  -- disabled and the update events are ignored
+  -- disabled
   , _progressIndeterminate :: Dynamic t Bool
   -- ^ (default: 'False') If 'True', show the bar in an "indeterminate" state.
   -- The progress bar is hidden and the background is changed to diagonal
