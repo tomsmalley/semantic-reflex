@@ -68,7 +68,7 @@ library
     , ScopedTypeVariables
 
   build-depends:
-      base              >= 4.8 && < 4.10
+      base              >= 4.8 && < 4.11
     , bytestring
     , containers
     -- >= 0.5.9
