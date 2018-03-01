@@ -138,20 +138,6 @@ randomREvent range trigger = performEvent $ liftIO (randomRIO range) <$ trigger
 keyIs :: Reflex t => Key -> Event t Word -> Event t ()
 keyIs key = void . ffilter (\n -> keyCodeLookup (fromIntegral n) == key)
 
-{-# INLINABLE keydown #-}
-keydown
-  :: (Reflex t, HasDomEvent t e 'KeydownTag, DomEventType e 'KeydownTag ~ Word)
-  => Key -> e -> Event t ()
-keydown key = fmapMaybe (\n -> guard $ keyCodeLookup (fromIntegral n) == key)
-            . domEvent Keydown
-
-{-# INLINABLE keyup #-}
-keyup
-  :: (Reflex t, HasDomEvent t e 'KeyupTag, DomEventType e 'KeyupTag ~ Word)
-  => Key -> e -> Event t ()
-keyup key = fmapMaybe (\n -> guard $ keyCodeLookup (fromIntegral n) == key)
-          . domEvent Keyup
-
 -- | Show 'Text' by just packing the result of 'show'
 tshow :: Show a => a -> Text
 tshow = T.pack . show
