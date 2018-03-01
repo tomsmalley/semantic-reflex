@@ -22,6 +22,10 @@ data-files:
   data/static/themes/default/assets/images/flags.png
   data/static/index.html
 
+flag buildWarp
+  description: Build warp module
+  default: False
+
 library
   hs-source-dirs: src
 
@@ -54,7 +58,7 @@ library
     Reflex.Dom.SemanticUI.Sticky
     Reflex.Dom.SemanticUI.Table
     Reflex.Dom.SemanticUI.Transition
-  if !impl(ghcjs)
+  if (!impl(ghcjs) && flag(buildWarp))
     exposed-modules: Reflex.Dom.SemanticUI.Warp
 
   default-extensions:
@@ -91,7 +95,7 @@ library
     , time
     , unbounded-delays
 
-  if !impl(ghcjs)
+  if (!impl(ghcjs) && flag(buildWarp))
     build-depends:
         jsaddle-warp    >= 0.9.2.0 && < 0.10
       , wai
