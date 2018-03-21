@@ -88,15 +88,11 @@ image'
   -- classes of a Semantic-UI image element which wraps the given content. The
   -- content should include an 'img' somewhere.
   -> m (Element EventResult (DomBuilderSpace m) t)
-image' config@ImageConfig {..} eImg = fmap fst $ case eImg of
-  Left _ -> ui' "img" elConf blank
-  Right m -> ui' "div" elConf m
-  where elConf = _imageElConfig <> def
-          { _classes = imageConfigClasses config
-          , _attrs = case eImg of
-            Left (Img src conf) -> imgConfigAttrs src conf
-            Right _ -> mempty
-          }
+image' config@ImageConfig {..} = \case
+  Left (Img src imgConf) -> img' src $ imgConf
+    { _imgElConfig = _imgElConfig imgConf <> elConf}
+  Right m -> fmap fst $ ui' "div" elConf m
+  where elConf = _imageElConfig <> def { _classes = imageConfigClasses config }
 
 -- | Create a Semantic-UI image.
 image
@@ -110,26 +106,6 @@ image
   -- content should include an 'img' somewhere.
   -> m ()
 image i = void . image' i
-
--- | The 'img' function packaged into a type.
-data Img t = Img
-  { _imgSrc :: Active t Text
-  , _imgConfig :: ImgConfig t
-  }
-
--- | Optional configuration for 'img'
-data ImgConfig t = ImgConfig
-  { _imgTitle :: Active t (Maybe Text)
-  , _imgAlt :: Active t (Maybe Text)
-  , _imgElConfig :: ActiveElConfig t
-  }
-
-instance Reflex t => Default (ImgConfig t) where
-  def = ImgConfig
-    { _imgTitle = pure Nothing
-    , _imgAlt = pure Nothing
-    , _imgElConfig = def
-    }
 
 -- | Create the @img@ attributes 'Map'.
 imgConfigAttrs
@@ -163,4 +139,28 @@ img'
   -> m (Element EventResult (DomBuilderSpace m) t)
 img' src config@ImgConfig {..} = fst <$> ui' "img" elConf blank
   where elConf = _imgElConfig <> def { _attrs = imgConfigAttrs src config }
+
+-- | The 'img' function packaged into a type.
+data Img t = Img
+  { _imgSrc :: Active t Text
+  , _imgConfig :: ImgConfig t
+  }
+
+-- | Optional configuration for 'img'
+data ImgConfig t = ImgConfig
+  { _imgTitle :: Active t (Maybe Text)
+  , _imgAlt :: Active t (Maybe Text)
+  , _imgElConfig :: ActiveElConfig t
+  }
+makeLensesWith (lensRules & simpleLenses .~ True) ''ImgConfig
+
+instance HasElConfig t (ImgConfig t) where
+  elConfig = imgElConfig
+
+instance Reflex t => Default (ImgConfig t) where
+  def = ImgConfig
+    { _imgTitle = pure Nothing
+    , _imgAlt = pure Nothing
+    , _imgElConfig = def
+    }
 
