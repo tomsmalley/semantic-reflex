@@ -121,12 +121,14 @@ data Img t = Img
 data ImgConfig t = ImgConfig
   { _imgTitle :: Active t (Maybe Text)
   , _imgAlt :: Active t (Maybe Text)
+  , _imgElConfig :: ActiveElConfig t
   }
 
 instance Reflex t => Default (ImgConfig t) where
   def = ImgConfig
     { _imgTitle = pure Nothing
     , _imgAlt = pure Nothing
+    , _imgElConfig = def
     }
 
 -- | Create the @img@ attributes 'Map'.
@@ -159,6 +161,6 @@ img'
   => Active t Text  -- ^ @src@ attribute text
   -> ImgConfig t    -- ^ Optional config
   -> m (Element EventResult (DomBuilderSpace m) t)
-img' src config = fst <$> ui' "img" elConf blank
-  where elConf = def { _attrs = imgConfigAttrs src config }
+img' src config@ImgConfig {..} = fst <$> ui' "img" elConf blank
+  where elConf = _imgElConfig <> def { _attrs = imgConfigAttrs src config }
 

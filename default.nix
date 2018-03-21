@@ -27,7 +27,7 @@
   };
 
   shells = {
-    ghc = ["semantic-reflex" "semantic-reflex-example"];
+    ghc = ["semantic-reflex"];
     ghcjs = ["semantic-reflex" "semantic-reflex-example"];
   };
 })
