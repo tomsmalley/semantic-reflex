@@ -53,6 +53,7 @@ instance Reflex t => Default (FormConfig t) where
 formConfigClasses :: Reflex t => FormConfig t -> Active t Classes
 formConfigClasses FormConfig {..} = dynClasses
   [ pure $ Just "ui form"
+  , pure $ Just "error warning success" -- So that the messages aren't hidden by default
   ]
 
 -- | Form UI Element.
