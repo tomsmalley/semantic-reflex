@@ -11,8 +11,8 @@
       (pkgs.fetchFromGitHub {
         owner = "reflex-frp";
         repo = "reflex-dom-contrib";
-        rev = "88bfbf5df196c2207e50e88e78ae9b43af4be44b";
-        sha256 = "19hdyijjwcwnqs8sw6gn5kdb92pyb6k9q2qbrk0cjm3nd93x60wm";
+        rev = "b47f90c810c838009bf69e1f8dacdcd10fe8ffe3";
+        sha256 = "0yvjnr9xfm0bg7b6q7ssdci43ca2ap3wvjhshv61dnpvh60ldsk9";
       }) {};
 
     reflex-dom-nested-routing = self.callCabal2nix
@@ -20,14 +20,14 @@
       (pkgs.fetchFromGitHub {
         owner = "3noch";
         repo = "reflex-dom-nested-routing";
-        rev = "fb85e65fe89bc4fd62a2d0570ac27149e1c9cb86";
-        sha256 = "135l988y3jvfhvds76mm58blfj9fr7i7qqd733j8vjywblblqjxi";
+        rev = "c49c75c693de8516d1b19314be500482bea9426c";
+        sha256 = "00bmakqm9893h8l3w7l1r1fjkpyffifcaicqmj2q5wwlfvm96hbf";
       }) {};
 
   };
 
   shells = {
-    ghc = ["semantic-reflex"];
+    ghc = ["semantic-reflex" "semantic-reflex-example"];
     ghcjs = ["semantic-reflex" "semantic-reflex-example"];
   };
 })

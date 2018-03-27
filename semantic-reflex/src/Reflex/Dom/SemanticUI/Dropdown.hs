@@ -68,6 +68,7 @@ data DropdownConfig t = DropdownConfig
   , _dropdownInline :: Dynamic t Bool
   , _dropdownAs :: Dynamic t (Maybe DropdownStyle)
   , _dropdownUnselectable :: Bool
+  , _dropdownCloseOnClickSelection :: Bool
   , _dropdownElConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''DropdownConfig
@@ -85,6 +86,7 @@ instance Reflex t => Default (DropdownConfig t) where
     , _dropdownInline = pure False
     , _dropdownAs = pure Nothing
     , _dropdownUnselectable = False
+    , _dropdownCloseOnClickSelection = True
     , _dropdownElConfig = def
     }
 
@@ -139,7 +141,7 @@ dropdown' config@DropdownConfig {..} ini items = mdo
         , _attrs = pure ("tabindex" =: "0")
         }
 
-  (e, a) <- ui' "div" elConf $ mdo
+  (e, (selection, clickItem)) <- ui' "div" elConf $ mdo
     icon "dropdown" def
 
     void $ dyn $ ffor dSelection $ \f ->
@@ -158,15 +160,22 @@ dropdown' config@DropdownConfig {..} ini items = mdo
           & transitionCancelling .~ True
           & transitionDirection ?~ if open then In else Out
 
-    (menuEl', dSelection) <- ui' "div" (def & classes |~ "menu" & action ?~ menuA) $ do
+    (menuEl', (clickItem, dSelection)) <- ui' "div" (def & classes |~ "menu" & action ?~ menuA) $ do
       (elemMap, eMaybeK) <- taggedActiveSelectViewListWithKey dSelection
         (M.mapKeysMonotonic pure <$> items) $ \_k v dSelected -> do
           let itemConf = def & classes .~ Dyn dClasses
               dClasses = dSelected <&> \case
                 True -> "item active selected"
                 False -> "item"
-          (e, _) <- ui' "div" itemConf $ taggedActive id (void . dyn) v
-          pure (e, domEvent Click e)
+          (itemEl, _) <- ui' "div" itemConf $ taggedActive id (void . dyn) v
+
+          -- Prevent the click events from propagating to the wrapper element
+          -- These click events are used to close the menu, and click events on
+          -- the wrapper are used to toggle it
+          let itemHTML = Types.uncheckedCastTo Types.HTMLElement $ _element_raw itemEl
+          void $ liftJSM $ EventM.on itemHTML GlobalEventHandlers.click $ EventM.stopPropagation
+
+          pure (itemEl, domEvent Click itemEl)
 
         -- Alter the scroll position of the dropdown menu when the selected item
         -- is outside of its bounds
@@ -185,7 +194,7 @@ dropdown' config@DropdownConfig {..} ini items = mdo
             itemAbove = itemOffset < scrollTop
         when (itemBelow || itemAbove) $ Element.setScrollTop menuEl itemOffset
 
-      holdDyn ini $ leftmost
+      fmap ((,) (void eMaybeK)) $ holdDyn ini $ leftmost
         [ flip tag (keydown ArrowDown e) $ lookupNextKey ini
             <$> current dSelection <*> taggedActive pure current items
         , flip tag (keydown ArrowUp e) $ lookupPrevKey ini
@@ -196,7 +205,7 @@ dropdown' config@DropdownConfig {..} ini items = mdo
           False -> eMaybeK
         ]
 
-    pure dSelection
+    pure (dSelection, clickItem)
 
   -- Add event listeners
   let htmlElement = Types.uncheckedCastTo Types.HTMLElement $ _element_raw e
@@ -208,9 +217,9 @@ dropdown' config@DropdownConfig {..} ini items = mdo
       Escape -> HTMLElement.blur htmlElement
       _ -> pure ()
 
-  let toggleEvents = keydown Space e <> keydown Enter e
-      closeEvents = domEvent Blur e
-      openEvents = domEvent Click e <> keydown ArrowDown e <> keydown ArrowUp e
+  let toggleEvents = domEvent Click e <> keydown Space e <> keydown Enter e
+      closeEvents = domEvent Blur e <> if _dropdownCloseOnClickSelection then clickItem else never
+      openEvents = keydown ArrowDown e <> keydown ArrowUp e
 
   isOpen <- holdUniqDyn <=< holdDyn False $ leftmost
     [ False <$ closeEvents, True <$ openEvents
@@ -219,5 +228,5 @@ dropdown' config@DropdownConfig {..} ini items = mdo
 
   let eOpen = updated isOpen
 
-  pure (e, a)
+  pure (e, selection)
 
