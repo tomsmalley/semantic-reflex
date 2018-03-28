@@ -6,8 +6,6 @@ module Reflex.Dom.SemanticUI.Menu where
 import Control.Lens.TH (makeLenses)
 import Data.Default (Default (def))
 import Data.Semigroup
-import qualified Data.Set as S
-import Data.Set (Set)
 import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding (SetValue)
@@ -113,7 +111,7 @@ menuItem'
   :: UI t m => MenuItemConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 menuItem' config widget
-  = ui' "div" elConf widget
+  = ui' elTag elConf widget
   where (elTag, elConf) = itemElAttrs config
 
 menuItem :: UI t m => MenuItemConfig t -> m a -> m a

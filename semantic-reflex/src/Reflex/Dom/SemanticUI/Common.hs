@@ -6,15 +6,12 @@
 
 module Reflex.Dom.SemanticUI.Common where
 
-import Control.Lens (set, ASetter, (<&>))
-import Control.Monad (void, guard, (<=<))
+import Control.Lens (set, ASetter)
+import Control.Monad (void, guard)
 import Data.String
 import Data.Semigroup
 import Data.Map (Map)
-import qualified Data.Map as M
 import Data.Maybe (catMaybes)
-import Data.Set (Set)
-import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Reflex.Dom.Core hiding (Link, Error, elAttr', DynamicWriterT)
@@ -23,7 +20,6 @@ import Reflex.Active
 import qualified Control.Concurrent.Thread.Delay as Concurrent
 import Control.Concurrent
 import Control.Monad.Fix
-import Control.Monad.IO.Class
 import Data.Time
 import Data.Sequence as Seq
 import Data.Align
@@ -42,7 +38,7 @@ import System.Random (randomRIO)
 --
 -- Will be a list equal to @enumFromTo (n - 1) (n - 2) 0@.
 echo
-  :: MonadWidget t m
+  :: (PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))
   => Int              -- ^ How many events there should be
   -> NominalDiffTime  -- ^ Minimum time separating the events
   -> Event t a        -- ^ Triggering event
@@ -56,7 +52,7 @@ echo n t trigger = fmap getLast <$> go 0 trigger where
 
 -- | Like 'echo', but throws away the triggering event's value.
 echo_
-  :: MonadWidget t m
+  :: (PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))
   => Int              -- ^ How many events there should be
   -> NominalDiffTime  -- ^ Minimum time separating the events
   -> Event t a        -- ^ Triggering event
@@ -88,7 +84,7 @@ batchOccurrencesImmediate t newValues = do
     Only a -> Just $ pure a
     Some s -> if Seq.null s then Nothing else Just s
   where
-    f s t = let (s', m) = g s t in (Just s', m)
+    f s t' = let (s', m) = g s t' in (Just s', m)
     g :: Some a -> These a () -> (Some a, Maybe NominalDiffTime)
     g None (This a) = (Only a, Just 0)
     g None (That _) = (None, Nothing)
@@ -111,8 +107,8 @@ rateLimitDyn
   => NominalDiffTime -> Dynamic t a -> m (Dynamic t a)
 rateLimitDyn t d = do
   eUpdate <- batchOccurrencesImmediate t $ updated d
-  init <- sample $ current d
-  holdDyn init $ tag (current d) eUpdate
+  a <- sample $ current d
+  holdDyn a $ tag (current d) eUpdate
 
 -- | Delay individual Event occurrences by the amount given in the event, in seconds.
 delaySelf_ :: (PerformEvent t m, TriggerEvent t m, MonadIO (Performable m))

@@ -21,7 +21,7 @@ import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 import Reflex.Dom.SemanticUI.Icon
 
-import Reflex.Dom.Core hiding (SetValue, DropdownConfig, list, textInput)
+import Reflex.Dom.Core hiding (SetValue, Dropdown, DropdownConfig, list, textInput)
 
 import qualified GHCJS.DOM.EventM as EventM
 import qualified GHCJS.DOM.GlobalEventHandlers as GlobalEventHandlers
@@ -59,48 +59,48 @@ instance ToClassText DropdownStyle where
 
 -- | Config for new semantic dropdowns
 data DropdownConfig t = DropdownConfig
---  { _dropdownValue :: SetValue t a
-  { _dropdownPlaceholder :: Dynamic t Text
-  , _dropdownSelection :: Dynamic t Bool
-  , _dropdownCompact :: Dynamic t Bool
-  , _dropdownFluid :: Dynamic t Bool
-  , _dropdownItem :: Dynamic t Bool
-  , _dropdownInline :: Dynamic t Bool
-  , _dropdownAs :: Dynamic t (Maybe DropdownStyle)
-  , _dropdownUnselectable :: Bool
-  , _dropdownCloseOnClickSelection :: Bool
-  , _dropdownElConfig :: ActiveElConfig t
+--  { _dropdownConfig_Value :: SetValue t a
+  { _dropdownConfig_placeholder :: Dynamic t Text
+  , _dropdownConfig_selection :: Dynamic t Bool
+  , _dropdownConfig_compact :: Dynamic t Bool
+  , _dropdownConfig_fluid :: Dynamic t Bool
+  , _dropdownConfig_item :: Dynamic t Bool
+  , _dropdownConfig_inline :: Dynamic t Bool
+  , _dropdownConfig_as :: Dynamic t (Maybe DropdownStyle)
+  , _dropdownConfig_unselectable :: Bool
+  , _dropdownConfig_closeOnClickSelection :: Bool
+  , _dropdownConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''DropdownConfig
 
 instance HasElConfig t (DropdownConfig t) where
-  elConfig = dropdownElConfig
+  elConfig = dropdownConfig_elConfig
 
 instance Reflex t => Default (DropdownConfig t) where
   def = DropdownConfig
-    { _dropdownPlaceholder = pure mempty
-    , _dropdownSelection = pure False
-    , _dropdownCompact = pure False
-    , _dropdownFluid = pure False
-    , _dropdownItem = pure False
-    , _dropdownInline = pure False
-    , _dropdownAs = pure Nothing
-    , _dropdownUnselectable = False
-    , _dropdownCloseOnClickSelection = True
-    , _dropdownElConfig = def
+    { _dropdownConfig_placeholder = pure mempty
+    , _dropdownConfig_selection = pure False
+    , _dropdownConfig_compact = pure False
+    , _dropdownConfig_fluid = pure False
+    , _dropdownConfig_item = pure False
+    , _dropdownConfig_inline = pure False
+    , _dropdownConfig_as = pure Nothing
+    , _dropdownConfig_unselectable = False
+    , _dropdownConfig_closeOnClickSelection = True
+    , _dropdownConfig_elConfig = def
     }
 
 dropdownConfigClasses
   :: Reflex t => DropdownConfig t -> Dynamic t Bool -> Dynamic t Classes
 dropdownConfigClasses DropdownConfig {..} isOpen = dynClasses'
   [ pure $ Just "ui selection dropdown"
-  , boolClass "compact" _dropdownCompact
-  , boolClass "fluid" _dropdownFluid
-  , boolClass "selection" _dropdownSelection
-  , boolClass "item" _dropdownItem
-  , boolClass "inline" _dropdownInline
+  , boolClass "compact" _dropdownConfig_compact
+  , boolClass "fluid" _dropdownConfig_fluid
+  , boolClass "selection" _dropdownConfig_selection
+  , boolClass "item" _dropdownConfig_item
+  , boolClass "inline" _dropdownConfig_inline
   , boolClass "active" isOpen
-  , fmap toClassText <$> _dropdownAs
+  , fmap toClassText <$> _dropdownConfig_as
   ]
 
 lookupNextKey :: (Foldable f, Monad f, Ord k) => f k -> f k -> Map k a -> f k
@@ -121,22 +121,29 @@ lookupPrevKey ini mCurrent m
     Just i -> pure $ fst $ M.elemAt (max 0 $ pred i) m
     Nothing -> ini
 
+data Dropdown t a = Dropdown
+  { _dropdown_value :: Dynamic t a
+  , _dropdown_blur :: Event t ()
+  }
+makeLensesWith (lensRules & simpleLenses .~ True) ''Dropdown
 
 dropdown
   :: forall active t m k f.
-    (SingActive active, Monad f, Ord k, MonadWidget t m, Ord (f k), Foldable f)
+    ( SingActive active, Monad f, Ord k, UI t m, Ord (f k), Foldable f
+    , Types.MonadJSM (Performable m), Types.MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace )
   => DropdownConfig t -> f k -> TaggedActive active t (Map k (m ()))
-  -> m (Dynamic t (f k))
+  -> m (Dropdown t (f k))
 dropdown conf ini = fmap snd . dropdown' conf ini
 
 dropdown'
   :: forall active t m k f.
-    (SingActive active, Monad f, Ord k, MonadWidget t m, Ord (f k), Foldable f)
+    ( SingActive active, Monad f, Ord k, UI t m, Ord (f k), Foldable f
+    , Types.MonadJSM (Performable m), Types.MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace )
   => DropdownConfig t -> f k -> TaggedActive active t (Map k (m ()))
-  -> m (El t, Dynamic t (f k))
+  -> m (El t, Dropdown t (f k))
 dropdown' config@DropdownConfig {..} ini items = mdo
 
-  let elConf = {- TODO: _dropdownElConfig <> -} def
+  let elConf = {- TODO: _dropdownConfig_ElConfig <> -} def
         { _classes = Dyn $ dropdownConfigClasses config isOpen
         , _attrs = pure ("tabindex" =: "0")
         }
@@ -146,7 +153,7 @@ dropdown' config@DropdownConfig {..} ini items = mdo
 
     void $ dyn $ ffor dSelection $ \f ->
       if null f
-      then divClass "default text" $ dynText _dropdownPlaceholder
+      then divClass "default text" $ dynText _dropdownConfig_placeholder
       else for_ f $ \k -> void $ divClass "text" $ taggedActive id (void . dyn)
         $ fromMaybe blank . M.lookup k <$> items
 
@@ -199,7 +206,7 @@ dropdown' config@DropdownConfig {..} ini items = mdo
             <$> current dSelection <*> taggedActive pure current items
         , flip tag (keydown ArrowUp e) $ lookupPrevKey ini
             <$> current dSelection <*> taggedActive pure current items
-        , case _dropdownUnselectable of
+        , case _dropdownConfig_unselectable of
           True -> attachWith (\old new -> if old == new then ini else new)
             (current dSelection) eMaybeK
           False -> eMaybeK
@@ -218,7 +225,7 @@ dropdown' config@DropdownConfig {..} ini items = mdo
       _ -> pure ()
 
   let toggleEvents = domEvent Click e <> keydown Space e <> keydown Enter e
-      closeEvents = domEvent Blur e <> if _dropdownCloseOnClickSelection then clickItem else never
+      closeEvents = domEvent Blur e <> if _dropdownConfig_closeOnClickSelection then clickItem else never
       openEvents = keydown ArrowDown e <> keydown ArrowUp e
 
   isOpen <- holdUniqDyn <=< holdDyn False $ leftmost
@@ -228,5 +235,8 @@ dropdown' config@DropdownConfig {..} ini items = mdo
 
   let eOpen = updated isOpen
 
-  pure (e, selection)
+  pure $ (,) e $ Dropdown
+    { _dropdown_value = selection
+    , _dropdown_blur = closeEvents
+    }
 

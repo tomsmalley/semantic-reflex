@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Reflex.Dom.SemanticUI.Input
@@ -47,7 +48,7 @@ import Data.Semigroup ((<>))
 import Data.Text (Text)
 import GHCJS.DOM (currentDocument)
 import GHCJS.DOM.DocumentOrShadowRoot (getActiveElement)
-import GHCJS.DOM.Types (castTo, HTMLElement(..), Element(..))
+import qualified GHCJS.DOM.Types as DOM (castTo, HTMLElement(..), Element(..), MonadJSM)
 import Reflex.Dom.Core hiding (Input, SetValue, TextInputConfig, textInput)
 
 import Reflex.Active
@@ -119,7 +120,9 @@ inputConfigClasses InputConfig {..} = dynClasses
 
 -- | A wrapper around the reflex-dom 'textInput' which conforms to the style
 -- of this library
-textInput :: MonadWidget t m => TextInputConfig t -> m (TextInput t)
+textInput
+  :: (DomBuilderSpace m ~ GhcjsDomSpace, DomBuilder t m, PostBuild t m, PerformEvent t m, DOM.MonadJSM (Performable m))
+  => TextInputConfig t -> m (TextInput t)
 textInput TextInputConfig {..} = do
   ti <- Reflex.textInput Reflex.TextInputConfig
     { _textInputConfig_attributes = a
@@ -131,7 +134,7 @@ textInput TextInputConfig {..} = do
   performEvent_ $ ffor (keydown Escape ti) $ \_ -> void $ runMaybeT $ do
     document <- MaybeT currentDocument
     activeElement <- MaybeT $ getActiveElement document
-    htmlElement <- MaybeT $ castTo HTMLElement activeElement
+    htmlElement <- MaybeT $ DOM.castTo DOM.HTMLElement activeElement
     HTMLElement.blur htmlElement
   pure ti
   where a = (\p -> ("placeholder" =: p <>)) <$> _textInputPlaceholder <*> _textInputAttrs
@@ -161,10 +164,12 @@ instance Reflex t => Default (TextInputConfig t) where
     , _textInputAttrs = pure mempty
     }
 
-input' :: MonadWidget t m => InputConfig t -> m a -> m (El t, a)
+input'
+  :: UI t m
+  => InputConfig t -> m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 input' config@InputConfig {..} = ui' "div" elConf
   where elConf = _inputElConfig <> def { _classes = inputConfigClasses config }
 
-input :: MonadWidget t m => InputConfig t -> m a -> m a
+input :: UI t m => InputConfig t -> m a -> m a
 input c = fmap snd . input' c
 

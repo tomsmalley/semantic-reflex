@@ -61,17 +61,17 @@ table' config@TableConfig {..} widget
 table :: UI t m => TableConfig t -> m a -> m a
 table c = fmap snd . table' c
 
-thead :: MonadWidget t m => m a -> m a
+thead :: DomBuilder t m => m a -> m a
 thead = el "thead"
 
-tbody :: MonadWidget t m => m a -> m a
+tbody :: DomBuilder t m => m a -> m a
 tbody = el "tbody"
 
-th :: MonadWidget t m => m a -> m a
+th :: DomBuilder t m => m a -> m a
 th = el "th"
 
-td :: MonadWidget t m => m a -> m a
+td :: DomBuilder t m => m a -> m a
 td = el "td"
 
-tr :: MonadWidget t m => m a -> m a
+tr :: DomBuilder t m => m a -> m a
 tr = el "tr"

@@ -137,14 +137,14 @@ segmentConfigClasses SegmentConfig {..} = dynClasses
 
 -- | Segment UI Element.
 segment'
-  :: MonadWidget t m => SegmentConfig t -> m a
+  :: UI t m => SegmentConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 segment' config@SegmentConfig{..} = ui' "div" elConf
   where
     elConf = _segmentElConfig <> def { _classes = segmentConfigClasses config }
 
 -- | Segment UI Element.
-segment :: MonadWidget t m => SegmentConfig t -> m a -> m a
+segment :: UI t m => SegmentConfig t -> m a -> m a
 segment config = fmap snd . segment' config
 
 

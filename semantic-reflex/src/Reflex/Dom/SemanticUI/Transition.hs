@@ -58,21 +58,18 @@ module Reflex.Dom.SemanticUI.Transition
 
 import Control.Applicative (Alternative(..))
 import Control.Concurrent
-import Control.Lens (Lens', Identity(..))
+import Control.Lens (Lens')
 import Control.Lens.TH (makeLenses)
 import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.Trans (liftIO, MonadIO)
 
-import Data.Dependent.Map (DMap, GCompare, DSum(..))
-import qualified Data.Dependent.Map as DMap
 import Data.Align
 import Data.Default (Default(..))
 import Data.IntMap (IntMap)
 import Data.Map (Map)
-import Data.Maybe (fromMaybe, catMaybes)
+import Data.Maybe (fromMaybe)
 import Data.Semigroup
-import Data.String (IsString(..))
 import Data.These
 import Data.Time
 import Data.Text (Text)
@@ -80,7 +77,6 @@ import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding (Drop, HasAttributes, SetValue)
 
-import qualified Data.Map as M
 import qualified Control.Concurrent.Thread.Delay as Concurrent
 import qualified Data.IntMap as IM
 

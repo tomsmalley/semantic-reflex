@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -- | Semantic UI forms.
@@ -57,7 +58,9 @@ formConfigClasses FormConfig {..} = dynClasses
   ]
 
 -- | Form UI Element.
-form' :: MonadWidget t m => FormConfig t -> m a -> m (El t, a)
+form'
+  :: (DOM.MonadJSM m, DOM.MonadJSM (Performable m), DomBuilderSpace m ~ GhcjsDomSpace, UI t m)
+  => FormConfig t -> m a -> m (El t, a)
 form' config@FormConfig {..} content = do
   (formEl, formResult) <- ui' "form" elConf content
 
@@ -100,6 +103,8 @@ form' config@FormConfig {..} content = do
     elConf = _formElConfig <> def
       { _classes = formConfigClasses config }
 
-form :: MonadWidget t m => FormConfig t -> m a -> m a
+form
+  :: (DOM.MonadJSM m, DOM.MonadJSM (Performable m), DomBuilderSpace m ~ GhcjsDomSpace, UI t m)
+  => FormConfig t -> m a -> m a
 form config = fmap snd . form' config
 

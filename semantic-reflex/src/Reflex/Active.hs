@@ -103,8 +103,9 @@ taggedActiveSelectViewListWithKey :: forall active t m k v a.
   (Adjustable t m, Ord k, PostBuild t m, MonadHold t m, MonadFix m)
   => Dynamic t k
   -> TaggedActive active t (Map k v)
-  -> (k -> TaggedActive active t v -> Dynamic t Bool -> m (El t, Event t a))
-  -> m (TaggedActive active t (Map k (El t)), Event t k)
+  -> (k -> TaggedActive active t v -> Dynamic t Bool
+        -> m (Element EventResult (DomBuilderSpace m) t, Event t a))
+  -> m (TaggedActive active t (Map k (Element EventResult (DomBuilderSpace m) t)), Event t k)
 taggedActiveSelectViewListWithKey selection vals mkChild = do
   let selectionDemux = demux selection
   selectChild <- taggedActiveListWithKey vals $ \k v -> do

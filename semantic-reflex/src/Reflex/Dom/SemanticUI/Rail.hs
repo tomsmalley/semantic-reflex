@@ -24,8 +24,6 @@ import Data.Semigroup ((<>))
 import Reflex
 import Reflex.Dom.Core
 
-import qualified Data.Set as S
-
 import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition

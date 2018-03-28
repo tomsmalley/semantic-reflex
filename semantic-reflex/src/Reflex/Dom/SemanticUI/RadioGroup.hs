@@ -3,6 +3,7 @@
 -- | This module is a work in progress
 module Reflex.Dom.SemanticUI.RadioGroup where
 
+{-
 import Control.Monad (void)
 import Control.Lens (makeLenses)
 import Data.Default
@@ -99,6 +100,7 @@ putRadioItem name mType m = do
     checkbox m $ def
       & checkboxType |~ mType
       & attrs |~ ("name" =: name)
+-}
 
 {-
 radioGroup

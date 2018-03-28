@@ -132,6 +132,8 @@ sticky' config@StickyConfig{..} content = do
   where
     elConf = _stickyElConfig <> def { _classes = stickyConfigClasses config }
 
-sticky :: MonadWidget t m => StickyConfig t -> m a -> m a
+sticky
+  :: (MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace, UI t m)
+  => StickyConfig t -> m a -> m a
 sticky conf = fmap snd . sticky' conf
 
