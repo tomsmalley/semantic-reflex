@@ -144,7 +144,7 @@ dropdown
   -> m (Dropdown t (f k))
 dropdown config@DropdownConfig {..} ini items = mdo
 
-  let elConf = {- TODO: _dropdownConfig_ElConfig <> -} def
+  let elConf = _dropdownConfig_elConfig <> def
         { _classes = Dyn $ dropdownConfigClasses config isOpen
         , _attrs = pure ("tabindex" =: "0")
         }
@@ -264,7 +264,7 @@ searchDropdown
 searchDropdown config@DropdownConfig {..} ini items = mdo
 
   let elConf = _dropdownConfig_elConfig <> def
-        { _classes = Dyn $ "search" <> dropdownConfigClasses config isOpen }
+        { _classes = Dyn $ ("search" <>) <$>  dropdownConfigClasses config isOpen }
       itemMap = M.fromList . zipWith (\i t -> (Just i, t)) [0..] <$> items
 
   (dropdownElement, (selection, clickIndex, searchInput)) <- ui' "div" elConf $ mdo
