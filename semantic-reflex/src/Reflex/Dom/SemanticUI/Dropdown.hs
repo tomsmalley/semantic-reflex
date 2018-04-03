@@ -277,7 +277,7 @@ searchDropdown config@DropdownConfig {..} ini items = mdo
         TaggedStatic m -> ffor choose $ (\i -> M.lookup (Just i) m)
         TaggedDynamic dm -> attachWith (\m i -> M.lookup (Just i) m) (current dm) choose)
 
-    (menuEl, (elemMap, clickIndex)) <- ui' "div" (dropdownMenuConfig eOpen) $
+    (menuEl, (elemMap, clickIndex)) <- ui' "div" (dropdownMenuConfig $ updated isOpen) $
       taggedActiveSelectViewListWithKey hover itemMap $ \_ value selected -> do
         let selectedClass = bool "" "active selected" <$> selected
             filtered s t = if _dropdownConfig_searchFunction s t
@@ -329,15 +329,14 @@ searchDropdown config@DropdownConfig {..} ini items = mdo
       Enter -> HTMLElement.blur $ _textInput_element searchInput
       _ -> pure ()
 
-  let closeEvents = if _dropdownConfig_closeOnClickSelection then void clickIndex else never
-
+  -- This delay allows the item click events to pass before closing the dropdown box
+  searchInputFocus <- delay 0.1 $ updated $ _textInput_hasFocus searchInput
   initFocus <- sample $ current $ _textInput_hasFocus searchInput
+  let closeEvents = if _dropdownConfig_closeOnClickSelection then void clickIndex else never
   isOpen <- holdUniqDyn <=< holdDyn initFocus $ leftmost
     [ False <$ closeEvents
-    , updated $ _textInput_hasFocus searchInput
+    , searchInputFocus
     ]
-
-  let eOpen = updated isOpen
 
   pure $ Dropdown
     { _dropdown_value = _textInput_value searchInput
