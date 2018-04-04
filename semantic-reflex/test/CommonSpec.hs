@@ -62,10 +62,10 @@ spec = do
       c <- runSpiderHost $ sampleActive $ buttonConfigClasses def
       c `shouldBe` Classes ["ui button"]
     it "works with toClassText" $ do
-      c <- runSpiderHost $ sampleActive $ buttonConfigClasses $ def & buttonColor |?~ Red
+      c <- runSpiderHost $ sampleActive $ buttonConfigClasses $ def & buttonConfig_color |?~ Red
       c `shouldBe` Classes ["ui button", "red"]
     it "works with boolClass" $ do
-      c <- runSpiderHost $ sampleActive $ buttonConfigClasses $ def & buttonInverted |~ True
+      c <- runSpiderHost $ sampleActive $ buttonConfigClasses $ def & buttonConfig_inverted |~ True
       c `shouldBe` Classes ["ui button", "inverted"]
 
   describe "Time functions" $ do
