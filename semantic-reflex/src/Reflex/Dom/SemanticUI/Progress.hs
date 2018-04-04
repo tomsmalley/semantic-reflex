@@ -178,6 +178,10 @@ data Progress t m = Progress
   -- ^ The 'Element' of the "bar" div
   }
 
+instance HasValue (Progress t m) where
+  type Value (Progress t m) = Dynamic t (Maybe Percent)
+  value = _progressPercent
+
 -- | Display a progress widget, given minimum and maximum values, the initial
 -- value, and an 'Event' to update the current value.
 progress

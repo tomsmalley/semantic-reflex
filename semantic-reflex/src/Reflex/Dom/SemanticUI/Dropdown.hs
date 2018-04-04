@@ -24,7 +24,7 @@ import Reflex.Dom.SemanticUI.Transition
 import Reflex.Dom.SemanticUI.Icon
 import Reflex.Dom.SemanticUI.Input
 
-import Reflex.Dom.Core hiding (SetValue, Dropdown, DropdownConfig, list, textInput, value)
+import Reflex.Dom.Core hiding (SetValue, Dropdown(..), DropdownConfig, list, textInput)
 
 import qualified GHCJS.DOM.EventM as EventM
 import qualified GHCJS.DOM.GlobalEventHandlers as GlobalEventHandlers
@@ -136,6 +136,10 @@ data Dropdown t a = Dropdown
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''Dropdown
 
+instance HasValue (Dropdown t a) where
+  type Value (Dropdown t a) = Dynamic t a
+  value = _dropdown_value
+
 dropdown
   :: forall active t m k f.
     ( SingActive active, Monad f, Ord k, UI t m, Ord (f k), Foldable f
@@ -239,9 +243,9 @@ alterScroll
   -> Dynamic t k
   -> TaggedActive active t (Map k (El t))
   -> m ()
-alterScroll menuEl' value elMap = do
+alterScroll menuEl' val elMap = do
   let menuEl = _element_raw menuEl'
-  performEvent_ $ ffor (updated $ M.lookup <$> value <*> taggedActive pure id elMap) $
+  performEvent_ $ ffor (updated $ M.lookup <$> val <*> taggedActive pure id elMap) $
     traverse_ $ \itemEl' -> liftJSM $ do
     let itemEl = Types.uncheckedCastTo Types.Element $ _element_raw itemEl'
         itemHTMLEl = Types.uncheckedCastTo Types.HTMLElement $ _element_raw itemEl'
@@ -278,14 +282,14 @@ searchDropdown config@DropdownConfig {..} ini items = mdo
         TaggedDynamic dm -> attachWith (\m i -> M.lookup (Just i) m) (current dm) choose)
 
     (menuEl, (elemMap, clickIndex)) <- ui' "div" (dropdownMenuConfig $ updated isOpen) $
-      taggedActiveSelectViewListWithKey hover itemMap $ \_ value selected -> do
+      taggedActiveSelectViewListWithKey hover itemMap $ \_ val selected -> do
         let selectedClass = bool "" "active selected" <$> selected
             filtered s t = if _dropdownConfig_searchFunction s t
                            then "" else "filtered" :: Classes
-            c = zipDynWith (\s f -> mconcat ["item", s, f]) selectedClass $ case value of
+            c = zipDynWith (\s f -> mconcat ["item", s, f]) selectedClass $ case val of
               TaggedStatic t -> ffor (_textInput_value searchInput) $ \s -> filtered s t
               TaggedDynamic dt -> zipDynWith filtered (_textInput_value searchInput) dt
-        (itemEl, _) <- ui' "div" (def & classes .~ Dyn c) $ taggedActive text dynText value
+        (itemEl, _) <- ui' "div" (def & classes .~ Dyn c) $ taggedActive text dynText val
 
         -- Prevent the click events from propagating to the wrapper element
         -- These click events are used to close the menu, and click events on

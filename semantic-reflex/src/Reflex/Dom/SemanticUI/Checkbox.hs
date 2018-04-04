@@ -1,6 +1,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -- | Semantic UI checkboxes. Pure reflex implementation is provided.
 -- https://semantic-ui.com/modules/checkbox.html
@@ -106,6 +107,10 @@ data Checkbox t = Checkbox
   -- ^ The checkbox input element
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''Checkbox
+
+instance HasValue (Checkbox t) where
+  type Value (Checkbox t) = Dynamic t Bool
+  value = _checkboxValue
 
 -- | Checkbox UI Element. The minimum useful checkbox only needs a label and a
 -- default configuration.
