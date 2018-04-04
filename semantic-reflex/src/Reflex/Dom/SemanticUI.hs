@@ -52,6 +52,7 @@ import Reflex.Dom.Xhr as Reflex
 
 import Reflex.Dom.Widget.Basic as Reflex hiding
   (HasAttributes (..), button, list)
+import Reflex.Dom.Widget.Input as Reflex (HasValue(..))
 
 import Data.Default (def)
 import Control.Lens ((&), (.~), (?~))
