@@ -9,7 +9,7 @@ module Reflex.Dom.SemanticUI.Form
   -- * Form
     form, form'
   , FormConfig (..)
-  , formElConfig
+  , formConfig_elConfig
 
   ) where
 
@@ -38,16 +38,16 @@ import qualified GHCJS.DOM.HTMLInputElement as HTMLInputElement
 import qualified GHCJS.DOM.EventTarget as EventTarget
 
 data FormConfig t = FormConfig
-  { _formElConfig :: ActiveElConfig t
+  { _formConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''FormConfig
 
 instance HasElConfig t (FormConfig t) where
-  elConfig = formElConfig
+  elConfig = formConfig_elConfig
 
 instance Reflex t => Default (FormConfig t) where
   def = FormConfig
-    { _formElConfig = def
+    { _formConfig_elConfig = def
     }
 
 -- | Make the form div classes from the configuration
@@ -100,7 +100,7 @@ form' config@FormConfig {..} content = do
 
   return (formEl, formResult)
   where
-    elConf = _formElConfig <> def
+    elConf = _formConfig_elConfig <> def
       { _classes = formConfigClasses config }
 
 form

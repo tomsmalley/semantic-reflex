@@ -39,42 +39,42 @@ instance ToClassText Spaced where
 
 -- | Config for 'image's
 data ImageConfig t = ImageConfig
-  { _imageInline :: Active t Bool
+  { _imageConfig_inline :: Active t Bool
   -- ^ (default: 'False') Images can appear inline
-  , _imageSize :: Active t (Maybe Size)
+  , _imageConfig_size :: Active t (Maybe Size)
   -- ^ (default: 'Nothing') Images can have a different size
-  , _imageShape :: Active t (Maybe ImageShape)
+  , _imageConfig_shape :: Active t (Maybe ImageShape)
   -- ^ (default: 'Nothing') Images can have a different shape
-  , _imageFloated :: Active t (Maybe Floated)
+  , _imageConfig_floated :: Active t (Maybe Floated)
   -- ^ (default: 'Nothing') Images can be floated
-  , _imageSpaced :: Active t (Maybe Spaced)
+  , _imageConfig_spaced :: Active t (Maybe Spaced)
   -- ^ (default: 'Nothing') Images can have horizontal spacing
-  , _imageElConfig :: ActiveElConfig t
+  , _imageConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''ImageConfig
 
 instance HasElConfig t (ImageConfig t) where
-  elConfig = imageElConfig
+  elConfig = imageConfig_elConfig
 
 instance Reflex t => Default (ImageConfig t) where
   def = ImageConfig
-    { _imageInline = pure False
-    , _imageSize = pure Nothing
-    , _imageShape = pure Nothing
-    , _imageFloated = pure Nothing
-    , _imageSpaced = pure Nothing
-    , _imageElConfig = def
+    { _imageConfig_inline = pure False
+    , _imageConfig_size = pure Nothing
+    , _imageConfig_shape = pure Nothing
+    , _imageConfig_floated = pure Nothing
+    , _imageConfig_spaced = pure Nothing
+    , _imageConfig_elConfig = def
     }
 
 -- | Create the classes for 'image's
 imageConfigClasses :: Reflex t => ImageConfig t -> Active t Classes
 imageConfigClasses ImageConfig {..} = dynClasses
   [ pure $ Just $ "ui image"
-  , fmap toClassText <$> _imageSize
-  , fmap toClassText <$> _imageShape
-  , fmap toClassText <$> _imageFloated
-  , fmap toClassText <$> _imageSpaced
-  , boolClass "inline" _imageInline
+  , fmap toClassText <$> _imageConfig_size
+  , fmap toClassText <$> _imageConfig_shape
+  , fmap toClassText <$> _imageConfig_floated
+  , fmap toClassText <$> _imageConfig_spaced
+  , boolClass "inline" _imageConfig_inline
   ]
 
 -- | Create a Semantic-UI image, returning the 'Element'.
@@ -90,9 +90,9 @@ image'
   -> m (Element EventResult (DomBuilderSpace m) t)
 image' config@ImageConfig {..} = \case
   Left (Img src imgConf) -> img' src $ imgConf
-    { _imgElConfig = _imgElConfig imgConf <> elConf}
+    { _imgConfig_elConfig = _imgConfig_elConfig imgConf <> elConf}
   Right m -> fmap fst $ ui' "div" elConf m
-  where elConf = _imageElConfig <> def { _classes = imageConfigClasses config }
+  where elConf = _imageConfig_elConfig <> def { _classes = imageConfigClasses config }
 
 -- | Create a Semantic-UI image.
 image
@@ -113,7 +113,7 @@ imgConfigAttrs
   => Active t Text  -- ^ @src@ attribute text
   -> ImgConfig t    -- ^ Optional config values
   -> Active t (Map Text Text)
-imgConfigAttrs src ImgConfig {..} = mkAttrs <$> src <*> _imgTitle <*> _imgAlt
+imgConfigAttrs src ImgConfig {..} = mkAttrs <$> src <*> _imgConfig_title <*> _imgConfig_alt
   where
     mkAttrs s t a = M.fromList $ catMaybes
       [ Just ("src", s)
@@ -138,29 +138,29 @@ img'
   -> ImgConfig t    -- ^ Optional config
   -> m (Element EventResult (DomBuilderSpace m) t)
 img' src config@ImgConfig {..} = fst <$> ui' "img" elConf blank
-  where elConf = _imgElConfig <> def { _attrs = imgConfigAttrs src config }
+  where elConf = _imgConfig_elConfig <> def { _attrs = imgConfigAttrs src config }
 
 -- | The 'img' function packaged into a type.
 data Img t = Img
-  { _imgSrc :: Active t Text
-  , _imgConfig :: ImgConfig t
+  { _img_src :: Active t Text
+  , _img_config :: ImgConfig t
   }
 
 -- | Optional configuration for 'img'
 data ImgConfig t = ImgConfig
-  { _imgTitle :: Active t (Maybe Text)
-  , _imgAlt :: Active t (Maybe Text)
-  , _imgElConfig :: ActiveElConfig t
+  { _imgConfig_title :: Active t (Maybe Text)
+  , _imgConfig_alt :: Active t (Maybe Text)
+  , _imgConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''ImgConfig
 
 instance HasElConfig t (ImgConfig t) where
-  elConfig = imgElConfig
+  elConfig = imgConfig_elConfig
 
 instance Reflex t => Default (ImgConfig t) where
   def = ImgConfig
-    { _imgTitle = pure Nothing
-    , _imgAlt = pure Nothing
-    , _imgElConfig = def
+    { _imgConfig_title = pure Nothing
+    , _imgConfig_alt = pure Nothing
+    , _imgConfig_elConfig = def
     }
 

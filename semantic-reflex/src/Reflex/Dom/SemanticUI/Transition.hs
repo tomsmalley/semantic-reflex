@@ -13,20 +13,20 @@
 module Reflex.Dom.SemanticUI.Transition
   (
   -- * Transition
-    Transition (..)
+    TransitionOrAnimation (..)
 
   , Action (..)
-  , actionEvent
-  , actionInitialDirection
-  , actionForceVisible
+  , action_event
+  , action_initialDirection
+  , action_forceVisible
 
   , TransitionType (..)
   , AnimationType (..)
 
   , TransitionConfig (..)
-  , transitionDuration
-  , transitionDirection
-  , transitionCancelling
+  , transitionConfig_duration
+  , transitionConfig_direction
+  , transitionConfig_cancelling
 
   , Direction (..)
   , flipDirection
@@ -150,37 +150,37 @@ instance ToClassText Direction where
 -- | Returned by 'runAction', controls the relavant animation / transition
 -- classes and styles.
 data AnimationAttrs t = AnimationAttrs
-  { _animationAttrsClass :: Active t (Maybe Classes)
-  , _animationAttrsStyle :: Active t (Maybe Style)
+  { _animationAttrs_class :: Active t (Maybe Classes)
+  , _animationAttrs_style :: Active t (Maybe Style)
   }
 
 -- | Individual transition events
-data Transition
+data TransitionOrAnimation
   = Transition TransitionType TransitionConfig
   | Animation AnimationType TransitionConfig
 
-getDirection :: Transition -> Maybe Direction
-getDirection (Transition _ TransitionConfig{..}) = _transitionDirection
-getDirection (Animation _ TransitionConfig{..}) = _transitionDirection
+getDirection :: TransitionOrAnimation -> Maybe Direction
+getDirection (Transition _ TransitionConfig{..}) = _transitionConfig_direction
+getDirection (Animation _ TransitionConfig{..}) = _transitionConfig_direction
 
-getDuration :: Transition -> NominalDiffTime
+getDuration :: TransitionOrAnimation -> NominalDiffTime
 getDuration (Transition Instant _) = 0
-getDuration (Transition _ TransitionConfig{..}) = _transitionDuration
-getDuration (Animation _ TransitionConfig{..}) = _transitionDuration
+getDuration (Transition _ TransitionConfig{..}) = _transitionConfig_duration
+getDuration (Animation _ TransitionConfig{..}) = _transitionConfig_duration
 
-isCancelling :: Transition -> Bool
-isCancelling (Transition _ TransitionConfig{..}) = _transitionCancelling
-isCancelling (Animation _ TransitionConfig{..}) = _transitionCancelling
+isCancelling :: TransitionOrAnimation -> Bool
+isCancelling (Transition _ TransitionConfig{..}) = _transitionConfig_cancelling
+isCancelling (Animation _ TransitionConfig{..}) = _transitionConfig_cancelling
 
 -- | Transition event configuration
 data TransitionConfig = TransitionConfig
-  { _transitionDuration :: NominalDiffTime
+  { _transitionConfig_duration :: NominalDiffTime
   -- How long the css animation lasts for, ignored for 'Instant'
-  , _transitionDirection :: Maybe Direction
+  , _transitionConfig_direction :: Maybe Direction
   -- The final state of the element after an animation, and the direction of a
   -- transition. 'Nothing' toggles the current state for 'Transition' and leaves
   -- the current state for 'Animation'.
-  , _transitionCancelling :: Bool
+  , _transitionConfig_cancelling :: Bool
   -- Whether this transition event will override any that are queued or still
   -- occuring
   }
@@ -188,16 +188,16 @@ makeLenses ''TransitionConfig
 
 instance Default TransitionConfig where
   def = TransitionConfig
-    { _transitionDuration = 0.5 -- TODO: this is valid for transitions, but animations need a 0.75 default
-    , _transitionDirection = Nothing
-    , _transitionCancelling = False
+    { _transitionConfig_duration = 0.5 -- TODO: this is valid for transitions, but animations need a 0.75 default
+    , _transitionConfig_direction = Nothing
+    , _transitionConfig_cancelling = False
     }
 
 -- | Transition configuration for elements
 data Action t = Action
-  { _actionEvent :: Maybe (Event t Transition)
-  , _actionInitialDirection :: Direction
-  , _actionForceVisible :: Bool
+  { _action_event :: Maybe (Event t TransitionOrAnimation)
+  , _action_initialDirection :: Direction
+  , _action_forceVisible :: Bool
   }
 
 instance Reflex t => Default (Action t) where
@@ -211,47 +211,47 @@ joinEvents
 joinEvents (Just e1) (Just e2) = Just $ leftmost [e1, e2]
 joinEvents e1 e2 = e1 <|> e2
 
-actionEvent :: Lens' (Action t) (Maybe (Event t Transition))
-actionEvent f (Action e d fv) = (\e' -> Action e' d fv) <$> f e
+action_event :: Lens' (Action t) (Maybe (Event t TransitionOrAnimation))
+action_event f (Action e d fv) = (\e' -> Action e' d fv) <$> f e
 
-actionInitialDirection :: Lens' (Action t) Direction
-actionInitialDirection f (Action e d fv)
+action_initialDirection :: Lens' (Action t) Direction
+action_initialDirection f (Action e d fv)
   = (\d' -> Action e d' fv) <$> f d
 
-actionForceVisible :: Lens' (Action t) Bool
-actionForceVisible f (Action e d fv)
+action_forceVisible :: Lens' (Action t) Bool
+action_forceVisible f (Action e d fv)
   = (\fv' -> Action e d fv') <$> f fv
 
 -- | Queue of transitions
 data Queue = Queue
-  { _queueCanRun :: Bool
+  { queue_canRun :: Bool
   -- ^ If the queue is ready to be run
-  , _queueCurrentDirection :: Direction
+  , queue_currentDirection :: Direction
   -- ^ The direction that the element will be in before the next request
-  , _queueLastKey :: Int
+  , queue_lastKey :: Int
   -- ^ Last id inserted
-  , _queueLastCancel :: Int
+  , queue_lastCancel :: Int
   -- ^ Last id to cause a cancellation
-  , _queueItems :: IntMap QueueItem
+  , queue_items :: IntMap QueueItem
   -- ^ The actual queue
   }
 
 -- | Get the first item from the queue along with its key
 firstItem :: Queue -> Maybe (Int, QueueItem)
-firstItem = fmap fst . IM.minViewWithKey . _queueItems
+firstItem = fmap fst . IM.minViewWithKey . queue_items
 
 -- Get the transition / animation type
-getTransType :: Transition -> Either TransitionType AnimationType
+getTransType :: TransitionOrAnimation -> Either TransitionType AnimationType
 getTransType (Transition t _) = Left t
 getTransType (Animation t _) = Right t
 
--- | 'QueueItem' is similar to 'Transition' but with a concrete start and end
+-- | 'QueueItem' is similar to 'TransitionOrAnimation' but with a concrete start and end
 -- direction.
 data QueueItem = QueueItem
-  { _queueItemTransType :: Either TransitionType AnimationType
-  , _queueItemDuration :: NominalDiffTime
-  , _queueItemStartDirection :: Direction
-  , _queueItemEndDirection :: Direction
+  { queueItem_transType :: Either TransitionType AnimationType
+  , queueItem_duration :: NominalDiffTime
+  , queueItem_startDirection :: Direction
+  , queueItem_endDirection :: Direction
   }
 
 -- | Flip the given direction
@@ -261,7 +261,7 @@ flipDirection Out = In
 
 -- | Given a transition and the current/old direction, determine the users
 -- intended final direction
-determineEndDirection :: Transition -> Direction -> Direction
+determineEndDirection :: TransitionOrAnimation -> Direction -> Direction
 determineEndDirection t oldDirection
   | Just d <- getDirection t = d
   | Animation _ _ <- t = oldDirection
@@ -270,44 +270,44 @@ determineEndDirection t oldDirection
 -- | Initial queue given the starting direction
 initialQueue :: Direction -> Queue
 initialQueue d = Queue
-  { _queueCanRun = False
-  , _queueCurrentDirection = d
-  , _queueLastKey = 0
-  , _queueLastCancel = 0
-  , _queueItems = mempty
+  { queue_canRun = False
+  , queue_currentDirection = d
+  , queue_lastKey = 0
+  , queue_lastCancel = 0
+  , queue_items = mempty
   }
 
--- | Update the queue when given 'This' 'Transition' (fired by the user) or a
+-- | Update the queue when given 'This' 'TransitionOrAnimation' (fired by the user) or a
 -- 'That' '()' (denoting that the first transition has finished)
-updateQueue :: These Transition () -> Queue -> Queue
+updateQueue :: These TransitionOrAnimation () -> Queue -> Queue
 updateQueue (This t) queue
   | isCancelling t = queue
-    { _queueCanRun = True -- Cancel events can always run
-    , _queueCurrentDirection = newDir
-    , _queueLastKey = newKey
-    , _queueLastCancel = newKey
-    , _queueItems = IM.singleton newKey item
+    { queue_canRun = True -- Cancel events can always run
+    , queue_currentDirection = newDir
+    , queue_lastKey = newKey
+    , queue_lastCancel = newKey
+    , queue_items = IM.singleton newKey item
     }
   | otherwise = queue
-    { _queueCanRun = IM.null $ _queueItems queue -- Only run when the old queue is empty
-    , _queueCurrentDirection = newDir
-    , _queueLastKey = newKey
-    , _queueItems = IM.insert newKey item $ _queueItems queue
+    { queue_canRun = IM.null $ queue_items queue -- Only run when the old queue is empty
+    , queue_currentDirection = newDir
+    , queue_lastKey = newKey
+    , queue_items = IM.insert newKey item $ queue_items queue
     }
 
-  where newDir = determineEndDirection t $ _queueCurrentDirection queue
-        newKey = _queueLastKey queue + 1
+  where newDir = determineEndDirection t $ queue_currentDirection queue
+        newKey = queue_lastKey queue + 1
         item = QueueItem
-          { _queueItemTransType = getTransType t
-          , _queueItemDuration = getDuration t
-          , _queueItemStartDirection = _queueCurrentDirection queue
-          , _queueItemEndDirection = newDir
+          { queueItem_transType = getTransType t
+          , queueItem_duration = getDuration t
+          , queueItem_startDirection = queue_currentDirection queue
+          , queueItem_endDirection = newDir
           }
 
 -- Delete the first item when a finish event comes in
 updateQueue (That ()) queue = queue
-  { _queueCanRun = True -- Allow the next item to run
-  , _queueItems = IM.deleteMin $ _queueItems queue
+  { queue_canRun = True -- Allow the next item to run
+  , queue_items = IM.deleteMin $ queue_items queue
   }
 
 -- Do both updates
@@ -335,7 +335,7 @@ runAction (Action (Just eTransition) initDirection forceVisible) = do
     -- Fires when queue is updated and is able to run
     -- Contains the key and transition to run
     let eStart = fmapMaybe firstItem
-               $ ffilter _queueCanRun
+               $ ffilter queue_canRun
                $ updated dTransitionQueue
 
     -- This allows time for the class to update when an animation is finished,
@@ -348,20 +348,20 @@ runAction (Action (Just eTransition) initDirection forceVisible) = do
     -- Delay the queue events by their duration, to signal when the transitions
     -- have ended
     eFinal <- performEventAsync $ ffor eStart $
-      \(lastCancelledKey, item) cb -> case _queueItemTransType item of
+      \(lastCancelledKey, item) cb -> case queueItem_transType item of
         Left Instant -> liftIO $ void $ forkIO $ do
           -- Delay Instant items by the minDuration
           Concurrent.delay $ ceiling $ minDuration * 1000000
-          cb (lastCancelledKey, _queueItemEndDirection item)
+          cb (lastCancelledKey, queueItem_endDirection item)
         _ -> liftIO $ void $ forkIO $ do
             -- Delay other items by at least minDuration
             Concurrent.delay $ ceiling $
-              1000000 * max minDuration (_queueItemDuration item)
-            cb (lastCancelledKey, _queueItemEndDirection item)
+              1000000 * max minDuration (queueItem_duration item)
+            cb (lastCancelledKey, queueItem_endDirection item)
 
     -- Filter the finish events to remove animations which have been cancelled
     let filterCancelled queue (key, direction)
-          = if _queueLastCancel queue > key then Nothing else Just direction
+          = if queue_lastCancel queue > key then Nothing else Just direction
         eFinalFiltered = attachWithMaybe filterCancelled
                         (current dTransitionQueue) eFinal
 
@@ -372,12 +372,12 @@ runAction (Action (Just eTransition) initDirection forceVisible) = do
   -- new animation classes. Instant transitions are removed because they have
   -- no animation classes.
   eAnimStart <- delay (minDuration / 2)
-              $ ffilter (\item -> _queueItemTransType item /= Left Instant)
+              $ ffilter (\item -> queueItem_transType item /= Left Instant)
               $ fmap snd eStart
 
   mClasses <- holdDyn (finalClasses forceVisible initDirection) $ leftmost
     -- Clear the possible existing classes by setting to the start direction
-    [ finalClasses forceVisible . _queueItemStartDirection . snd <$> eStart
+    [ finalClasses forceVisible . queueItem_startDirection . snd <$> eStart
     -- Set any animating classes
     , animatingClasses forceVisible <$> eAnimStart
     -- Set the final classes

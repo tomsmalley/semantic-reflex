@@ -22,30 +22,30 @@ instance ToClassText TableType where
 
 
 data TableConfig t = TableConfig
-  { _tableType :: Active t TableType
-  , _tableColor :: Active t (Maybe Color)
-  , _tableAttached :: Active t (Maybe VerticalAttached)
-  , _tableElConfig :: ActiveElConfig t
+  { _tableConfig_type :: Active t TableType
+  , _tableConfig_color :: Active t (Maybe Color)
+  , _tableConfig_attached :: Active t (Maybe VerticalAttached)
+  , _tableConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''TableConfig
 
 instance HasElConfig t (TableConfig t) where
-  elConfig = tableElConfig
+  elConfig = tableConfig_elConfig
 
 instance Reflex t => Default (TableConfig t) where
   def = TableConfig
-    { _tableType = pure Celled
-    , _tableColor = pure Nothing
-    , _tableAttached = pure Nothing
-    , _tableElConfig = def
+    { _tableConfig_type = pure Celled
+    , _tableConfig_color = pure Nothing
+    , _tableConfig_attached = pure Nothing
+    , _tableConfig_elConfig = def
     }
 
 tableConfigClasses :: Reflex t => TableConfig t -> Active t Classes
 tableConfigClasses TableConfig {..} = dynClasses
   [ pure $ Just "ui table"
-  , Just . toClassText <$> _tableType
-  , fmap toClassText <$> _tableColor
-  , fmap toClassText <$> _tableAttached
+  , Just . toClassText <$> _tableConfig_type
+  , fmap toClassText <$> _tableConfig_color
+  , fmap toClassText <$> _tableConfig_attached
 --  , boolClass "link" _listLink
   ]
 
@@ -55,7 +55,7 @@ table'
 table' config@TableConfig {..} widget
   = ui' "table" elConf widget
   where
-    elConf = _tableElConfig <> def
+    elConf = _tableConfig_elConfig <> def
       { _classes = tableConfigClasses config }
 
 table :: UI t m => TableConfig t -> m a -> m a

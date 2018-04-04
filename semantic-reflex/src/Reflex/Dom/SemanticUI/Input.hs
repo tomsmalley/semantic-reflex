@@ -8,25 +8,25 @@ module Reflex.Dom.SemanticUI.Input
   , InputConfig (..)
   , InputIcon (..)
   , InputAction (..)
-  , inputLoading
-  , inputDisabled
-  , inputError
-  , inputTransparent
-  , inputInverted
-  , inputFluid
-  , inputIcon
-  , inputLabeled
-  , inputAction
-  , inputSize
-  , inputElConfig
+  , inputConfig_loading
+  , inputConfig_disabled
+  , inputConfig_error
+  , inputConfig_transparent
+  , inputConfig_inverted
+  , inputConfig_fluid
+  , inputConfig_icon
+  , inputConfig_labeled
+  , inputConfig_action
+  , inputConfig_size
+  , inputConfig_elConfig
 
   , textInput
   , InputType (..)
   , TextInputConfig (..)
-  , textInputAttrs
-  , textInputPlaceholder
-  , textInputType
-  , textInputValue
+  , textInputConfig_attrs
+  , textInputConfig_placeholder
+  , textInputConfig_type
+  , textInputConfig_value
 
   , TextInput (..)
   , textInput_value
@@ -71,51 +71,51 @@ instance ToClassText InputIcon where
   toClassText RightIcon = "icon"
 
 data InputConfig t = InputConfig
-  { _inputLoading     :: Active t Bool
-  , _inputDisabled    :: Active t Bool
-  , _inputError       :: Active t Bool
-  , _inputTransparent :: Active t Bool
-  , _inputInverted    :: Active t Bool
-  , _inputFluid       :: Active t Bool
+  { _inputConfig_loading     :: Active t Bool
+  , _inputConfig_disabled    :: Active t Bool
+  , _inputConfig_error       :: Active t Bool
+  , _inputConfig_transparent :: Active t Bool
+  , _inputConfig_inverted    :: Active t Bool
+  , _inputConfig_fluid       :: Active t Bool
 
-  , _inputIcon        :: Active t (Maybe InputIcon)
-  , _inputLabeled     :: Active t (Maybe Labeled)
-  , _inputAction      :: Active t (Maybe InputAction)
-  , _inputSize        :: Active t (Maybe Size)
+  , _inputConfig_icon        :: Active t (Maybe InputIcon)
+  , _inputConfig_labeled     :: Active t (Maybe Labeled)
+  , _inputConfig_action      :: Active t (Maybe InputAction)
+  , _inputConfig_size        :: Active t (Maybe Size)
 
-  , _inputElConfig    :: ActiveElConfig t
+  , _inputConfig_elConfig    :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''InputConfig
 
 instance Reflex t => Default (InputConfig t) where
   def = InputConfig
-    { _inputLoading = pure False
-    , _inputDisabled = pure False
-    , _inputError = pure False
-    , _inputIcon = pure Nothing
-    , _inputLabeled = pure Nothing
-    , _inputAction = pure Nothing
-    , _inputTransparent = pure False
-    , _inputInverted = pure False
-    , _inputFluid = pure False
-    , _inputSize = pure Nothing
-    , _inputElConfig = def
+    { _inputConfig_loading = pure False
+    , _inputConfig_disabled = pure False
+    , _inputConfig_error = pure False
+    , _inputConfig_icon = pure Nothing
+    , _inputConfig_labeled = pure Nothing
+    , _inputConfig_action = pure Nothing
+    , _inputConfig_transparent = pure False
+    , _inputConfig_inverted = pure False
+    , _inputConfig_fluid = pure False
+    , _inputConfig_size = pure Nothing
+    , _inputConfig_elConfig = def
     }
 
 inputConfigClasses :: Reflex t => InputConfig t -> Active t Classes
 inputConfigClasses InputConfig {..} = dynClasses
   [ pure $ Just "ui input"
-  , boolClass "loading" _inputLoading
-  , boolClass "disabled" _inputDisabled
-  , boolClass "error" _inputError
-  , fmap toClassText <$> _inputIcon
-  , fmap toClassText <$> _inputLabeled
-  , fmap toClassText <$> _inputAction
-  , boolClass "transparent" _inputTransparent
-  , boolClass "inverted" _inputInverted
-  , boolClass "fluid" _inputFluid
+  , boolClass "loading" _inputConfig_loading
+  , boolClass "disabled" _inputConfig_disabled
+  , boolClass "error" _inputConfig_error
+  , fmap toClassText <$> _inputConfig_icon
+  , fmap toClassText <$> _inputConfig_labeled
+  , fmap toClassText <$> _inputConfig_action
+  , boolClass "transparent" _inputConfig_transparent
+  , boolClass "inverted" _inputConfig_inverted
+  , boolClass "fluid" _inputConfig_fluid
   -- Tiny isn't specified for some reason
-  , fmap (\s -> toClassText $ if s == Tiny then Mini else s) <$> _inputSize
+  , fmap (\s -> toClassText $ if s == Tiny then Mini else s) <$> _inputConfig_size
   ]
 
 -- | A wrapper around the reflex-dom 'textInput' which conforms to the style
@@ -128,7 +128,7 @@ textInput TextInputConfig {..} = do
     { _textInputConfig_attributes = a
     , _textInputConfig_setValue = fromMaybe never mSetValue
     , _textInputConfig_initialValue = initialValue
-    , _textInputConfig_inputType = inputTypeText _textInputType
+    , _textInputConfig_inputType = inputTypeText _textInputConfig_type
     }
   -- Blur on escape
   performEvent_ $ ffor (keydown Escape ti) $ \_ -> void $ runMaybeT $ do
@@ -137,8 +137,8 @@ textInput TextInputConfig {..} = do
     htmlElement <- MaybeT $ DOM.castTo DOM.HTMLElement activeElement
     HTMLElement.blur htmlElement
   pure ti
-  where a = (\p -> ("placeholder" =: p <>)) <$> _textInputPlaceholder <*> _textInputAttrs
-        SetValue initialValue mSetValue = _textInputValue
+  where a = (\p -> ("placeholder" =: p <>)) <$> _textInputConfig_placeholder <*> _textInputConfig_attrs
+        SetValue initialValue mSetValue = _textInputConfig_value
 
 data InputType = PlainTextInput | PasswordInput
   deriving (Eq, Ord, Read, Show, Enum, Bounded)
@@ -149,26 +149,26 @@ inputTypeText PlainTextInput = "text"
 
 -- TODO: attrs needs merging with the attributes lens
 data TextInputConfig t = TextInputConfig
-  { _textInputValue :: SetValue t Text
-  , _textInputPlaceholder :: Dynamic t Text
-  , _textInputType :: InputType
-  , _textInputAttrs :: Dynamic t (Map Text Text)
+  { _textInputConfig_value :: SetValue t Text
+  , _textInputConfig_placeholder :: Dynamic t Text
+  , _textInputConfig_type :: InputType
+  , _textInputConfig_attrs :: Dynamic t (Map Text Text)
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''TextInputConfig
 
 instance Reflex t => Default (TextInputConfig t) where
   def = TextInputConfig
-    { _textInputValue = SetValue "" Nothing
-    , _textInputPlaceholder = pure ""
-    , _textInputType = PlainTextInput
-    , _textInputAttrs = pure mempty
+    { _textInputConfig_value = SetValue "" Nothing
+    , _textInputConfig_placeholder = pure ""
+    , _textInputConfig_type = PlainTextInput
+    , _textInputConfig_attrs = pure mempty
     }
 
 input'
   :: UI t m
   => InputConfig t -> m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 input' config@InputConfig {..} = ui' "div" elConf
-  where elConf = _inputElConfig <> def { _classes = inputConfigClasses config }
+  where elConf = _inputConfig_elConfig <> def { _classes = inputConfigClasses config }
 
 input :: UI t m => InputConfig t -> m a -> m a
 input c = fmap snd . input' c

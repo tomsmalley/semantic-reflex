@@ -18,19 +18,19 @@ module Reflex.Dom.SemanticUI.Header
   , subHeader, subHeader'
 
   -- * Lenses
-  , headerLargeIcon
-  , headerDividing
-  , headerSub
-  , headerDisabled
-  , headerBlock
-  , headerInverted
-  , headerSize
-  , headerFloated
-  , headerAligned
-  , headerColor
-  , headerAttached
-  , headerElConfig
-  , headerPreContent
+  , headerConfig_largeIcon
+  , headerConfig_dividing
+  , headerConfig_sub
+  , headerConfig_disabled
+  , headerConfig_block
+  , headerConfig_inverted
+  , headerConfig_size
+  , headerConfig_floated
+  , headerConfig_aligned
+  , headerConfig_color
+  , headerConfig_attached
+  , headerConfig_elConfig
+  , headerConfig_preContent
 
   ) where
 
@@ -67,58 +67,58 @@ headerSizeText H5 = "tiny"
 
 -- | Optional configuration settings for 'header's
 data HeaderConfig t m = HeaderConfig
-  { _headerLargeIcon  :: Active t Bool
+  { _headerConfig_largeIcon  :: Active t Bool
   -- ^ (default: 'False') Headers can emphasise an icon
-  , _headerDividing   :: Active t Bool
+  , _headerConfig_dividing   :: Active t Bool
   -- ^ (default: 'False') Headers can be dividing
-  , _headerSub        :: Active t Bool
+  , _headerConfig_sub        :: Active t Bool
   -- ^ (default: 'False') Headers can label de-emphasised content
-  , _headerDisabled   :: Active t Bool
+  , _headerConfig_disabled   :: Active t Bool
   -- ^ (default: 'False') Headers can be "disabled" (less emphasis)
-  , _headerBlock      :: Active t Bool
+  , _headerConfig_block      :: Active t Bool
   -- ^ (default: 'False') Headers can have a border around them
-  , _headerInverted   :: Active t Bool
+  , _headerConfig_inverted   :: Active t Bool
   -- ^ (default: 'False') Headers can have inverted colors
 
-  , _headerSize       :: Active t (Maybe HeaderSize)
+  , _headerConfig_size       :: Active t (Maybe HeaderSize)
   -- ^ (default: 'Nothing') Headers can have a different size. 'H3' equates to
   -- 'Medium'.
-  , _headerFloated    :: Active t (Maybe Floated)
+  , _headerConfig_floated    :: Active t (Maybe Floated)
   -- ^ (default: 'Nothing') Headers can be floated
-  , _headerAligned    :: Active t (Maybe Aligned)
+  , _headerConfig_aligned    :: Active t (Maybe Aligned)
   -- ^ (default: 'Nothing') Headers can have different text alignment
-  , _headerColor      :: Active t (Maybe Color)
+  , _headerConfig_color      :: Active t (Maybe Color)
   -- ^ (default: 'Nothing') Headers can have a color
-  , _headerAttached   :: Active t (Maybe VerticalAttached)
+  , _headerConfig_attached   :: Active t (Maybe VerticalAttached)
   -- ^ (default: 'Nothing') Headers can be vertically attached to other content
 
-  , _headerPreContent :: Maybe (m ())
+  , _headerConfig_preContent :: Maybe (m ())
   -- ^ (default: 'Nothing') Widget placed before the main content, causes the
   -- main content to be placed into a div with class "content".
-  , _headerElConfig   :: ActiveElConfig t
+  , _headerConfig_elConfig   :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''HeaderConfig
 
 instance HasElConfig t (HeaderConfig t m) where
-  elConfig = headerElConfig
+  elConfig = headerConfig_elConfig
 
 instance Reflex t => Default (HeaderConfig t m) where
   def = HeaderConfig
-    { _headerLargeIcon = pure False
-    , _headerDividing = pure False
-    , _headerSub = pure False
-    , _headerDisabled = pure False
-    , _headerBlock = pure False
-    , _headerInverted = pure False
+    { _headerConfig_largeIcon = pure False
+    , _headerConfig_dividing = pure False
+    , _headerConfig_sub = pure False
+    , _headerConfig_disabled = pure False
+    , _headerConfig_block = pure False
+    , _headerConfig_inverted = pure False
 
-    , _headerSize = pure Nothing
-    , _headerFloated = pure Nothing
-    , _headerAligned = pure Nothing
-    , _headerColor = pure Nothing
-    , _headerAttached = pure Nothing
+    , _headerConfig_size = pure Nothing
+    , _headerConfig_floated = pure Nothing
+    , _headerConfig_aligned = pure Nothing
+    , _headerConfig_color = pure Nothing
+    , _headerConfig_attached = pure Nothing
 
-    , _headerPreContent = Nothing
-    , _headerElConfig = def
+    , _headerConfig_preContent = Nothing
+    , _headerConfig_elConfig = def
     }
 
 -- | Make the header classes
@@ -126,17 +126,17 @@ headerConfigClasses :: Reflex t => HeaderConfig t m -> Active t Classes
 headerConfigClasses HeaderConfig {..} = dynClasses
   [ pure $ Just "ui header"
 
-  , boolClass "icon" _headerLargeIcon
-  , boolClass "dividing" _headerDividing
-  , boolClass "sub" _headerSub
-  , boolClass "disabled" _headerDisabled
-  , boolClass "block" _headerBlock
-  , boolClass "inverted" _headerInverted
+  , boolClass "icon" _headerConfig_largeIcon
+  , boolClass "dividing" _headerConfig_dividing
+  , boolClass "sub" _headerConfig_sub
+  , boolClass "disabled" _headerConfig_disabled
+  , boolClass "block" _headerConfig_block
+  , boolClass "inverted" _headerConfig_inverted
 
-  , fmap toClassText <$> _headerFloated
-  , fmap toClassText <$> _headerAligned
-  , fmap toClassText <$> _headerColor
-  , fmap toClassText <$> _headerAttached
+  , fmap toClassText <$> _headerConfig_floated
+  , fmap toClassText <$> _headerConfig_aligned
+  , fmap toClassText <$> _headerConfig_color
+  , fmap toClassText <$> _headerConfig_attached
   ]
 
 -- | Header common implementation.
@@ -144,16 +144,16 @@ headerInternal
   :: UI t m => Maybe HeaderSize -> HeaderConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 headerInternal mSize config@HeaderConfig {..} content
-  = ui' elType elConf $ case _headerPreContent of
+  = ui' elType elConf $ case _headerConfig_preContent of
     Nothing -> content
     Just m -> m >> divClass "content" content
   where
-    elConf = _headerElConfig <> def
+    elConf = _headerConfig_elConfig <> def
       { _classes = addSize <*> headerConfigClasses config }
     (elType, addSize) = case mSize of
       Just size -> (headerSizeEl size, pure id)
       Nothing -> (,) "div" $ maybe id addClass <$>
-        (fmap . fmap) headerSizeText _headerSize
+        (fmap . fmap) headerSizeText _headerConfig_size
 
 -- | Create a top level header (uses HTML @header@ elements), returning the
 -- 'Element'.

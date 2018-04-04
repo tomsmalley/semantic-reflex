@@ -15,51 +15,54 @@ import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data MenuConfig t = MenuConfig
-  { _menuColor :: Active t (Maybe Color)
-  , _menuInverted :: Active t Bool
-  , _menuSize :: Active t (Maybe Size)
-  , _menuVertical :: Active t Bool
-  , _menuSecondary :: Active t Bool
-  , _menuRight :: Active t Bool
-  , _menuPointing :: Active t Bool
-  , _menuFluid :: Active t Bool
-  , _menuText :: Active t Bool
-  , _menuCompact :: Active t Bool
-  , _menuFloated :: Active t (Maybe Floated)
-  , _menuElConfig :: ActiveElConfig t
+  { _menuConfig_color :: Active t (Maybe Color)
+  , _menuConfig_inverted :: Active t Bool
+  , _menuConfig_size :: Active t (Maybe Size)
+  , _menuConfig_vertical :: Active t Bool
+  , _menuConfig_secondary :: Active t Bool
+  , _menuConfig_right :: Active t Bool
+  , _menuConfig_pointing :: Active t Bool
+  , _menuConfig_fluid :: Active t Bool
+  , _menuConfig_text :: Active t Bool
+  , _menuConfig_compact :: Active t Bool
+  , _menuConfig_floated :: Active t (Maybe Floated)
+  , _menuConfig_elConfig :: ActiveElConfig t
   }
 makeLenses ''MenuConfig
 
+instance HasElConfig t (MenuConfig t) where
+  elConfig = menuConfig_elConfig
+
 instance Reflex t => Default (MenuConfig t) where
   def = MenuConfig
-    { _menuColor = pure Nothing
-    , _menuInverted = pure False
-    , _menuSize = pure Nothing
-    , _menuVertical = pure False
-    , _menuSecondary = pure False
-    , _menuRight = pure False
-    , _menuPointing = pure False
-    , _menuFluid = pure False
-    , _menuText = pure False
-    , _menuCompact = pure False
-    , _menuFloated = pure Nothing
-    , _menuElConfig = def
+    { _menuConfig_color = pure Nothing
+    , _menuConfig_inverted = pure False
+    , _menuConfig_size = pure Nothing
+    , _menuConfig_vertical = pure False
+    , _menuConfig_secondary = pure False
+    , _menuConfig_right = pure False
+    , _menuConfig_pointing = pure False
+    , _menuConfig_fluid = pure False
+    , _menuConfig_text = pure False
+    , _menuConfig_compact = pure False
+    , _menuConfig_floated = pure Nothing
+    , _menuConfig_elConfig = def
     }
 
 menuConfigClasses :: Reflex t => MenuConfig t -> Active t Classes
 menuConfigClasses MenuConfig {..} = dynClasses
   [ pure $ Just "ui menu"
-  , boolClass "inverted" _menuInverted
-  , fmap toClassText <$> _menuColor
-  , fmap toClassText <$> _menuSize
-  , boolClass "vertical" $ _menuVertical
-  , boolClass "secondary" _menuSecondary
-  , boolClass "right" _menuRight
-  , boolClass "pointing" _menuPointing
-  , boolClass "fluid" $ _menuFluid
-  , boolClass "text" $ _menuText
-  , boolClass "compact" $ _menuCompact
-  , fmap toClassText <$> _menuFloated
+  , boolClass "inverted" _menuConfig_inverted
+  , fmap toClassText <$> _menuConfig_color
+  , fmap toClassText <$> _menuConfig_size
+  , boolClass "vertical" $ _menuConfig_vertical
+  , boolClass "secondary" _menuConfig_secondary
+  , boolClass "right" _menuConfig_right
+  , boolClass "pointing" _menuConfig_pointing
+  , boolClass "fluid" $ _menuConfig_fluid
+  , boolClass "text" $ _menuConfig_text
+  , boolClass "compact" $ _menuConfig_compact
+  , fmap toClassText <$> _menuConfig_floated
   ]
 
 -- | Create a menu.
@@ -69,7 +72,7 @@ menu'
 menu' config@MenuConfig {..} widget
   = ui' "div" elConf widget
   where
-    elConf = _menuElConfig <> def
+    elConf = _menuConfig_elConfig <> def
       { _classes = menuConfigClasses config }
 
 -- | Create a menu.
@@ -83,28 +86,31 @@ data MenuLink
   deriving (Eq, Show)
 
 data MenuItemConfig t = MenuItemConfig
-  { _menuItemColor :: Active t (Maybe Color)
-  , _menuItemDisabled :: Active t Bool
-  , _menuItemLink :: MenuLink
-  , _menuItemElConfig :: ActiveElConfig t
+  { _menuItemConfig_color :: Active t (Maybe Color)
+  , _menuItemConfig_disabled :: Active t Bool
+  , _menuItemConfig_link :: MenuLink
+  , _menuItemConfig_elConfig :: ActiveElConfig t
   }
 makeLenses ''MenuItemConfig
 
+instance HasElConfig t (MenuItemConfig t) where
+  elConfig = menuItemConfig_elConfig
+
 instance Reflex t => Default (MenuItemConfig t) where
   def = MenuItemConfig
-    { _menuItemColor = pure Nothing
-    , _menuItemDisabled = pure False
-    , _menuItemLink = StyleLink
-    , _menuItemElConfig = def
+    { _menuItemConfig_color = pure Nothing
+    , _menuItemConfig_disabled = pure False
+    , _menuItemConfig_link = StyleLink
+    , _menuItemConfig_elConfig = def
     }
 
 menuItemConfigClasses
   :: Reflex t => MenuItemConfig t -> Active t Classes
 menuItemConfigClasses MenuItemConfig {..} = dynClasses
   [ pure $ Just "item"
-  , fmap toClassText <$> _menuItemColor
-  , boolClass "disabled" _menuItemDisabled
-  , boolClass "link" $ pure $ _menuItemLink == StyleLink
+  , fmap toClassText <$> _menuItemConfig_color
+  , boolClass "disabled" _menuItemConfig_disabled
+  , boolClass "link" $ pure $ _menuItemConfig_link == StyleLink
   ]
 
 menuItem'
@@ -118,124 +124,9 @@ menuItem :: UI t m => MenuItemConfig t -> m a -> m a
 menuItem c = fmap snd . menuItem' c
 
 itemElAttrs :: Reflex t => MenuItemConfig t -> (Text, ActiveElConfig t)
-itemElAttrs conf@MenuItemConfig{..} = case _menuItemLink of
+itemElAttrs conf@MenuItemConfig{..} = case _menuItemConfig_link of
   MenuLink href -> ("a", elConf { _attrs = pure $ "href" =: href })
   _ -> ("div", elConf)
-  where elConf = _menuItemElConfig <> def
+  where elConf = _menuItemConfig_elConfig <> def
           { _classes = menuItemConfigClasses conf }
-
-{-
-data Menu f t m v b = Menu
-  { _config :: MenuConfig t (f v)
-  , _items :: ReaderT (Active t (f v)) (EventWriterT t (First v) m) b
-  }
--}
-
-{-
---------------------------------------------------------------------------------
--- Menu instances
-
-instance ( t ~ t', m ~ m', Ord a, Foldable f, Eq (f a)
-         , MonadReader (Active t (f a)) m, EventWriter t (First a) m)
-  => Render t' m' (MenuItem t m a) where
-  type Return t' m' (MenuItem t m a) = ()
-  ui' (MenuItem value config@MenuItemConfig{..} widget) = do
-    selected <- ask
-    --let isSelected = Active $ demuxed selected $ pure value
-    let isSelected = Active $ elem value <$> selected
-
-    (e, _) <- element' "div" (elConfig isSelected) widget
-    tellEvent $ First value <$ domEvent Click e
-    return (e, ())
-      where
---        (_, _) = itemElAttrs config { _link = reLink _link }
---        reLink NoLink = StyleLink
---        reLink a = a
-        config' = config & link .~ StyleLink
-        elConfig isSelected = _config <> def
-          { _classes = addClassMaybe <$> boolClass "active" isSelected
-                                     <*> menuItemConfigClasses config'
-          }
-
-instance (t ~ t', m ~ m') => Render t' m' (MenuItem' t m b) where
-  type Return t' m' (MenuItem' t m b) = b
-  ui' (MenuItem' config@MenuItemConfig{..} widget)
-    = element' "div" elConfig widget
-      where
-        elConfig = _config <> def
-          { _classes = menuItemConfigClasses $ config & link .~ NoLink }
-
-instance (Selectable f, Ord (f a), Ord a, t ~ t', m ~ m')
-  => Render t' m' (Menu f t m a b) where
-  type Return t' m' (Menu f t m a b) = (Active t (f a), b)
-  ui' (Menu config@MenuConfig{..} items)
-    = element' "div" elConfig $ do
-    rec
-      (b, evt) <- runEventWriterT $ runReaderT items current
-
-      current <- foldDyn mkCurrent (_value ^. initial) $ case _value ^. event of
-        Just setValue -> leftmost [Left . getFirst <$> evt, Right <$> setValue]
-        Nothing -> Left . getFirst <$> evt
-
-    return (current, b)
-    where
-      elConfig = _config <> def
-        { _classes = menuConfigClasses config }
-      mkCurrent :: Either a (f a) -> f a -> f a
-      mkCurrent (Left x) acc = selectElement x acc
-      mkCurrent (Right acc) _ = acc
--}
-
-{-
-instance ( Ord a, m ~ m', t ~ t'
-         , MonadReader (Active t (f a)) m, EventWriter t (First a) m)
-  => Render t' m' (Menu f t m a b) where
-  type Return t' m' (Menu f t m a b) = b
-  ui' (Menu config@MenuConfig{..} items) = do
-    selected <- ask
-    (el, (b, evt)) <- element' "div" elConfig $
-      lift $ runEventWriterT $ runReaderT items selected
-
-    tellEvent evt
-    return (el, b)
-
-    where elConfig = _config <> def { _classes = menuConfigClasses $ config
-                                               & component .~ True }
--}
-
-{-
-    unUI $ ui' $ Menu (conf & component .~ True) $ do
-      tellEvent
-      result <- items
--}
-{-
-instance (m ~ m', t ~ t') => Render t' m' (Header t m a) where
-  type Return t' m' (Header t m a) = a
-  ui' (Header conf content) = ui' $ Header conf' content
-    where conf' = conf & component .~ True & item .~ True
--}
-
-{-
-instance (m ~ m', t ~ t') => Render t' m' (Header t m a) where
-  type Return t' m' (Header t m a) = a
-  ui' (Header config widget)
-    = ui' $ Header (config & component .~ True) widget
-
-instance (t ~ t', m ~ m') => Render t' m' (Anchor t m a) where
-  type Return t' m' (Anchor t m a) = AnchorResult t a
-  ui' (Anchor contents AnchorConfig{..}) = do
-    (e, a) <- element' "a" elConfig contents
-    return (e, AnchorResult (domEvent Click e) a)
-      where
-        elConfig = _config
-          & elConfigAttributes %~ (\a -> (maybe id (M.insert "href") <$> _href) <*> a)
-
--}
--- TODO FIXME For removal:
--- | Force images to appear inline in inline context
-{-
-instance t ~ t' => Render t' m (Image t) where
-  type Return t' m (Image t) = ()
-  ui' (Image url conf) = ui' $ Image url $ conf & inline |~ True
--}
 

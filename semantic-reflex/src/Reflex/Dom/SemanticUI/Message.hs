@@ -10,14 +10,14 @@ module Reflex.Dom.SemanticUI.Message
   , dismissableMessage, dismissableMessage'
   , MessageType (..)
   , MessageConfig (..)
-  , messageFloating
-  , messageCompact
-  , messageAttached
-  , messageType
-  , messageColor
-  , messageSize
-  , messageIcon
-  , messageElConfig
+  , messageConfig_floating
+  , messageConfig_compact
+  , messageConfig_attached
+  , messageConfig_type
+  , messageConfig_color
+  , messageConfig_size
+  , messageConfig_icon
+  , messageConfig_elConfig
 
   ) where
 
@@ -46,54 +46,54 @@ instance ToClassText MessageType where
 
 -- | Configuration of a message.
 data MessageConfig t = MessageConfig
-  { _messageFloating :: Active t Bool
+  { _messageConfig_floating :: Active t Bool
   -- ^ Messages can be floating (note: not the same as float: left|right)
-  , _messageCompact :: Active t Bool
+  , _messageConfig_compact :: Active t Bool
   -- ^ If the message should be compact
 
-  , _messageAttached :: Active t (Maybe VerticalAttached)
+  , _messageConfig_attached :: Active t (Maybe VerticalAttached)
   -- ^ Messages can be attached vertically
-  , _messageType :: Active t (Maybe MessageType)
+  , _messageConfig_type :: Active t (Maybe MessageType)
   -- ^ Message type (essentially more color choices)
-  , _messageColor :: Active t (Maybe Color)
+  , _messageConfig_color :: Active t (Maybe Color)
   -- ^ Message color
-  , _messageSize :: Active t (Maybe Size)
+  , _messageConfig_size :: Active t (Maybe Size)
   -- ^ Message size
 
-  , _messageIcon :: Maybe (Icon t)
+  , _messageConfig_icon :: Maybe (Icon t)
   -- ^ Messages have a main icon
-  , _messageElConfig :: ActiveElConfig t
+  , _messageConfig_elConfig :: ActiveElConfig t
   -- ^ Config
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''MessageConfig
 
 instance HasElConfig t (MessageConfig t) where
-  elConfig = messageElConfig
+  elConfig = messageConfig_elConfig
 
 instance Reflex t => Default (MessageConfig t) where
   def = MessageConfig
-    { _messageIcon = Nothing
+    { _messageConfig_icon = Nothing
 
-    , _messageFloating = pure False
-    , _messageAttached = pure Nothing
-    , _messageCompact = pure False
-    , _messageType = pure Nothing
-    , _messageColor = pure Nothing
-    , _messageSize = pure Nothing
-    , _messageElConfig = def
+    , _messageConfig_floating = pure False
+    , _messageConfig_attached = pure Nothing
+    , _messageConfig_compact = pure False
+    , _messageConfig_type = pure Nothing
+    , _messageConfig_color = pure Nothing
+    , _messageConfig_size = pure Nothing
+    , _messageConfig_elConfig = def
     }
 
 -- | Make the message div classes from the configuration
 messageConfigClasses :: Reflex t => MessageConfig t -> Active t Classes
 messageConfigClasses MessageConfig {..} = dynClasses
   [ pure $ Just "ui message"
-  , pure $ "icon" <$ _messageIcon
-  , boolClass "floating" _messageFloating
-  , fmap toClassText <$> _messageAttached
-  , boolClass "compact" _messageCompact
-  , fmap toClassText <$> _messageType
-  , fmap toClassText <$> _messageColor
-  , fmap toClassText <$> _messageSize
+  , pure $ "icon" <$ _messageConfig_icon
+  , boolClass "floating" _messageConfig_floating
+  , fmap toClassText <$> _messageConfig_attached
+  , boolClass "compact" _messageConfig_compact
+  , fmap toClassText <$> _messageConfig_type
+  , fmap toClassText <$> _messageConfig_color
+  , fmap toClassText <$> _messageConfig_size
   ]
 
 message :: UI t m => MessageConfig t -> m a -> m a
@@ -105,26 +105,26 @@ message'
   :: UI t m => MessageConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 message' config@MessageConfig{..} content
-  = ui' "div" elConf $ case _messageIcon of
+  = ui' "div" elConf $ case _messageConfig_icon of
     Just (Icon i c) -> do
       icon i c
       divClass "content" content
     Nothing -> content
   where
-    elConf = _messageElConfig <> def
+    elConf = _messageConfig_elConfig <> def
       { _classes = messageConfigClasses config }
 
 dismissableMessage
-  :: UI t m => Transition -> MessageConfig t -> m a -> m a
+  :: UI t m => TransitionOrAnimation -> MessageConfig t -> m a -> m a
 dismissableMessage t c = fmap snd . dismissableMessage' t c
 
 dismissableMessage'
-  :: UI t m => Transition -> MessageConfig t -> m a
+  :: UI t m => TransitionOrAnimation -> MessageConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 dismissableMessage' t config@MessageConfig{..} content = do
   rec
     let config' = config & action %~ (\old -> old <> (Just $ def
-          & actionEvent ?~ closeEvent))
+          & action_event ?~ closeEvent))
 
     (divEl, (result, closeEvent)) <- message' config' $ do
       e <- icon' "close" def

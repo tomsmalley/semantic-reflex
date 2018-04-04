@@ -25,7 +25,7 @@ import GHCJS.DOM (currentDocument)
 import GHCJS.DOM.DocumentOrShadowRoot (getActiveElement)
 import GHCJS.DOM.Types (castTo, HTMLElement(..), Element(..))
 import Reflex
-import Reflex.Dom.Core hiding (CheckboxConfig, Checkbox, SetValue(..))
+import Reflex.Dom.Core hiding (CheckboxConfig, Checkbox(..), SetValue(..))
 
 import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
@@ -47,37 +47,37 @@ instance ToClassText CheckboxType where
 -- and set events in order to logically disconnect them from their dynamic
 -- return values in Checkbox.
 data CheckboxConfig t = CheckboxConfig
-  { _checkboxSetValue :: SetValue t Bool
+  { _checkboxConfig_setValue :: SetValue t Bool
   -- ^ Value control
 
-  , _checkboxSetIndeterminate :: SetValue t Bool
+  , _checkboxConfig_setIndeterminate :: SetValue t Bool
   -- ^ Control over indeterminate state
 
-  , _checkboxType :: Active t (Maybe CheckboxType)
+  , _checkboxConfig_type :: Active t (Maybe CheckboxType)
   -- ^ Checkbox type, e.g. slider
-  , _checkboxFitted :: Active t Bool
+  , _checkboxConfig_fitted :: Active t Bool
   -- ^ Checkbox is fitted
-  , _checkboxDisabled :: Active t Bool
+  , _checkboxConfig_disabled :: Active t Bool
   -- ^ Checkbox is disabled
 
-  , _checkboxElConfig :: ActiveElConfig t
+  , _checkboxConfig_elConfig :: ActiveElConfig t
   -- ^ Config
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''CheckboxConfig
 
 instance HasElConfig t (CheckboxConfig t) where
-  elConfig = checkboxElConfig
+  elConfig = checkboxConfig_elConfig
 
 instance Reflex t
   => Default (CheckboxConfig t) where
   def = CheckboxConfig
-    { _checkboxSetValue = SetValue False Nothing
-    , _checkboxSetIndeterminate = SetValue False Nothing
+    { _checkboxConfig_setValue = SetValue False Nothing
+    , _checkboxConfig_setIndeterminate = SetValue False Nothing
 
-    , _checkboxType = pure Nothing
-    , _checkboxFitted = pure False
-    , _checkboxDisabled = pure False
-    , _checkboxElConfig = def
+    , _checkboxConfig_type = pure Nothing
+    , _checkboxConfig_fitted = pure False
+    , _checkboxConfig_disabled = pure False
+    , _checkboxConfig_elConfig = def
     }
 
 -- | Make the checkbox div classes from the configuration
@@ -86,31 +86,31 @@ checkboxConfigClasses
   => CheckboxConfig t -> Active t Classes
 checkboxConfigClasses CheckboxConfig {..} = dynClasses
   [ pure $ Just "ui checkbox"
-  , fmap toClassText <$> _checkboxType
-  , boolClass "fitted" _checkboxFitted
-  , boolClass "disabled" _checkboxDisabled
+  , fmap toClassText <$> _checkboxConfig_type
+  , boolClass "fitted" _checkboxConfig_fitted
+  , boolClass "disabled" _checkboxConfig_disabled
   ]
 
 -- | Result of running a checkbox
 data Checkbox t = Checkbox
-  { _checkboxValue :: Dynamic t Bool
+  { _checkbox_value :: Dynamic t Bool
   -- ^ The current checked state
-  , _checkboxChange :: Event t Bool
+  , _checkbox_change :: Event t Bool
   -- ^ Changes which are invoked by the user
-  , _checkboxIsIndeterminate :: Dynamic t Bool
+  , _checkbox_indeterminate :: Dynamic t Bool
   -- ^ The current indeterminate state
-  , _checkboxHasFocus :: Dynamic t Bool
+  , _checkbox_hasFocus :: Dynamic t Bool
   -- ^ The current focused state
-  , _checkboxDivElement :: El t
+  , _checkbox_divElement :: El t
   -- ^ The checkbox div element
-  , _checkboxInputElement :: El t
+  , _checkbox_inputElement :: El t
   -- ^ The checkbox input element
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''Checkbox
 
 instance HasValue (Checkbox t) where
   type Value (Checkbox t) = Dynamic t Bool
-  value = _checkboxValue
+  value = _checkbox_value
 
 -- | Checkbox UI Element. The minimum useful checkbox only needs a label and a
 -- default configuration.
@@ -121,7 +121,7 @@ checkbox
   => m () -> CheckboxConfig t -> m (Checkbox t)
 checkbox content config@CheckboxConfig {..} = do
 
-  let divAttrs = _checkboxElConfig <> def
+  let divAttrs = _checkboxConfig_elConfig <> def
         { _classes = checkboxConfigClasses config }
       constAttrs = "type" =: "checkbox" <> "class" =: "hidden"
       cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
@@ -136,7 +136,7 @@ checkbox content config@CheckboxConfig {..} = do
 
   let e = DOM.uncheckedCastTo DOM.HTMLInputElement $ _element_raw inputEl
 
-  case _checkboxDisabled of
+  case _checkboxConfig_disabled of
     Static x -> Input.setDisabled e x
     Dyn x -> do
       -- Set initial disabled
@@ -145,18 +145,18 @@ checkbox content config@CheckboxConfig {..} = do
       performEvent_ $ ffor (updated x) $ Input.setDisabled e
 
   -- Set initial value
-  Input.setChecked e $ _initial _checkboxSetValue
+  Input.setChecked e $ _initial _checkboxConfig_setValue
   -- Set future value, filtering uniques
-  mSetEvent <- for (_event _checkboxSetValue) $
+  mSetEvent <- for (_event _checkboxConfig_setValue) $
     \setValue -> performEvent $ ffor setValue $ \newValue -> do
       oldValue <- liftJSM $ Input.getChecked e
       Input.setChecked e newValue
       return $ newValue <$ guard (newValue /= oldValue)
 
   -- Set initial indeterminate
-  Input.setIndeterminate e $ _initial _checkboxSetIndeterminate
+  Input.setIndeterminate e $ _initial _checkboxConfig_setIndeterminate
   -- Set future indeterminate
-  for_ (_event _checkboxSetIndeterminate) $ \setIndeterminate ->
+  for_ (_event _checkboxConfig_setIndeterminate) $ \setIndeterminate ->
     performEvent_ $ ffor setIndeterminate $ Input.setIndeterminate e
 
   rec
@@ -197,11 +197,11 @@ checkbox content config@CheckboxConfig {..} = do
       htmlElement <- MaybeT $ castTo HTMLElement activeElement
       HTMLElement.blur htmlElement
 
-    indeterminate <- holdDyn (_initial _checkboxSetIndeterminate) $ leftmost
+    indeterminate <- holdDyn (_initial _checkboxConfig_setIndeterminate) $ leftmost
       $ fmap snd uiEvent
-      : maybe [] pure (_event _checkboxSetIndeterminate)
+      : maybe [] pure (_event _checkboxConfig_setIndeterminate)
 
-    value <- holdUniqDyn <=< holdDyn (_initial _checkboxSetValue) $ leftmost
+    value <- holdUniqDyn <=< holdDyn (_initial _checkboxConfig_setValue) $ leftmost
       $ fmap fst uiEvent
       : maybe [] (pure . fmapMaybe id) mSetEvent
 
@@ -212,10 +212,10 @@ checkbox content config@CheckboxConfig {..} = do
     ]
 
   return Checkbox
-    { _checkboxValue = value
-    , _checkboxChange = fst <$> uiEvent
-    , _checkboxIsIndeterminate = indeterminate
-    , _checkboxHasFocus = focus
-    , _checkboxDivElement = divEl
-    , _checkboxInputElement = inputEl
+    { _checkbox_value = value
+    , _checkbox_change = fst <$> uiEvent
+    , _checkbox_indeterminate = indeterminate
+    , _checkbox_hasFocus = focus
+    , _checkbox_divElement = divEl
+    , _checkbox_inputElement = inputEl
     }

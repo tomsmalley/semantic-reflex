@@ -6,26 +6,26 @@ module Reflex.Dom.SemanticUI.Label
     label, label'
   , detail, detail'
   , LabelConfig (..)
-  , labelImage
-  , labelHidden
-  , labelBasic
-  , labelTag
-  , labelFloating
-  , labelHorizontal
-  , labelAttached
-  , labelColor
-  , labelPointing
-  , labelRibbon
-  , labelCorner
-  , labelLink
-  , labelElConfig
+  , labelConfig_image
+  , labelConfig_hidden
+  , labelConfig_basic
+  , labelConfig_tag
+  , labelConfig_floating
+  , labelConfig_horizontal
+  , labelConfig_attached
+  , labelConfig_color
+  , labelConfig_pointing
+  , labelConfig_ribbon
+  , labelConfig_corner
+  , labelConfig_link
+  , labelConfig_elConfig
 
   , Ribbon (..)
   , Pointing (..)
   , TopCorner (..)
   , LabelAttached (..)
-  , vertically
-  , horizontally
+  , labelAttached_vertically
+  , labelAttached_horizontally
 
   ) where
 
@@ -73,8 +73,8 @@ instance ToClassText TopCorner where
 -- | If a label is attached, it *must* be vertically attached in some way. There
 -- can't be a soley horizontally attached label.
 data LabelAttached = LabelAttached
-  { _vertically :: VerticalAttached
-  , _horizontally :: Maybe HorizontalAttached
+  { _labelAttached_vertically :: VerticalAttached
+  , _labelAttached_horizontally :: Maybe HorizontalAttached
   }
 makeLenses ''LabelAttached
 
@@ -94,58 +94,58 @@ instance ToClassText LabelAttached where
       hClass RightAttached = "right"
 
 data LabelConfig t = LabelConfig
-  { _labelImage :: Active t Bool
-  , _labelHidden :: Active t Bool
-  , _labelBasic :: Active t Bool
-  , _labelTag :: Active t Bool
-  , _labelFloating :: Active t Bool
-  , _labelHorizontal :: Active t Bool
+  { _labelConfig_image :: Active t Bool
+  , _labelConfig_hidden :: Active t Bool
+  , _labelConfig_basic :: Active t Bool
+  , _labelConfig_tag :: Active t Bool
+  , _labelConfig_floating :: Active t Bool
+  , _labelConfig_horizontal :: Active t Bool
 
-  , _labelAttached :: Active t (Maybe LabelAttached)
-  , _labelColor :: Active t (Maybe Color)
-  , _labelPointing :: Active t (Maybe Pointing)
-  , _labelRibbon :: Active t (Maybe Ribbon)
-  , _labelCorner :: Active t (Maybe TopCorner)
+  , _labelConfig_attached :: Active t (Maybe LabelAttached)
+  , _labelConfig_color :: Active t (Maybe Color)
+  , _labelConfig_pointing :: Active t (Maybe Pointing)
+  , _labelConfig_ribbon :: Active t (Maybe Ribbon)
+  , _labelConfig_corner :: Active t (Maybe TopCorner)
 
-  , _labelLink :: Bool
-  , _labelElConfig :: ActiveElConfig t
+  , _labelConfig_link :: Bool
+  , _labelConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''LabelConfig
 
 instance HasElConfig t (LabelConfig t) where
-  elConfig = labelElConfig
+  elConfig = labelConfig_elConfig
 
 instance Reflex t => Default (LabelConfig t) where
   def = LabelConfig
-    { _labelAttached = pure Nothing
-    , _labelColor = pure Nothing
-    , _labelPointing = pure Nothing
-    , _labelRibbon = pure Nothing
-    , _labelCorner = pure Nothing
-    , _labelImage = pure False
-    , _labelHidden = pure False
-    , _labelBasic = pure False
-    , _labelTag = pure False
-    , _labelFloating = pure False
-    , _labelHorizontal = pure False
-    , _labelLink = False
-    , _labelElConfig = def
+    { _labelConfig_attached = pure Nothing
+    , _labelConfig_color = pure Nothing
+    , _labelConfig_pointing = pure Nothing
+    , _labelConfig_ribbon = pure Nothing
+    , _labelConfig_corner = pure Nothing
+    , _labelConfig_image = pure False
+    , _labelConfig_hidden = pure False
+    , _labelConfig_basic = pure False
+    , _labelConfig_tag = pure False
+    , _labelConfig_floating = pure False
+    , _labelConfig_horizontal = pure False
+    , _labelConfig_link = False
+    , _labelConfig_elConfig = def
     }
 
 labelConfigClasses :: Reflex t => LabelConfig t -> Active t Classes
 labelConfigClasses LabelConfig {..} = dynClasses
   [ pure $ Just "ui label"
-  , fmap toClassText <$> _labelAttached
-  , fmap toClassText <$> _labelColor
-  , fmap toClassText <$> _labelPointing
-  , fmap toClassText <$> _labelRibbon
-  , fmap toClassText <$> _labelCorner
-  , boolClass "hidden" _labelHidden
-  , boolClass "basic" _labelBasic
-  , boolClass "tag" _labelTag
-  , boolClass "floating" _labelFloating
-  , boolClass "horizontal" _labelHorizontal
-  , boolClass "image" _labelImage
+  , fmap toClassText <$> _labelConfig_attached
+  , fmap toClassText <$> _labelConfig_color
+  , fmap toClassText <$> _labelConfig_pointing
+  , fmap toClassText <$> _labelConfig_ribbon
+  , fmap toClassText <$> _labelConfig_corner
+  , boolClass "hidden" _labelConfig_hidden
+  , boolClass "basic" _labelConfig_basic
+  , boolClass "tag" _labelConfig_tag
+  , boolClass "floating" _labelConfig_floating
+  , boolClass "horizontal" _labelConfig_horizontal
+  , boolClass "image" _labelConfig_image
   ]
 
 
@@ -162,10 +162,10 @@ label'
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 label' config@LabelConfig {..} = ui' elType elConf
   where
-    elConf = _labelElConfig <> def
+    elConf = _labelConfig_elConfig <> def
       { _classes = labelConfigClasses config
       }
-    elType = if _labelLink then "a" else "div"
+    elType = if _labelConfig_link then "a" else "div"
 
 label :: UI t m => LabelConfig t -> m a -> m a
 label c = fmap snd . label' c

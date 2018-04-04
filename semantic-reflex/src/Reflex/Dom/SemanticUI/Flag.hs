@@ -18,9 +18,12 @@ import Reflex.Dom.SemanticUI.Transition
 
 -- | Config for 'flag's.
 data FlagConfig t = FlagConfig
-  { _flagElConfig :: ActiveElConfig t
+  { _flagConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''FlagConfig
+
+instance HasElConfig t (FlagConfig t) where
+  elConfig = flagConfig_elConfig
 
 instance Reflex t => Default (FlagConfig t) where
   def = FlagConfig def
@@ -32,7 +35,7 @@ flag'
   -> m (Element EventResult (DomBuilderSpace m) t)
 flag' dynFlag FlagConfig {..} = fst <$> ui' "i" elConf blank
   where
-    elConf = _flagElConfig <> def
+    elConf = _flagConfig_elConfig <> def
       { _classes = flip addClass "flag" <$> dynFlag }
 
 -- | Create a flag. Avaliable types are listed here:

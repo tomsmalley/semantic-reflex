@@ -9,12 +9,12 @@ module Reflex.Dom.SemanticUI.Rail
     rail, rail'
   , RailConfig (..)
   , RailSide (..)
-  , railDividing
-  , railInternal
-  , railAttached
-  , railClose
-  , railSize
-  , railElConfig
+  , railConfig_dividing
+  , railConfig_internal
+  , railConfig_attached
+  , railConfig_close
+  , railConfig_size
+  , railConfig_elConfig
 
   ) where
 
@@ -43,37 +43,37 @@ instance ToClassText RailClose where
   toClassText VeryClose = "very close"
 
 data RailConfig t = RailConfig
-  { _railDividing :: Active t Bool
-  , _railInternal :: Active t Bool
-  , _railAttached :: Active t Bool
-  , _railClose :: Active t (Maybe RailClose)
-  , _railSize :: Active t (Maybe Size)
-  , _railElConfig :: ActiveElConfig t
+  { _railConfig_dividing :: Active t Bool
+  , _railConfig_internal :: Active t Bool
+  , _railConfig_attached :: Active t Bool
+  , _railConfig_close :: Active t (Maybe RailClose)
+  , _railConfig_size :: Active t (Maybe Size)
+  , _railConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''RailConfig
 
 instance HasElConfig t (RailConfig t) where
-  elConfig = railElConfig
+  elConfig = railConfig_elConfig
 
 instance Reflex t => Default (RailConfig t) where
   def = RailConfig
-    { _railDividing = pure False
-    , _railInternal = pure False
-    , _railAttached = pure False
-    , _railClose = pure Nothing
-    , _railSize = pure Nothing
-    , _railElConfig = def
+    { _railConfig_dividing = pure False
+    , _railConfig_internal = pure False
+    , _railConfig_attached = pure False
+    , _railConfig_close = pure Nothing
+    , _railConfig_size = pure Nothing
+    , _railConfig_elConfig = def
     }
 
 -- | Make the rail div classes from the configuration
 railConfigClasses :: Reflex t => RailConfig t -> Active t Classes
 railConfigClasses RailConfig {..} = dynClasses
   [ pure $ Just "ui rail"
-  , boolClass "dividing" _railDividing
-  , boolClass "internal" _railInternal
-  , boolClass "attached" _railAttached
-  , fmap toClassText <$> _railClose
-  , fmap toClassText <$> _railSize
+  , boolClass "dividing" _railConfig_dividing
+  , boolClass "internal" _railConfig_internal
+  , boolClass "attached" _railConfig_attached
+  , fmap toClassText <$> _railConfig_close
+  , fmap toClassText <$> _railConfig_size
   ]
 
 -- | Rail UI Element.
@@ -83,7 +83,7 @@ rail'
 rail' railSide config@RailConfig {..} content
   = ui' "div" elConf content
   where
-    elConf = _railElConfig <> def
+    elConf = _railConfig_elConfig <> def
       { _classes = addClass (toClassText railSide)
                <$> railConfigClasses config }
 

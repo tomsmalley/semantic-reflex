@@ -66,79 +66,79 @@ mkPercent (Range vMin vMax) v
 
 -- | Configuration of a progress bar widget.
 data ProgressConfig t m = ProgressConfig
-  { _progressBar :: Maybe (Bar m)
+  { _progressConfig_bar :: Maybe (Bar m)
   -- ^ (default: 'Nothing') Content inside the bar
-  , _progressLabel :: Maybe (m ())
+  , _progressConfig_label :: Maybe (m ())
   -- ^ (default: 'Nothing') Widget below the bar
-  , _progressIndicating :: Dynamic t Bool
+  , _progressConfig_indicating :: Dynamic t Bool
   -- ^ (default: 'False') If 'True', changes the bar colour according to the
   -- percentage
-  , _progressActive :: Dynamic t Bool
+  , _progressConfig_active :: Dynamic t Bool
   -- ^ (default: 'False') If 'True', show a pulsing animation on the bar
-  , _progressDisabled :: Dynamic t Bool
+  , _progressConfig_disabled :: Dynamic t Bool
   -- ^ (default: 'False') If 'True', the progress bar is stylised as being
   -- disabled
-  , _progressIndeterminate :: Dynamic t Bool
+  , _progressConfig_indeterminate :: Dynamic t Bool
   -- ^ (default: 'False') If 'True', show the bar in an "indeterminate" state.
   -- The progress bar is hidden and the background is changed to diagonal
   -- stripes. This is automatic when the bar is in a nonsensical state e.g. with
   -- 0 range.
-  , _progressSuccess :: Dynamic t (Maybe Bool)
+  , _progressConfig_success :: Dynamic t (Maybe Bool)
   -- ^ (default: 'Nothing') If 'Nothing', show the bar in a "success" state when
   -- it reaches 100%. This behavior can be overridden with 'Just': 'True' forces
   -- a "success" state, 'False' forces no "success" state.
-  , _progressWarning :: Dynamic t Bool
+  , _progressConfig_warning :: Dynamic t Bool
   -- ^ (default: 'False') If 'True', show the bar in a "warning" state. Takes
   -- CSS precedence over "success".
-  , _progressError :: Dynamic t Bool
+  , _progressConfig_error :: Dynamic t Bool
   -- ^ (default: 'False') If 'True', show the bar in an "error" state. Takes
   -- CSS precedence over "success" and "warning".
-  , _progressInverted :: Dynamic t Bool
+  , _progressConfig_inverted :: Dynamic t Bool
   -- ^ (default: 'False') If 'True', the progress widget will have inverted
   -- colours
-  , _progressAttached :: Dynamic t (Maybe VerticalAttached)
+  , _progressConfig_attached :: Dynamic t (Maybe VerticalAttached)
   -- ^ (default: 'Nothing') Progress widgets can be vertically attached. This
-  -- should only be used when '_progressBar' and '_progressLabel' properties are
+  -- should only be used when '_progressConfig_bar' and '_progressConfig_label' properties are
   -- 'Nothing'.
-  , _progressSize :: Dynamic t (Maybe Size)
+  , _progressConfig_size :: Dynamic t (Maybe Size)
   -- ^ (default: 'Nothing') 'Size' of the progress widget. Note: Only sizes
   -- 'Tiny' to 'Big' are supported, values outside the range will be set to the
   -- closest value. Smaller sizes may not be able to fit bar content.
-  , _progressColor :: Dynamic t (Maybe Color)
+  , _progressConfig_color :: Dynamic t (Maybe Color)
   -- ^ (default: 'Nothing') 'Color' of the progress widget.
-  , _progressMinWidth :: Dynamic t Bool
+  , _progressConfig_minWidth :: Dynamic t Bool
   -- ^ (default: 'True') When 'False', override the "min-width" property of the
   -- bar to remove the limit.
-  , _progressRateLimit :: Maybe NominalDiffTime
+  , _progressConfig_rateLimit :: Maybe NominalDiffTime
   -- ^ (default: 'Just' @0.3@) If enabled, updates which occur faster than
   -- the given time (in seconds) are batched together and applied
   -- simultaneously. This is to allow for smooth animations.
-  , _progressElConfig :: ActiveElConfig t
+  , _progressConfig_elConfig :: ActiveElConfig t
   -- ^ Underlying element config
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''ProgressConfig
 
 instance HasElConfig t (ProgressConfig t m) where
-  elConfig = progressElConfig
+  elConfig = progressConfig_elConfig
 
 instance Reflex t => Default (ProgressConfig t m) where
   def = ProgressConfig
-    { _progressBar = Nothing
-    , _progressLabel = Nothing
-    , _progressIndicating = pure False
-    , _progressActive = pure False
-    , _progressDisabled = pure False
-    , _progressIndeterminate = pure False
-    , _progressSuccess = pure Nothing
-    , _progressWarning = pure False
-    , _progressError = pure False
-    , _progressInverted = pure False
-    , _progressAttached = pure Nothing
-    , _progressSize = pure Nothing
-    , _progressColor = pure Nothing
-    , _progressMinWidth = pure True
-    , _progressRateLimit = Just 0.3
-    , _progressElConfig = def
+    { _progressConfig_bar = Nothing
+    , _progressConfig_label = Nothing
+    , _progressConfig_indicating = pure False
+    , _progressConfig_active = pure False
+    , _progressConfig_disabled = pure False
+    , _progressConfig_indeterminate = pure False
+    , _progressConfig_success = pure Nothing
+    , _progressConfig_warning = pure False
+    , _progressConfig_error = pure False
+    , _progressConfig_inverted = pure False
+    , _progressConfig_attached = pure Nothing
+    , _progressConfig_size = pure Nothing
+    , _progressConfig_color = pure Nothing
+    , _progressConfig_minWidth = pure True
+    , _progressConfig_rateLimit = Just 0.3
+    , _progressConfig_elConfig = def
     }
 
 -- | Make the progress div classes from the configuration
@@ -148,16 +148,16 @@ progressConfigClasses
   -> Dynamic t Classes
 progressConfigClasses dMaybePercent ProgressConfig {..} = dynClasses'
   [ pure $ Just "ui progress"
-  , boolClass "indicating" _progressIndicating
-  , boolClass "active" _progressActive
-  , boolClass "disabled" _progressDisabled
-  , boolClass "warning" _progressWarning
-  , boolClass "error" _progressError
-  , boolClass "inverted" _progressInverted
-  , fmap toClassText <$> _progressAttached
-  , fmap (toClassText . fixSizes) <$> _progressSize
-  , fmap toClassText <$> _progressColor
-  , success <$> _progressSuccess <*> dMaybePercent
+  , boolClass "indicating" _progressConfig_indicating
+  , boolClass "active" _progressConfig_active
+  , boolClass "disabled" _progressConfig_disabled
+  , boolClass "warning" _progressConfig_warning
+  , boolClass "error" _progressConfig_error
+  , boolClass "inverted" _progressConfig_inverted
+  , fmap toClassText <$> _progressConfig_attached
+  , fmap (toClassText . fixSizes) <$> _progressConfig_size
+  , fmap toClassText <$> _progressConfig_color
+  , success <$> _progressConfig_success <*> dMaybePercent
   ]
   where
     fixSizes = \case
@@ -170,17 +170,18 @@ progressConfigClasses dMaybePercent ProgressConfig {..} = dynClasses'
 
 -- | Result of running a progress widget.
 data Progress t m = Progress
-  { _progressPercent :: Dynamic t (Maybe Percent)
+  { _progress_percent :: Dynamic t (Maybe Percent)
   -- ^ The current percentage (can range from 0 to 100)
-  , _progressElement :: Element EventResult (DomBuilderSpace m) t
+  , _progress_element :: Element EventResult (DomBuilderSpace m) t
   -- ^ The 'Element' of the wrapping "progress" div
-  , _progressBarElement :: Element EventResult (DomBuilderSpace m) t
+  , _progress_barElement :: Element EventResult (DomBuilderSpace m) t
   -- ^ The 'Element' of the "bar" div
   }
+makeLensesWith (lensRules & simpleLenses .~ True) ''Progress
 
 instance HasValue (Progress t m) where
   type Value (Progress t m) = Dynamic t (Maybe Percent)
-  value = _progressPercent
+  value = _progress_percent
 
 -- | Display a progress widget, given minimum and maximum values, the initial
 -- value, and an 'Event' to update the current value.
@@ -192,20 +193,20 @@ progress
   -> m (Progress t m)
 progress dRange dValue' config@ProgressConfig{..} = do
 
-  dValue <- case _progressRateLimit of
+  dValue <- case _progressConfig_rateLimit of
     Just t -> rateLimitDyn t dValue'
     Nothing -> pure dValue'
 
   let dMaybePercent = zipDynWith mkPercent dRange dValue
 
       dIndeterminate = let f m i = isNothing m || i
-                        in zipDynWith f dMaybePercent _progressIndeterminate
+                        in zipDynWith f dMaybePercent _progressConfig_indeterminate
 
       indeterminateStyle = "background: repeating-linear-gradient(45deg\
         \, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 1em\
         \, rgba(0,0,0,0.2) 1em, rgba(0,0,0,0.2) 2em)"
 
-      progressConfig = _progressElConfig <> def
+      progressConfig = _progressConfig_elConfig <> def
         { _classes = Dyn $ progressConfigClasses dMaybePercent config
         , _attrs = Dyn $ dMaybePercent <&>
           maybe mempty (\(Percent p) -> "data-percent" =: tshow p)
@@ -215,7 +216,7 @@ progress dRange dValue' config@ProgressConfig{..} = do
 
       mkBarStyle indeterminate maybePercent minWidth
         = Style $ T.intercalate ";" $ catMaybes
-          [ ffor _progressRateLimit $ \t -> "transition-duration: " <> tshow t
+          [ ffor _progressConfig_rateLimit $ \t -> "transition-duration: " <> tshow t
           , maybePercent <&> \p -> "width:" <> percentText p
           , "visibility: hidden" <$ guard indeterminate
           , "min-width: auto" <$ guard (not minWidth)
@@ -224,12 +225,12 @@ progress dRange dValue' config@ProgressConfig{..} = do
       barConfig = def
         { _classes = "bar"
         , _style = Dyn $ mkBarStyle
-          <$> dIndeterminate <*> dMaybePercent <*> _progressMinWidth
+          <$> dIndeterminate <*> dMaybePercent <*> _progressConfig_minWidth
         }
 
   (progressEl, barEl) <- ui' "div" progressConfig $ do
     (barEl, _) <- ui' "div" barConfig $ do
-      for_ _progressBar $ \pContent -> divClass "progress" $ case pContent of
+      for_ _progressConfig_bar $ \pContent -> divClass "progress" $ case pContent of
         PercentageBar -> dynText $ maybe mempty percentText <$> dMaybePercent
         FractionDoneBar -> do
           dynText $ tshow <$> dValue
@@ -237,7 +238,7 @@ progress dRange dValue' config@ProgressConfig{..} = do
           dynText $ tshow . rangeMax <$> dRange
         Bar f -> f
 
-    for_ _progressLabel $ divClass "label"
+    for_ _progressConfig_label $ divClass "label"
 
     pure barEl
 

@@ -6,12 +6,12 @@ module Reflex.Dom.SemanticUI.Divider
     divider, divider'
   , contentDivider, contentDivider'
   , DividerConfig (..)
-  , dividerInverted
-  , dividerFitted
-  , dividerHidden
-  , dividerSection
-  , dividerClearing
-  , dividerElConfig
+  , dividerConfig_inverted
+  , dividerConfig_fitted
+  , dividerConfig_hidden
+  , dividerConfig_section
+  , dividerConfig_clearing
+  , dividerConfig_elConfig
 
   ) where
 
@@ -26,36 +26,36 @@ import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data DividerConfig t = DividerConfig
-  { _dividerInverted :: Active t Bool
-  , _dividerFitted :: Active t Bool
-  , _dividerHidden :: Active t Bool
-  , _dividerSection :: Active t Bool
-  , _dividerClearing :: Active t Bool
-  , _dividerElConfig :: ActiveElConfig t
+  { _dividerConfig_inverted :: Active t Bool
+  , _dividerConfig_fitted :: Active t Bool
+  , _dividerConfig_hidden :: Active t Bool
+  , _dividerConfig_section :: Active t Bool
+  , _dividerConfig_clearing :: Active t Bool
+  , _dividerConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) 'DividerConfig
 
 instance HasElConfig t (DividerConfig t) where
-  elConfig = dividerElConfig
+  elConfig = dividerConfig_elConfig
 
 instance Reflex t => Default (DividerConfig t) where
   def = DividerConfig
-    { _dividerInverted = pure False
-    , _dividerFitted = pure False
-    , _dividerHidden = pure False
-    , _dividerSection = pure False
-    , _dividerClearing = pure False
-    , _dividerElConfig = def
+    { _dividerConfig_inverted = pure False
+    , _dividerConfig_fitted = pure False
+    , _dividerConfig_hidden = pure False
+    , _dividerConfig_section = pure False
+    , _dividerConfig_clearing = pure False
+    , _dividerConfig_elConfig = def
     }
 
 dividerConfigClasses :: Reflex t => DividerConfig t -> Active t Classes
 dividerConfigClasses DividerConfig {..} = dynClasses
   [ pure $ Just "ui divider"
-  , boolClass "inverted" _dividerInverted
-  , boolClass "fitted" _dividerFitted
-  , boolClass "hidden" _dividerHidden
-  , boolClass "section" _dividerSection
-  , boolClass "clearing" _dividerClearing
+  , boolClass "inverted" _dividerConfig_inverted
+  , boolClass "fitted" _dividerConfig_fitted
+  , boolClass "hidden" _dividerConfig_hidden
+  , boolClass "section" _dividerConfig_section
+  , boolClass "clearing" _dividerConfig_clearing
   ]
 
 -- | In semantic-ui terms, this is a horizontal divider. Vertical dividers are
@@ -67,7 +67,7 @@ divider'
 divider' config@DividerConfig {..}
   = fst <$> ui' "div" elConf blank
   where
-    elConf = _dividerElConfig <> def
+    elConf = _dividerConfig_elConfig <> def
       { _classes = dividerConfigClasses config }
 
 -- | In semantic-ui terms, this is a horizontal divider. Vertical dividers are
@@ -82,7 +82,7 @@ contentDivider'
 contentDivider' config@DividerConfig {..} content
   = ui' "div" elConf content
   where
-    elConf = _dividerElConfig <> def
+    elConf = _dividerConfig_elConfig <> def
       { _classes = addClass "horizontal" <$> dividerConfigClasses config }
 
 contentDivider :: UI t m => DividerConfig t -> m a -> m a

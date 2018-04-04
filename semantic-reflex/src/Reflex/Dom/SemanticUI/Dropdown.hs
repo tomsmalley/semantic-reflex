@@ -227,13 +227,13 @@ dropdownMenuConfig :: Reflex t => Event t Bool -> ActiveElConfig t
 dropdownMenuConfig eOpen = def
   & classes |~ "menu"
   & action ?~ (def
-    & actionInitialDirection .~ Out
-    & actionForceVisible .~ True
-    & actionEvent ?~ fmap mkTransition eOpen)
+    & action_initialDirection .~ Out
+    & action_forceVisible .~ True
+    & action_event ?~ fmap mkTransition eOpen)
   where mkTransition open = Transition SlideDown $ def
-          & transitionDuration .~ 0.2
-          & transitionCancelling .~ True
-          & transitionDirection ?~ if open then In else Out
+          & transitionConfig_duration .~ 0.2
+          & transitionConfig_cancelling .~ True
+          & transitionConfig_direction ?~ if open then In else Out
 
 -- | Alter the scroll position of the dropdown menu when the selected item
 -- is outside of its bounds
@@ -275,9 +275,9 @@ searchDropdown config@DropdownConfig {..} ini items = mdo
     icon "dropdown" def
 
     searchInput <- textInput $ def
-      & textInputAttrs |~ "class" =: "search"
-      & textInputPlaceholder .~ _dropdownConfig_placeholder
-      & textInputValue .~ SetValue ini (Just $ fmapMaybe id $ case itemMap of
+      & textInputConfig_attrs |~ "class" =: "search"
+      & textInputConfig_placeholder .~ _dropdownConfig_placeholder
+      & textInputConfig_value .~ SetValue ini (Just $ fmapMaybe id $ case itemMap of
         TaggedStatic m -> ffor choose $ (\i -> M.lookup (Just i) m)
         TaggedDynamic dm -> attachWith (\m i -> M.lookup (Just i) m) (current dm) choose)
 

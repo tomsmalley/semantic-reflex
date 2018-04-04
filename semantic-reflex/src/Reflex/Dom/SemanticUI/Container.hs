@@ -6,8 +6,8 @@ module Reflex.Dom.SemanticUI.Container
   -- * Containers
     container, container'
   , ContainerConfig (..)
-  , containerSize
-  , containerElConfig
+  , containerConfig_size
+  , containerConfig_elConfig
 
   ) where
 
@@ -21,25 +21,25 @@ import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 
 data ContainerConfig t = ContainerConfig
-  { _containerSize      :: Active t (Maybe Size)
-  , _containerElConfig  :: ActiveElConfig t
+  { _containerConfig_size      :: Active t (Maybe Size)
+  , _containerConfig_elConfig  :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''ContainerConfig
 
 instance HasElConfig t (ContainerConfig t) where
-  elConfig = containerElConfig
+  elConfig = containerConfig_elConfig
 
 instance Reflex t => Default (ContainerConfig t) where
   def = ContainerConfig
-    { _containerSize = pure Nothing
-    , _containerElConfig = def
+    { _containerConfig_size = pure Nothing
+    , _containerConfig_elConfig = def
     }
 
 containerConfigClasses
   :: Reflex t => ContainerConfig t -> Active t Classes
 containerConfigClasses ContainerConfig {..} = dynClasses
     [ pure $ Just $ "ui container"
-    , fmap toClassText <$> _containerSize
+    , fmap toClassText <$> _containerConfig_size
     ]
 
 container'
@@ -47,7 +47,7 @@ container'
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 container' config@ContainerConfig {..} = ui' "div" elConf
     where
-      elConf = _containerElConfig <> def
+      elConf = _containerConfig_elConfig <> def
         { _classes = containerConfigClasses config }
 
 container :: UI t m => ContainerConfig t -> m a -> m a

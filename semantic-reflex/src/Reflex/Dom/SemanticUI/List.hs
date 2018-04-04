@@ -36,59 +36,57 @@ instance ToClassText ListAligned where
   toClassText ListBottom = "bottom aligned"
 
 data ListConfig t = ListConfig
-  { _listType       :: Active t (Maybe ListType)
-  , _listLink       :: Active t Bool
-  , _listHorizontal :: Active t Bool
-  , _listInverted   :: Active t Bool
-  , _listSelection  :: Active t Bool
-  , _listAnimated   :: Active t Bool
-  , _listRelaxed    :: Active t (Maybe Relaxed)
-  , _listDivided    :: Active t Bool
-  , _listCelled     :: Active t Bool
-  , _listSize       :: Active t (Maybe Size)
-  , _listFloated    :: Active t (Maybe Floated)
-
-  , _listAligned    :: Active t (Maybe ListAligned)
-
-  , _listElConfig   :: ActiveElConfig t
+  { _listConfig_type       :: Active t (Maybe ListType)
+  , _listConfig_link       :: Active t Bool
+  , _listConfig_horizontal :: Active t Bool
+  , _listConfig_inverted   :: Active t Bool
+  , _listConfig_selection  :: Active t Bool
+  , _listConfig_animated   :: Active t Bool
+  , _listConfig_relaxed    :: Active t (Maybe Relaxed)
+  , _listConfig_divided    :: Active t Bool
+  , _listConfig_celled     :: Active t Bool
+  , _listConfig_size       :: Active t (Maybe Size)
+  , _listConfig_floated    :: Active t (Maybe Floated)
+  , _listConfig_aligned    :: Active t (Maybe ListAligned)
+  , _listConfig_elConfig   :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''ListConfig
 
+instance HasElConfig t (ListConfig t) where
+  elConfig = listConfig_elConfig
+
 instance Reflex t => Default (ListConfig t) where
   def = ListConfig
-    { _listType = pure Nothing
-    , _listLink = pure False
-    , _listHorizontal = pure False
-    , _listInverted = pure False
-    , _listSelection = pure False
-    , _listAnimated = pure False
-    , _listRelaxed = pure Nothing
-    , _listDivided = pure False
-    , _listCelled = pure False
-    , _listSize = pure Nothing
-    , _listFloated = pure Nothing
-
-    , _listAligned = pure Nothing
-
-    , _listElConfig = def
+    { _listConfig_type = pure Nothing
+    , _listConfig_link = pure False
+    , _listConfig_horizontal = pure False
+    , _listConfig_inverted = pure False
+    , _listConfig_selection = pure False
+    , _listConfig_animated = pure False
+    , _listConfig_relaxed = pure Nothing
+    , _listConfig_divided = pure False
+    , _listConfig_celled = pure False
+    , _listConfig_size = pure Nothing
+    , _listConfig_floated = pure Nothing
+    , _listConfig_aligned = pure Nothing
+    , _listConfig_elConfig = def
     }
 
 listConfigClasses :: Reflex t => ListConfig t -> Active t Classes
 listConfigClasses ListConfig {..} = dynClasses
   [ pure $ Just "ui list"
-  , fmap toClassText <$> _listType
-  , boolClass "link" _listLink
-  , boolClass "horizontal" _listHorizontal
-  , boolClass "inverted" _listInverted
-  , boolClass "selection" _listSelection
-  , boolClass "animated" _listAnimated
-  , fmap toClassText <$> _listRelaxed
-  , boolClass "divided" _listDivided
-  , boolClass "celled" _listCelled
-  , fmap toClassText <$> _listSize
-  , fmap toClassText <$> _listFloated
-
-  , fmap toClassText <$> _listAligned
+  , fmap toClassText <$> _listConfig_type
+  , boolClass "link" _listConfig_link
+  , boolClass "horizontal" _listConfig_horizontal
+  , boolClass "inverted" _listConfig_inverted
+  , boolClass "selection" _listConfig_selection
+  , boolClass "animated" _listConfig_animated
+  , fmap toClassText <$> _listConfig_relaxed
+  , boolClass "divided" _listConfig_divided
+  , boolClass "celled" _listConfig_celled
+  , fmap toClassText <$> _listConfig_size
+  , fmap toClassText <$> _listConfig_floated
+  , fmap toClassText <$> _listConfig_aligned
   ]
 
 listItemElementText :: ListItemElement -> Text
@@ -98,20 +96,20 @@ listItemElementText ListItemLink = "a"
 data ListItemElement = ListItemDiv | ListItemLink
 
 data ListItemConfig t m = ListItemConfig
-  { _listItemPreContent :: Maybe (m ())
-  , _listItemElement :: ListItemElement
-  , _listItemElConfig :: ActiveElConfig t
+  { _listItemConfig_preContent :: Maybe (m ())
+  , _listItemConfig_element :: ListItemElement
+  , _listItemConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''ListItemConfig
 
 instance HasElConfig t (ListItemConfig t m) where
-  elConfig = listItemElConfig
+  elConfig = listItemConfig_elConfig
 
 instance Reflex t => Default (ListItemConfig t m) where
   def = ListItemConfig
-    { _listItemPreContent = Nothing
-    , _listItemElement = ListItemDiv
-    , _listItemElConfig = def
+    { _listItemConfig_preContent = Nothing
+    , _listItemConfig_element = ListItemDiv
+    , _listItemConfig_elConfig = def
     }
 
 listItemConfigClasses
@@ -129,7 +127,7 @@ list'
 list' config@ListConfig {..} widget
   = ui' "div" elConf widget
   where
-    elConf = _listElConfig <> def
+    elConf = _listConfig_elConfig <> def
       { _classes = listConfigClasses config }
 
 -- | Create a list.
@@ -142,12 +140,12 @@ listItem'
   :: UI t m => ListItemConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 listItem' config@ListItemConfig {..} content
-  = ui' (listItemElementText _listItemElement) elConf $
-    case _listItemPreContent of
+  = ui' (listItemElementText _listItemConfig_element) elConf $
+    case _listItemConfig_preContent of
       Nothing -> content
       Just m -> m >> divClass "content" content
   where
-    elConf = _listItemElConfig <> def
+    elConf = _listItemConfig_elConfig <> def
       { _classes = listItemConfigClasses config }
 
 listItem :: UI t m => ListItemConfig t m -> m a -> m a

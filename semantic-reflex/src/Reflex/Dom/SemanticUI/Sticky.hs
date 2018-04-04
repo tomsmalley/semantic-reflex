@@ -26,18 +26,18 @@ import qualified GHCJS.DOM.DOMTokenList as DOMTokenList
 import Language.Javascript.JSaddle (MonadJSM, liftJSM)
 
 data StickyConfig t = StickyConfig
-  { _stickyPushing :: Bool
-  , _stickyElConfig :: ActiveElConfig t
+  { _stickyConfig_pushing :: Bool
+  , _stickyConfig_elConfig :: ActiveElConfig t
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''StickyConfig
 
 instance HasElConfig t (StickyConfig t) where
-  elConfig = stickyElConfig
+  elConfig = stickyConfig_elConfig
 
 instance Reflex t => Default (StickyConfig t) where
   def = StickyConfig
-    { _stickyPushing = False
-    , _stickyElConfig = def
+    { _stickyConfig_pushing = False
+    , _stickyConfig_elConfig = def
     }
 
 stickyConfigClasses :: Reflex t => StickyConfig t -> Active t Classes
@@ -125,12 +125,12 @@ sticky' config@StickyConfig{..} content = do
 
   (stickyEl, a) <- ui' "div" elConf content
 
-  liftJSM $ runSticky _stickyPushing (_element_raw stickyEl)
+  liftJSM $ runSticky _stickyConfig_pushing (_element_raw stickyEl)
 
   return (stickyEl, a)
 
   where
-    elConf = _stickyElConfig <> def { _classes = stickyConfigClasses config }
+    elConf = _stickyConfig_elConfig <> def { _classes = stickyConfigClasses config }
 
 sticky
   :: (MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace, UI t m)
