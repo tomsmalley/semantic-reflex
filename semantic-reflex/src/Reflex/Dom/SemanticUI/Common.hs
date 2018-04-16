@@ -203,6 +203,9 @@ addClass c (Classes cs) = Classes $ c : cs
 -- | CSS styles
 newtype Style = Style Text deriving (Eq, Show)
 
+instance IsString Style where
+  fromString = Style . fromString
+
 instance Semigroup Style where
   Style "" <> Style b = Style b
   Style a <> Style "" = Style a
