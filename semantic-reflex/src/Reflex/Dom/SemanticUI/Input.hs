@@ -87,6 +87,9 @@ data InputConfig t = InputConfig
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''InputConfig
 
+instance HasElConfig t (InputConfig t) where
+  elConfig = inputConfig_elConfig
+
 instance Reflex t => Default (InputConfig t) where
   def = InputConfig
     { _inputConfig_loading = pure False
