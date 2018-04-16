@@ -22,7 +22,7 @@ instance ToClassText TableType where
 
 
 data TableConfig t = TableConfig
-  { _tableConfig_type :: Active t TableType
+  { _tableConfig_type :: Active t (Maybe TableType)
   , _tableConfig_color :: Active t (Maybe Color)
   , _tableConfig_attached :: Active t (Maybe VerticalAttached)
   , _tableConfig_elConfig :: ActiveElConfig t
@@ -34,7 +34,7 @@ instance HasElConfig t (TableConfig t) where
 
 instance Reflex t => Default (TableConfig t) where
   def = TableConfig
-    { _tableConfig_type = pure Celled
+    { _tableConfig_type = pure Nothing
     , _tableConfig_color = pure Nothing
     , _tableConfig_attached = pure Nothing
     , _tableConfig_elConfig = def
@@ -43,7 +43,7 @@ instance Reflex t => Default (TableConfig t) where
 tableConfigClasses :: Reflex t => TableConfig t -> Active t Classes
 tableConfigClasses TableConfig {..} = dynClasses
   [ pure $ Just "ui table"
-  , Just . toClassText <$> _tableConfig_type
+  , fmap toClassText <$> _tableConfig_type
   , fmap toClassText <$> _tableConfig_color
   , fmap toClassText <$> _tableConfig_attached
 --  , boolClass "link" _listLink
