@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 
 -- | This module is a work in progress
 module Reflex.Dom.SemanticUI.RadioGroup where

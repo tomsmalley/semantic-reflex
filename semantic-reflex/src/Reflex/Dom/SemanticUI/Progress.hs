@@ -1,5 +1,5 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -7,7 +7,8 @@
 module Reflex.Dom.SemanticUI.Progress where
 
 import Control.Lens ((<&>))
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.Type
+-- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Control.Monad (guard)
 import Data.Default
 import Data.Foldable (for_)
@@ -116,7 +117,7 @@ data ProgressConfig t m = ProgressConfig
   , _progressConfig_elConfig :: ActiveElConfig t
   -- ^ Underlying element config
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''ProgressConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''ProgressConfig
 
 instance HasElConfig t (ProgressConfig t m) where
   elConfig = progressConfig_elConfig
@@ -177,7 +178,7 @@ data Progress t m = Progress
   , _progress_barElement :: Element EventResult (DomBuilderSpace m) t
   -- ^ The 'Element' of the "bar" div
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''Progress
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''Progress
 
 instance HasValue (Progress t m) where
   type Value (Progress t m) = Dynamic t (Maybe Percent)
@@ -202,9 +203,11 @@ progress dRange dValue' config@ProgressConfig{..} = do
       dIndeterminate = let f m i = isNothing m || i
                         in zipDynWith f dMaybePercent _progressConfig_indeterminate
 
-      indeterminateStyle = "background: repeating-linear-gradient(45deg\
-        \, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 1em\
-        \, rgba(0,0,0,0.2) 1em, rgba(0,0,0,0.2) 2em)"
+      indeterminateStyle = mconcat
+        [ "background: repeating-linear-gradient(45deg"
+        , ", rgba(0,0,0,0.1), rgba(0,0,0,0.1) 1em"
+        , ", rgba(0,0,0,0.2) 1em, rgba(0,0,0,0.2) 2em)"
+        ]
 
       progressConfig = _progressConfig_elConfig <> def
         { _classes = Dyn $ progressConfigClasses dMaybePercent config
@@ -244,3 +247,4 @@ progress dRange dValue' config@ProgressConfig{..} = do
 
   pure $ Progress dMaybePercent progressEl barEl
 
+#include "Progress.include.hs"

@@ -16,7 +16,6 @@
 , reflex
 , reflex-dom-core
 , ref-tf
-, template-haskell
 , text
 , th-abstraction
 , these
@@ -48,7 +47,6 @@ in mkDerivation {
     reflex
     reflex-dom-core
     ref-tf
-    template-haskell
     text
     th-abstraction
     these

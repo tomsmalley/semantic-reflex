@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 
 module Reflex.Dom.SemanticUI.Label
   (
@@ -29,7 +29,8 @@ module Reflex.Dom.SemanticUI.Label
 
   ) where
 
-import Control.Lens.TH (makeLenses, makeLensesWith, lensRules, simpleLenses)
+-- import Control.Lens.TH (makeLenses, makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.Type
 import Control.Monad (void)
 import Data.Default
 import Data.Maybe (catMaybes)
@@ -76,7 +77,7 @@ data LabelAttached = LabelAttached
   { _labelAttached_vertically :: VerticalAttached
   , _labelAttached_horizontally :: Maybe HorizontalAttached
   }
-makeLenses ''LabelAttached
+-- makeLenses ''LabelAttached
 
 instance Default LabelAttached where
   def = LabelAttached TopAttached Nothing
@@ -110,7 +111,7 @@ data LabelConfig t = LabelConfig
   , _labelConfig_link :: Bool
   , _labelConfig_elConfig :: ActiveElConfig t
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''LabelConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''LabelConfig
 
 instance HasElConfig t (LabelConfig t) where
   elConfig = labelConfig_elConfig
@@ -170,3 +171,4 @@ label' config@LabelConfig {..} = ui' elType elConf
 label :: UI t m => LabelConfig t -> m a -> m a
 label c = fmap snd . label' c
 
+#include "Label.include.hs"

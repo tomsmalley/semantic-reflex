@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 
 -- | Semantic UI segments. Pure reflex implementation is provided.
 -- https://semantic-ui.com/collections/segments.html
@@ -35,7 +35,8 @@ module Reflex.Dom.SemanticUI.Segment
 
   ) where
 
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+-- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.Type
 import Data.Default
 import Data.Semigroup ((<>))
 import Reflex
@@ -89,7 +90,7 @@ data SegmentConfig t = SegmentConfig
   , _segmentConfig_elConfig :: ActiveElConfig t
   -- ^ Config
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''SegmentConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''SegmentConfig
 
 instance HasElConfig t (SegmentConfig t) where
   elConfig = segmentConfig_elConfig
@@ -160,7 +161,7 @@ data SegmentsConfig t = SegmentsConfig
   , _segmentsConfig_elConfig :: ActiveElConfig t
   -- ^ Config
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''SegmentsConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''SegmentsConfig
 
 instance HasElConfig t (SegmentsConfig t) where
   elConfig = segmentsConfig_elConfig
@@ -197,3 +198,4 @@ segments' config@SegmentsConfig{..} = ui' "div" elConf
 segments :: UI t m => SegmentsConfig t -> m a -> m a
 segments config = fmap snd . segments' config
 
+#include "Segment.include.hs"

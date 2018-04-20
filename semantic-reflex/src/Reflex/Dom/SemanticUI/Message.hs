@@ -1,5 +1,5 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 -- | Semantic UI messages. Pure reflex implementation is provided.
 -- https://semantic-ui.com/collections/messages.html
@@ -21,7 +21,8 @@ module Reflex.Dom.SemanticUI.Message
 
   ) where
 
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+-- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.Type
 import Control.Lens ((%~), (?~))
 import Data.Default
 import Data.Semigroup ((<>))
@@ -65,7 +66,7 @@ data MessageConfig t = MessageConfig
   , _messageConfig_elConfig :: ActiveElConfig t
   -- ^ Config
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''MessageConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''MessageConfig
 
 instance HasElConfig t (MessageConfig t) where
   elConfig = messageConfig_elConfig
@@ -132,3 +133,4 @@ dismissableMessage' t config@MessageConfig{..} content = do
 
   return (divEl, result)
 
+#include "Message.include.hs"

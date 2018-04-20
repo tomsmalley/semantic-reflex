@@ -1,10 +1,10 @@
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -59,7 +59,8 @@ module Reflex.Dom.SemanticUI.Transition
 import Control.Applicative (Alternative(..))
 import Control.Concurrent
 import Control.Lens (Lens')
-import Control.Lens.TH (makeLenses)
+import Control.Lens.Type
+-- import Control.Lens.TH (makeLenses)
 import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.Trans (liftIO, MonadIO)
@@ -184,7 +185,7 @@ data TransitionConfig = TransitionConfig
   -- Whether this transition event will override any that are queued or still
   -- occuring
   }
-makeLenses ''TransitionConfig
+-- makeLenses ''TransitionConfig
 
 instance Default TransitionConfig where
   def = TransitionConfig
@@ -514,10 +515,11 @@ data SetValue' t a b = SetValue
   { _initial :: a
   , _event :: Maybe (Event t b)
   }
-makeLenses ''SetValue'
+-- makeLenses ''SetValue'
 
 type SetValue t a = SetValue' t a a
 
 instance Reflex t => Semigroup (SetValue' t a b) where
   SetValue a mEvt1 <> SetValue _ mEvt2 = SetValue a (joinEvents mEvt1 mEvt2)
 
+#include "Transition.include.hs"

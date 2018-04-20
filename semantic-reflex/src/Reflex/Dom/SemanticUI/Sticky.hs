@@ -1,9 +1,10 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Reflex.Dom.SemanticUI.Sticky where
 
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+-- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.Type
 import Control.Monad
 import Data.Default
 import Data.Semigroup hiding (First)
@@ -29,7 +30,7 @@ data StickyConfig t = StickyConfig
   { _stickyConfig_pushing :: Bool
   , _stickyConfig_elConfig :: ActiveElConfig t
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''StickyConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''StickyConfig
 
 instance HasElConfig t (StickyConfig t) where
   elConfig = stickyConfig_elConfig
@@ -137,3 +138,4 @@ sticky
   => StickyConfig t -> m a -> m a
 sticky conf = fmap snd . sticky' conf
 
+#include "Sticky.include.hs"

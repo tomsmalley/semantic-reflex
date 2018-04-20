@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 
 module Reflex.Dom.SemanticUI.Divider
   (
@@ -15,7 +15,8 @@ module Reflex.Dom.SemanticUI.Divider
 
   ) where
 
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+-- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.Type
 import Control.Monad (void)
 import Data.Default
 import Data.Semigroup ((<>))
@@ -33,7 +34,7 @@ data DividerConfig t = DividerConfig
   , _dividerConfig_clearing :: Active t Bool
   , _dividerConfig_elConfig :: ActiveElConfig t
   }
-makeLensesWith (lensRules & simpleLenses .~ True) 'DividerConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) 'DividerConfig
 
 instance HasElConfig t (DividerConfig t) where
   elConfig = dividerConfig_elConfig
@@ -88,3 +89,4 @@ contentDivider' config@DividerConfig {..} content
 contentDivider :: UI t m => DividerConfig t -> m a -> m a
 contentDivider c = fmap snd . contentDivider' c
 
+#include "Divider.include.hs"

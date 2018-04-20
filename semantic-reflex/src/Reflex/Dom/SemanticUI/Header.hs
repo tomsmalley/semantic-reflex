@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 
 -- | Semantic-UI Header elements
 --
@@ -34,7 +34,8 @@ module Reflex.Dom.SemanticUI.Header
 
   ) where
 
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+-- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.Type
 import Data.Default
 import Data.Semigroup ((<>))
 import Data.Text (Text)
@@ -97,7 +98,7 @@ data HeaderConfig t m = HeaderConfig
   -- main content to be placed into a div with class "content".
   , _headerConfig_elConfig   :: ActiveElConfig t
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''HeaderConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''HeaderConfig
 
 instance HasElConfig t (HeaderConfig t m) where
   elConfig = headerConfig_elConfig
@@ -185,3 +186,4 @@ subHeader' = divClass' "sub header"
 subHeader :: UI t m => m a -> m a
 subHeader = fmap snd . subHeader'
 
+#include "Header.include.hs"

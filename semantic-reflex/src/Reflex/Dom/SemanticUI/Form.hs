@@ -1,5 +1,5 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 -- | Semantic UI forms.
 -- https://semantic-ui.com/collections/form.html
@@ -13,8 +13,10 @@ module Reflex.Dom.SemanticUI.Form
 
   ) where
 
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+-- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Control.Lens ((<&>))
+import Control.Lens.Iso
+import Control.Lens.Type
 import Control.Monad (void)
 import Data.Default
 import Data.Foldable (for_)
@@ -40,7 +42,7 @@ import qualified GHCJS.DOM.EventTarget as EventTarget
 data FormConfig t = FormConfig
   { _formConfig_elConfig :: ActiveElConfig t
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''FormConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''FormConfig
 
 instance HasElConfig t (FormConfig t) where
   elConfig = formConfig_elConfig
@@ -108,3 +110,4 @@ form
   => FormConfig t -> m a -> m a
 form config = fmap snd . form' config
 
+#include "Form.include.hs"

@@ -1,11 +1,12 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 
 -- | Semantic-UI Icon elements
 --
 -- <https://semantic-ui.com/elements/icon.html>
 module Reflex.Dom.SemanticUI.Icon where
 
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+-- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.Type
 import Control.Monad (void)
 import Data.Default
 import Data.Semigroup ((<>))
@@ -76,7 +77,7 @@ data IconConfig t = IconConfig
 
   , _iconConfig_elConfig :: ActiveElConfig t
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''IconConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''IconConfig
 
 instance HasElConfig t (IconConfig t) where
   elConfig = iconConfig_elConfig
@@ -153,7 +154,7 @@ data IconsConfig t = IconsConfig
   -- ^ (default: 'Nothing') Icons can be resized as a group
   , _iconsConfig_elConfig :: ActiveElConfig t
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''IconsConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''IconsConfig
 
 instance HasElConfig t (IconsConfig t) where
   elConfig = iconsConfig_elConfig
@@ -184,3 +185,4 @@ icons' config@IconsConfig {..} = ui' "i" elConf
 icons :: UI t m => IconsConfig t -> m a -> m a
 icons config = fmap snd . icons' config
 
+#include "Icon.include.hs"

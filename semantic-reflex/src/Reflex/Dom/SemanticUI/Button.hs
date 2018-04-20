@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 
 module Reflex.Dom.SemanticUI.Button
   (
@@ -62,7 +62,8 @@ module Reflex.Dom.SemanticUI.Button
 
   ) where
 
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+import Control.Lens.Type
+-- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Control.Monad (void)
 import Data.Default
 import Data.Semigroup hiding (First)
@@ -89,7 +90,7 @@ data ButtonsConfig t = ButtonsConfig
 
   , _buttonsConfig_elConfig :: ActiveElConfig t
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''ButtonsConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''ButtonsConfig
 
 instance HasElConfig t (ButtonsConfig t) where
   elConfig = buttonsConfig_elConfig
@@ -133,7 +134,7 @@ data LabeledButtonConfig t = LabeledButtonConfig
   { _labeledButtonConfig_side :: Active t Labeled
   , _labeledButtonConfig_elConfig :: ActiveElConfig t
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''LabeledButtonConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''LabeledButtonConfig
 
 instance HasElConfig t (LabeledButtonConfig t) where
   elConfig = labeledButtonConfig_elConfig
@@ -164,7 +165,7 @@ data AnimatedButton t m = AnimatedButton
   { _animatedButton_type :: Active t AnimatedButtonType
   , _animatedButton_hiddenContent :: m ()
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''AnimatedButton
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''AnimatedButton
 
 instance (Reflex t, Applicative m)
   => Default (AnimatedButton t m) where
@@ -212,7 +213,7 @@ data ButtonConfig t m = ButtonConfig
   , _buttonConfig_type         :: ButtonType
   , _buttonConfig_elConfig     :: ActiveElConfig t
   }
-makeLensesWith (lensRules & simpleLenses .~ True) ''ButtonConfig
+-- makeLensesWith (lensRules & simpleLenses .~ True) ''ButtonConfig
 
 instance HasElConfig t (ButtonConfig t m) where
   elConfig = buttonConfig_elConfig
@@ -341,3 +342,4 @@ labeledButton' config@LabeledButtonConfig{..} content = do
 labeledButton :: UI t m => LabeledButtonConfig t -> m a -> m (Event t ())
 labeledButton c = fmap snd . labeledButton' c
 
+#include "Button.include.hs"

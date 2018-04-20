@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- | This module is to help with fast development cycles. Use 'server' or
 -- 'daemon' to start a warp server on the given port where you can see your
 -- app.
