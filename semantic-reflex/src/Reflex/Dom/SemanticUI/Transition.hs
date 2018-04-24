@@ -159,6 +159,7 @@ data AnimationAttrs t = AnimationAttrs
 data TransitionOrAnimation
   = Transition TransitionType TransitionConfig
   | Animation AnimationType TransitionConfig
+  deriving Show
 
 getDirection :: TransitionOrAnimation -> Maybe Direction
 getDirection (Transition _ TransitionConfig{..}) = _transitionConfig_direction
@@ -184,7 +185,7 @@ data TransitionConfig = TransitionConfig
   , _transitionConfig_cancelling :: Bool
   -- Whether this transition event will override any that are queued or still
   -- occuring
-  }
+  } deriving Show
 -- makeLenses ''TransitionConfig
 
 instance Default TransitionConfig where
@@ -225,21 +226,15 @@ action_forceVisible f (Action e d fv)
 
 -- | Queue of transitions
 data Queue = Queue
-  { queue_canRun :: Bool
-  -- ^ If the queue is ready to be run
-  , queue_currentDirection :: Direction
+  { queue_currentDirection :: Direction
   -- ^ The direction that the element will be in before the next request
-  , queue_lastKey :: Int
-  -- ^ Last id inserted
-  , queue_lastCancel :: Int
-  -- ^ Last id to cause a cancellation
+  , queue_lastInit :: Int
+  -- ^ Last id whose transition was initialised
+  , queue_lastId :: Int
+  -- ^ Last id added (used to ensure unique ids)
   , queue_items :: IntMap QueueItem
   -- ^ The actual queue
-  }
-
--- | Get the first item from the queue along with its key
-firstItem :: Queue -> Maybe (Int, QueueItem)
-firstItem = fmap fst . IM.minViewWithKey . queue_items
+  } deriving Show
 
 -- Get the transition / animation type
 getTransType :: TransitionOrAnimation -> Either TransitionType AnimationType
@@ -253,7 +248,7 @@ data QueueItem = QueueItem
   , queueItem_duration :: NominalDiffTime
   , queueItem_startDirection :: Direction
   , queueItem_endDirection :: Direction
-  }
+  } deriving Show
 
 -- | Flip the given direction
 flipDirection :: Direction -> Direction
@@ -271,124 +266,100 @@ determineEndDirection t oldDirection
 -- | Initial queue given the starting direction
 initialQueue :: Direction -> Queue
 initialQueue d = Queue
-  { queue_canRun = False
-  , queue_currentDirection = d
-  , queue_lastKey = 0
-  , queue_lastCancel = 0
+  { queue_currentDirection = d
+  , queue_lastInit = -1
+  , queue_lastId = 0
   , queue_items = mempty
   }
 
--- | Update the queue when given 'This' 'TransitionOrAnimation' (fired by the user) or a
--- 'That' '()' (denoting that the first transition has finished)
-updateQueue :: These TransitionOrAnimation () -> Queue -> Queue
-updateQueue (This t) queue
-  | isCancelling t = queue
-    { queue_canRun = True -- Cancel events can always run
-    , queue_currentDirection = newDir
-    , queue_lastKey = newKey
-    , queue_lastCancel = newKey
-    , queue_items = IM.singleton newKey item
-    }
-  | otherwise = queue
-    { queue_canRun = IM.null $ queue_items queue -- Only run when the old queue is empty
-    , queue_currentDirection = newDir
-    , queue_lastKey = newKey
-    , queue_items = IM.insert newKey item $ queue_items queue
-    }
+-- | The transition state is really 'Start' or 'Finish' - that is, it is
+-- currently animating or it is in its final state. The purpose of 'Init' is to
+-- allow time for the class to update when an animation is finished,
+-- thereby restarting the animation if there is a queue. The best way (and
+-- the way semantic-ui does it) seems to be the trick mentioned here:
+-- https://css-tricks.com/restart-css-animation/
+-- This cheap and cheerful delay seems to work though.
+data TransitionState = Init | Start | Finish deriving Show
 
-  where newDir = determineEndDirection t $ queue_currentDirection queue
-        newKey = queue_lastKey queue + 1
-        item = QueueItem
-          { queueItem_transType = getTransType t
-          , queueItem_duration = getDuration t
-          , queueItem_startDirection = queue_currentDirection queue
-          , queueItem_endDirection = newDir
-          }
-
--- Delete the first item when a finish event comes in
-updateQueue (That ()) queue = queue
-  { queue_canRun = True -- Allow the next item to run
-  , queue_items = IM.deleteMin $ queue_items queue
-  }
-
--- Do both updates
-updateQueue (These t ()) queue
-  = updateQueue (This t) $ updateQueue (That ()) queue
-
--- | Run a transition, returning the classes and styles the element needs to
--- use.
+-- | Run a transition, returning the classes and styles the element needs to use.
 runAction
-  :: ( MonadFix m, MonadHold t m, TriggerEvent t m, PerformEvent t m
-     , MonadIO (Performable m), Reflex t )
-  => Action t
-  -> m (AnimationAttrs t)
+  :: (MonadFix m, MonadHold t m, TriggerEvent t m, PerformEvent t m, MonadIO (Performable m))
+  => Action t -> m (AnimationAttrs t)
 runAction (Action Nothing initDirection forceVisible) = do
   let mClasses = finalClasses forceVisible initDirection
   pure $ AnimationAttrs (pure mClasses) (pure Nothing)
-
-runAction (Action (Just eTransition) initDirection forceVisible) = do
-
+runAction (Action (Just request) initDirection forceVisible) = do
   rec
-    -- Holds the queue and running state
-    dTransitionQueue <- foldDyn updateQueue (initialQueue initDirection)
-                      $ align eTransition (void eFinalFiltered)
+    (_, transition) <- mapAccumMaybeB handle (initialQueue initDirection) $ align request delayed
+    delayed <- performEventAsync $ fforMaybe transition $ \(s, tid, i) -> case s of
+      -- Delay the init events by a small time before signalling a transition to start
+      Init -> Just $ \cb -> liftIO $ void $ forkIO $ do
+        Concurrent.delay 20000
+        cb (Start, tid, i)
+      -- Delay the start events by their duration before signalling when the transitions have ended
+      Start -> Just $ \cb -> liftIO $ void $ forkIO $ do
+        Concurrent.delay $ ceiling $ 1000000 * queueItem_duration i
+        cb (Finish, tid, i)
+      Finish -> Nothing
 
-    -- Fires when queue is updated and is able to run
-    -- Contains the key and transition to run
-    let eStart = fmapMaybe firstItem
-               $ ffilter queue_canRun
-               $ updated dTransitionQueue
+  mClasses <- holdDyn (finalClasses forceVisible initDirection) $ ffor transition $ \(s, _, t) -> case s of
+    Init -> finalClasses forceVisible $ queueItem_startDirection t
+    Start -> animatingClasses forceVisible t
+    Finish -> finalClasses forceVisible $ queueItem_endDirection t
 
-    -- This allows time for the class to update when an animation is finished,
-    -- thereby restarting the animation if there is a queue. The best way (and
-    -- the way semantic-ui does it) seems to be the trick mentioned here:
-    -- https://css-tricks.com/restart-css-animation/
-    -- This cheap and cheerful delay seems to work though.
-    let minDuration = 0.05
-
-    -- Delay the queue events by their duration, to signal when the transitions
-    -- have ended
-    eFinal <- performEventAsync $ ffor eStart $
-      \(lastCancelledKey, item) cb -> case queueItem_transType item of
-        Left Instant -> liftIO $ void $ forkIO $ do
-          -- Delay Instant items by the minDuration
-          Concurrent.delay $ ceiling $ minDuration * 1000000
-          cb (lastCancelledKey, queueItem_endDirection item)
-        _ -> liftIO $ void $ forkIO $ do
-            -- Delay other items by at least minDuration
-            Concurrent.delay $ ceiling $
-              1000000 * max minDuration (queueItem_duration item)
-            cb (lastCancelledKey, queueItem_endDirection item)
-
-    -- Filter the finish events to remove animations which have been cancelled
-    let filterCancelled queue (key, direction)
-          = if queue_lastCancel queue > key then Nothing else Just direction
-        eFinalFiltered = attachWithMaybe filterCancelled
-                        (current dTransitionQueue) eFinal
-
-  -- Duplicate the start event with a delay such that it always fires between
-  -- the true start event and the earliest possible finish event.
-  -- The true start event is used to clear animation classes to refresh an
-  -- interrupted animation, and this delayed start event is used to set the
-  -- new animation classes. Instant transitions are removed because they have
-  -- no animation classes.
-  eAnimStart <- delay (minDuration / 2)
-              $ ffilter (\item -> queueItem_transType item /= Left Instant)
-              $ fmap snd eStart
-
-  mClasses <- holdDyn (finalClasses forceVisible initDirection) $ leftmost
-    -- Clear the possible existing classes by setting to the start direction
-    [ finalClasses forceVisible . queueItem_startDirection . snd <$> eStart
-    -- Set any animating classes
-    , animatingClasses forceVisible <$> eAnimStart
-    -- Set the final classes
-    , finalClasses forceVisible <$> eFinalFiltered ]
-
-  mStyle <- holdDyn Nothing $ leftmost
-    [ animatingStyle . snd <$> eStart
-    , Nothing <$ eFinalFiltered ]
+  mStyle <- holdDyn Nothing $ fforMaybe transition $ \(s, _, t) -> case s of
+    Init -> Just $ animatingStyle t
+    Start -> Nothing
+    Finish -> Just Nothing
 
   pure $ AnimationAttrs (Dyn mClasses) (Dyn mStyle)
+
+  where
+    handle
+      :: Queue
+      -> These TransitionOrAnimation (TransitionState, Int, QueueItem)
+      -> (Maybe Queue, Maybe (TransitionState, Int, QueueItem))
+    handle queue = \case
+      This t -- Requests to start a transition
+        -- When the queue is clear, or the transition is cancelling, we can run immediately
+        | null (queue_items queue) || isCancelling t ->
+          ( Just $ newQueue { queue_items = IM.singleton newId item, queue_lastInit = newId }
+          , Just (Init, newId, item) )
+        | otherwise -> -- Otherwise just add the item to the queue
+          ( Just $ newQueue { queue_items = IM.insert newId item $ queue_items queue }
+          , Nothing )
+        where newDir = determineEndDirection t $ queue_currentDirection queue
+              newQueue = queue { queue_currentDirection = newDir, queue_lastId = newId }
+              newId = succ $ queue_lastId queue
+              item = QueueItem
+                { queueItem_transType = getTransType t
+                , queueItem_duration = getDuration t
+                , queueItem_startDirection = queue_currentDirection queue
+                , queueItem_endDirection = newDir
+                }
+
+      That (Init, _, _) -> (Nothing, Nothing) -- Should never happen
+      That (Start, tid, t) -> -- Transition start events, block them if a newer transition has started
+        (Nothing, if queue_lastInit queue > tid then Nothing else Just (Start, tid, t))
+      That (Finish, tid, t) -> -- Transition finish events
+        ( Just $ queue { queue_items = newQueueItems } -- Always remove finished transitions from the queue
+        , if queue_lastInit queue > tid -- If a newer transition has started, block the event
+          then Nothing
+          else Just $ case lookupMin newQueueItems of
+            Just (qid, qt) -> (Init, qid, qt) -- If there is a queued transition we start it immediately
+            Nothing -> (Finish, tid, t) ) -- Otherwise let the finish event through
+        where newQueueItems = IM.delete tid $ queue_items queue
+
+      -- When both a request and a finish event happen at the same time, handle the finish event and
+      -- feed that resultant queue into the handler for the request event. Prefer the resultant
+      -- request event over the resultant finish event.
+      These req ret -> let (finishQueue, finishEvent) = handle queue $ That ret
+                           (requestQueue, requestEvent) = handle (fromMaybe queue finishQueue) $ This req
+                        in (requestQueue, requestEvent <|> finishEvent)
+
+-- | Safely retrieve the minimal key of an 'IntMap'
+lookupMin :: IntMap a -> Maybe (Int, a)
+lookupMin = fmap fst . IM.minViewWithKey
 
 -- | Make the animating classes from a queue item
 animatingClasses :: Bool -> QueueItem -> Maybe Classes
