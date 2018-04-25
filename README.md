@@ -4,6 +4,8 @@ This library aims to provide a type safe Haskell reimplementation of Semantic UI
 
 There are no dependencies on upstream JavaScript (either Semantic-UI or jQuery).
 
+Currently only version 2.2 of the Semantic-UI CSS is supported.
+
 ## Building
 
 The library uses the `project` implementation of `reflex-platform`.
