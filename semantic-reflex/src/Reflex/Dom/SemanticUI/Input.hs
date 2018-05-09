@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 
 module Reflex.Dom.SemanticUI.Input
@@ -38,8 +37,12 @@ module Reflex.Dom.SemanticUI.Input
 
   ) where
 
--- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#else
 import Control.Lens.Type
+#endif
+
 import Control.Monad (void)
 import Control.Monad.Trans.Maybe
 import Data.Default
@@ -86,7 +89,9 @@ data InputConfig t = InputConfig
 
   , _inputConfig_elConfig    :: ActiveElConfig t
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''InputConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''InputConfig
+#endif
 
 instance HasElConfig t (InputConfig t) where
   elConfig = inputConfig_elConfig
@@ -158,7 +163,9 @@ data TextInputConfig t = TextInputConfig
   , _textInputConfig_type :: InputType
   , _textInputConfig_attrs :: Dynamic t (Map Text Text)
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''TextInputConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''TextInputConfig
+#endif
 
 instance Reflex t => Default (TextInputConfig t) where
   def = TextInputConfig
@@ -177,4 +184,6 @@ input' config@InputConfig {..} = ui' "div" elConf
 input :: UI t m => InputConfig t -> m a -> m a
 input c = fmap snd . input' c
 
-#include "Input.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "Input.th.hs"
+#endif

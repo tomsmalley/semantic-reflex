@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 
 -- | Semantic UI dimmers. Pure reflex implementation is provided.
@@ -18,9 +17,13 @@ module Reflex.Dom.SemanticUI.Dimmer
 
   ) where
 
-import Control.Lens ((^.), (?~))
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#else
 import Control.Lens.Type
--- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#endif
+
+import Control.Lens ((^.), (?~))
 import Control.Monad ((<=<))
 import Data.Default
 import Data.Maybe (fromMaybe)
@@ -50,7 +53,9 @@ data DimmerConfig t = DimmerConfig
   , _dimmerConfig_elConfig :: ActiveElConfig t
   -- ^ Config
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''DimmerConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''DimmerConfig
+#endif
 
 instance HasElConfig t (DimmerConfig t) where
   elConfig = dimmerConfig_elConfig
@@ -113,4 +118,6 @@ dimmer' config@DimmerConfig {..} content = do
 dimmer :: UI t m => DimmerConfig t -> m a -> m a
 dimmer c = fmap snd . dimmer' c
 
-#include "Dimmer.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "Dimmer.th.hs"
+#endif

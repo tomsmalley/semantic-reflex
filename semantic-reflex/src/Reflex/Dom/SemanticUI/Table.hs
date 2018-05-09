@@ -1,9 +1,11 @@
-{-# LANGUAGE CPP #-}
-
 module Reflex.Dom.SemanticUI.Table where
 
--- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#else
 import Control.Lens.Type
+#endif
+
 import Data.Default
 import Data.Semigroup ((<>))
 import Reflex
@@ -28,7 +30,9 @@ data TableConfig t = TableConfig
   , _tableConfig_attached :: Active t (Maybe VerticalAttached)
   , _tableConfig_elConfig :: ActiveElConfig t
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''TableConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''TableConfig
+#endif
 
 instance HasElConfig t (TableConfig t) where
   elConfig = tableConfig_elConfig
@@ -77,4 +81,6 @@ td = el "td"
 tr :: DomBuilder t m => m a -> m a
 tr = el "tr"
 
-#include "Table.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "Table.th.hs"
+#endif

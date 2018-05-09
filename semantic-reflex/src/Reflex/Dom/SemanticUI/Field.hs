@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 -- | Semantic UI fields.
 -- https://semantic-ui.com/collections/form.html
 module Reflex.Dom.SemanticUI.Field
@@ -13,8 +11,12 @@ module Reflex.Dom.SemanticUI.Field
 
   ) where
 
--- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#else
 import Control.Lens.Type
+#endif
+
 import Data.Default
 import Data.Semigroup ((<>))
 import Reflex
@@ -28,7 +30,9 @@ data FieldConfig t = FieldConfig
   { _fieldConfig_error :: Active t Bool
   , _fieldConfig_elConfig :: ActiveElConfig t
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''FieldConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''FieldConfig
+#endif
 
 instance HasElConfig t (FieldConfig t) where
   elConfig = fieldConfig_elConfig
@@ -60,4 +64,6 @@ field' config@FieldConfig {..} content
 field :: UI t m => FieldConfig t -> m a -> m a
 field config = fmap snd . field' config
 
-#include "Field.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "Field.th.hs"
+#endif

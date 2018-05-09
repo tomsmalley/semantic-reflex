@@ -1,9 +1,11 @@
-{-# LANGUAGE CPP #-}
-
 module Reflex.Dom.SemanticUI.List where
 
--- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#else
 import Control.Lens.Type
+#endif
+
 import Data.Default
 import Data.Semigroup ((<>))
 import Data.Text (Text)
@@ -51,7 +53,9 @@ data ListConfig t = ListConfig
   , _listConfig_aligned    :: Active t (Maybe ListAligned)
   , _listConfig_elConfig   :: ActiveElConfig t
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''ListConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''ListConfig
+#endif
 
 instance HasElConfig t (ListConfig t) where
   elConfig = listConfig_elConfig
@@ -101,7 +105,9 @@ data ListItemConfig t m = ListItemConfig
   , _listItemConfig_element :: ListItemElement
   , _listItemConfig_elConfig :: ActiveElConfig t
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''ListItemConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''ListItemConfig
+#endif
 
 instance HasElConfig t (ListItemConfig t m) where
   elConfig = listItemConfig_elConfig
@@ -165,4 +171,6 @@ listDescription' = divClass' "description"
 listDescription :: UI t m => m a -> m a
 listDescription = fmap snd . listDescription'
 
-#include "List.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "List.th.hs"
+#endif

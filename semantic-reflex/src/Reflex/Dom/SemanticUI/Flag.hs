@@ -1,13 +1,15 @@
-{-# LANGUAGE CPP #-}
-
 -- | Semantic-UI Flag elements
 --
 -- <https://semantic-ui.com/elements/flag.html>
 module Reflex.Dom.SemanticUI.Flag where
 
--- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-import Control.Lens.Iso
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#else
 import Control.Lens.Type
+#endif
+
+import Control.Lens.Iso
 import Control.Monad (void)
 import Data.Default
 import Data.Semigroup ((<>))
@@ -22,7 +24,9 @@ import Reflex.Dom.SemanticUI.Transition
 data FlagConfig t = FlagConfig
   { _flagConfig_elConfig :: ActiveElConfig t
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''FlagConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''FlagConfig
+#endif
 
 instance HasElConfig t (FlagConfig t) where
   elConfig = flagConfig_elConfig
@@ -45,4 +49,6 @@ flag' dynFlag FlagConfig {..} = fst <$> ui' "i" elConf blank
 flag :: UI t m => Active t Text -> FlagConfig t -> m ()
 flag f = void . flag' f
 
-#include "Flag.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "Flag.th.hs"
+#endif

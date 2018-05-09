@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 -- | Semantic UI rails.
 -- https://semantic-ui.com/elements/rail.html
 module Reflex.Dom.SemanticUI.Rail
@@ -18,8 +16,12 @@ module Reflex.Dom.SemanticUI.Rail
 
   ) where
 
--- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#else
 import Control.Lens.Type
+#endif
+
 import Data.Default
 import Data.Semigroup ((<>))
 import Reflex
@@ -51,7 +53,9 @@ data RailConfig t = RailConfig
   , _railConfig_size :: Active t (Maybe Size)
   , _railConfig_elConfig :: ActiveElConfig t
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''RailConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''RailConfig
+#endif
 
 instance HasElConfig t (RailConfig t) where
   elConfig = railConfig_elConfig
@@ -92,4 +96,6 @@ rail' railSide config@RailConfig {..} content
 rail :: UI t m => RailSide -> RailConfig t -> m a -> m a
 rail railSide config = fmap snd . rail' railSide config
 
-#include "Rail.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "Rail.th.hs"
+#endif

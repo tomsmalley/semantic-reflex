@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -6,9 +5,13 @@
 -- | Semantic UI progress module
 module Reflex.Dom.SemanticUI.Progress where
 
-import Control.Lens ((<&>))
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#else
 import Control.Lens.Type
--- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#endif
+
+import Control.Lens ((<&>))
 import Control.Monad (guard)
 import Data.Default
 import Data.Foldable (for_)
@@ -117,7 +120,9 @@ data ProgressConfig t m = ProgressConfig
   , _progressConfig_elConfig :: ActiveElConfig t
   -- ^ Underlying element config
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''ProgressConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''ProgressConfig
+#endif
 
 instance HasElConfig t (ProgressConfig t m) where
   elConfig = progressConfig_elConfig
@@ -178,7 +183,9 @@ data Progress t m = Progress
   , _progress_barElement :: Element EventResult (DomBuilderSpace m) t
   -- ^ The 'Element' of the "bar" div
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''Progress
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''Progress
+#endif
 
 instance HasValue (Progress t m) where
   type Value (Progress t m) = Dynamic t (Maybe Percent)
@@ -247,4 +254,6 @@ progress dRange dValue' config@ProgressConfig{..} = do
 
   pure $ Progress dMaybePercent progressEl barEl
 
-#include "Progress.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "Progress.th.hs"
+#endif

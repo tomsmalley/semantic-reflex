@@ -14,6 +14,16 @@ The library uses the `project` implementation of `reflex-platform`.
     [nix-shell]$ cabal new-configure --ghc
     [nix-shell]$ cabal new-build
 
+TH splices must be dumped into the source directory for CPP `include` (so
+that this library can be used on Android). This is handled by cabal as such:
+
+    [nix-shell]$ cabal new-build semantic-reflex --flags=DumpSplices
+
+You should also run without the `DumpSplices` flag afterwards to ensure the
+splices that are dumped are valid haskell:
+
+    [nix-shell]$ cabal new-build semantic-reflex
+
 ---
 
 ## Examples

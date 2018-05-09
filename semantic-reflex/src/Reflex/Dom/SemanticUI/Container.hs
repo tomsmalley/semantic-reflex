@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module Reflex.Dom.SemanticUI.Container
   (
 
@@ -11,8 +9,12 @@ module Reflex.Dom.SemanticUI.Container
 
   ) where
 
--- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#else
 import Control.Lens.Type
+#endif
+
 import Data.Default
 import Data.Semigroup ((<>))
 import Reflex.Dom.Core
@@ -25,7 +27,9 @@ data ContainerConfig t = ContainerConfig
   { _containerConfig_size      :: Active t (Maybe Size)
   , _containerConfig_elConfig  :: ActiveElConfig t
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''ContainerConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''ContainerConfig
+#endif
 
 instance HasElConfig t (ContainerConfig t) where
   elConfig = containerConfig_elConfig
@@ -54,4 +58,6 @@ container' config@ContainerConfig {..} = ui' "div" elConf
 container :: UI t m => ContainerConfig t -> m a -> m a
 container config = fmap snd . container' config
 
-#include "Container.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "Container.th.hs"
+#endif

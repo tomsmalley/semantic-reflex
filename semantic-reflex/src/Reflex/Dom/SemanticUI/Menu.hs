@@ -1,10 +1,13 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 
 module Reflex.Dom.SemanticUI.Menu where
 
--- import Control.Lens.TH (makeLenses)
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLenses)
+#else
 import Control.Lens.Type
+#endif
+
 import Data.Default (Default (def))
 import Data.Semigroup
 import Data.Text (Text)
@@ -29,7 +32,9 @@ data MenuConfig t = MenuConfig
   , _menuConfig_floated :: Active t (Maybe Floated)
   , _menuConfig_elConfig :: ActiveElConfig t
   }
--- makeLenses ''MenuConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLenses ''MenuConfig
+#endif
 
 instance HasElConfig t (MenuConfig t) where
   elConfig = menuConfig_elConfig
@@ -92,7 +97,9 @@ data MenuItemConfig t = MenuItemConfig
   , _menuItemConfig_link :: MenuLink
   , _menuItemConfig_elConfig :: ActiveElConfig t
   }
--- makeLenses ''MenuItemConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLenses ''MenuItemConfig
+#endif
 
 instance HasElConfig t (MenuItemConfig t) where
   elConfig = menuItemConfig_elConfig
@@ -131,4 +138,6 @@ itemElAttrs conf@MenuItemConfig{..} = case _menuItemConfig_link of
   where elConf = _menuItemConfig_elConfig <> def
           { _classes = menuItemConfigClasses conf }
 
-#include "Menu.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "Menu.th.hs"
+#endif

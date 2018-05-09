@@ -1,12 +1,15 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Reflex.Dom.SemanticUI.Dropdown where
 
-import Control.Lens ((<&>), (?~))
+#ifdef USE_TEMPLATE_HASKELL
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#else
 import Control.Lens.Type
--- import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
+#endif
+
+import Control.Lens ((<&>), (?~))
 import Control.Monad.Reader
 import Data.Bool (bool)
 import Data.Foldable (for_, traverse_)
@@ -79,7 +82,9 @@ data DropdownConfig t = DropdownConfig
   -- insensitive 'T.isInfixOf'.
   , _dropdownConfig_elConfig :: ActiveElConfig t
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''DropdownConfig
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''DropdownConfig
+#endif
 
 instance HasElConfig t (DropdownConfig t) where
   elConfig = dropdownConfig_elConfig
@@ -135,7 +140,9 @@ data Dropdown t a = Dropdown
   , _dropdown_blur :: Event t ()
   , _dropdown_element :: El t
   }
--- makeLensesWith (lensRules & simpleLenses .~ True) ''Dropdown
+#ifdef USE_TEMPLATE_HASKELL
+makeLensesWith (lensRules & simpleLenses .~ True) ''Dropdown
+#endif
 
 instance HasValue (Dropdown t a) where
   type Value (Dropdown t a) = Dynamic t a
@@ -349,4 +356,6 @@ searchDropdown config@DropdownConfig {..} ini items = mdo
     , _dropdown_element = dropdownElement
     }
 
-#include "Dropdown.include.hs"
+#ifndef USE_TEMPLATE_HASKELL
+#include "Dropdown.th.hs"
+#endif
