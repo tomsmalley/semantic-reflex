@@ -25,7 +25,7 @@ import Example.Common
 
 radioGroups :: forall t m. MonadWidget t m => Section t m
 radioGroups = Section "Radio Group" blank $ do
-
+{-
   divClass "ui two column stackable grid" $ do
     divClass "row" $ do
 
@@ -42,7 +42,6 @@ radioGroups = Section "Radio Group" blank $ do
           radioGroup "test" (def :: RadioGroupConfig t Maybe CountryEnum) render
         |]
 
-{-
       divClass "column" $ do
         exampleCardDyn dynCode "Radio group" "" [mkExample|
         \resetEvent -> do

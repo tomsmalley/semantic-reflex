@@ -32,80 +32,80 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Button" (def & subtitle ?~ text "A standard button")
     [example|
   button def $ text "Button"
-  button (def & buttonType .~ DivButton) $ text "Div Button"
-  button (def & buttonType .~ LinkButton) $ text "Link Button"
+  button (def & buttonConfig_type .~ DivButton) $ text "Div Button"
+  button (def & buttonConfig_type .~ LinkButton) $ text "Link Button"
   |]
 
   mkExample "Emphasis" (def
     & subtitle ?~ text "A button can have a different level of emphasis")
     [example|
-  button (def & buttonEmphasis |?~ Primary) $ text "Primary"
-  button (def & buttonEmphasis |?~ Secondary) $ text "Secondary"
+  button (def & buttonConfig_emphasis |?~ Primary) $ text "Primary"
+  button (def & buttonConfig_emphasis |?~ Secondary) $ text "Secondary"
   -- Tertiary has no special styles for buttons
-  button (def & buttonEmphasis |?~ Tertiary) $ text "Tertiary"
+  button (def & buttonConfig_emphasis |?~ Tertiary) $ text "Tertiary"
   button def $ text "Normal"
   |]
 
   mkExample "Animated" (def
     & subtitle ?~ text "A button animate to show hidden content")
     [example|
-  let rightAnim = def & animatedButtonHiddenContent .~ icon "right arrow" def
-  button (def & buttonAnimated ?~ rightAnim) $ text "Next"
+  let rightAnim = def & animatedButton_hiddenContent .~ icon "right arrow" def
+  button (def & buttonConfig_animated ?~ rightAnim) $ text "Next"
 
   let shopAnim = def
-        & animatedButtonHiddenContent .~ text "Shop"
-        & animatedButtonType |~ VerticalAnimated
-  button (def & buttonAnimated ?~ shopAnim) $ icon "shop" def
+        & animatedButton_hiddenContent .~ text "Shop"
+        & animatedButton_type |~ VerticalAnimated
+  button (def & buttonConfig_animated ?~ shopAnim) $ icon "shop" def
 
   let priceAnim = def
-        & animatedButtonHiddenContent .~ text "£12.99 a month"
-        & animatedButtonType |~ AnimatedFade
-  button (def & buttonAnimated ?~ priceAnim) $ text "Sign-up for a Pro account"
+        & animatedButton_hiddenContent .~ text "£12.99 a month"
+        & animatedButton_type |~ AnimatedFade
+  button (def & buttonConfig_animated ?~ priceAnim) $ text "Sign-up for a Pro account"
   |]
 
   mkExample "Labeled" (def
     & subtitle ?~ text "A button can have a label")
     [example|
   labeledButton def $ do
-    button (def & buttonColor |?~ Red) $ do
+    button (def & buttonConfig_color |?~ Red) $ do
       icon "heart" def
       text "Like"
     let conf = def
-          & labelBasic |~ True
-          & labelColor |?~ Red
-          & labelPointing |?~ LeftPointing
+          & labelConfig_basic |~ True
+          & labelConfig_color |?~ Red
+          & labelConfig_pointing |?~ LeftPointing
     label conf $ text "256"
 
-  labeledButton (def & labeledButtonSide |~ LeftLabeled) $ do
+  labeledButton (def & labeledButtonConfig_side |~ LeftLabeled) $ do
     let conf = def
-          & labelBasic |~ True
-          & labelColor |?~ Blue
-          & labelPointing |?~ RightPointing
+          & labelConfig_basic |~ True
+          & labelConfig_color |?~ Blue
+          & labelConfig_pointing |?~ RightPointing
     label conf $ text "38"
-    button (def & buttonColor |?~ Blue & buttonBasic |~ True) $ do
+    button (def & buttonConfig_color |?~ Blue & buttonConfig_basic |~ True) $ do
       icon "fork" def
       text "Fork"
 
-  labeledButton (def & labeledButtonSide |~ LeftLabeled) $ do
-    label (def & labelBasic |~ True) $ text "1,048"
-    button (def & buttonIcon |~ True) $ do
+  labeledButton (def & labeledButtonConfig_side |~ LeftLabeled) $ do
+    label (def & labelConfig_basic |~ True) $ text "1,048"
+    button (def & buttonConfig_icon |~ True) $ do
       icon "fork" def
   |]
 
   mkExample "Icon" (def
     & subtitle ?~ text "A button can have only an icon")
     [example|
-  button (def & buttonIcon |~ True) $ do
+  button (def & buttonConfig_icon |~ True) $ do
     icon "cloud" def
   |]
 
   mkExample "Labeled Icon" (def
     & subtitle ?~ text "A button can use an icon as a label")
     [example|
-  button (def & buttonLabeledIcon |?~ LeftLabeled) $ do
+  button (def & buttonConfig_labeledIcon |?~ LeftLabeled) $ do
     icon "pause" def
     text "Pause"
-  button (def & buttonLabeledIcon |?~ RightLabeled) $ do
+  button (def & buttonConfig_labeledIcon |?~ RightLabeled) $ do
     icon "play" def
     text "Play"
   |]
@@ -113,33 +113,33 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Basic" (def
     & subtitle ?~ text "A basic button is less pronounced")
     [example|
-  button (def & buttonBasic |~ True) $ do
+  button (def & buttonConfig_basic |~ True) $ do
     icon "user" def
     text "Add Friend"
-  button (def & buttonBasic |~ True & buttonEmphasis |?~ Primary) $
+  button (def & buttonConfig_basic |~ True & buttonConfig_emphasis |?~ Primary) $
     text "Primary"
-  button (def & buttonBasic |~ True & buttonEmphasis |?~ Secondary) $
+  button (def & buttonConfig_basic |~ True & buttonConfig_emphasis |?~ Secondary) $
     text "Secondary"
-  button (def & buttonBasic |~ True & buttonPositive |?~ Positive) $
+  button (def & buttonConfig_basic |~ True & buttonConfig_positive |?~ Positive) $
     text "Positive"
-  button (def & buttonBasic |~ True & buttonPositive |?~ Negative) $
+  button (def & buttonConfig_basic |~ True & buttonConfig_positive |?~ Negative) $
     text "Negative"
   |]
 
   mkExample "Inverted" (def
     & subtitle ?~ text "A button can be formatted to appear on dark backgrounds")
     [example|
-  segment (def & segmentInverted |~ True) $ do
+  segment (def & segmentConfig_inverted |~ True) $ do
     for_ [minBound .. maxBound] $ \c -> do
-      let conf = def & buttonInverted |~ True
-                     & buttonColor |?~ c
+      let conf = def & buttonConfig_inverted |~ True
+                     & buttonConfig_color |?~ c
                      & style |~ Style "margin-bottom: 0.75em"
       button conf $ text $ tshow c
     divider def
     for_ [minBound .. maxBound] $ \c -> do
-      let conf = def & buttonBasic |~ True
-                     & buttonInverted |~ True
-                     & buttonColor |?~ c
+      let conf = def & buttonConfig_basic |~ True
+                     & buttonConfig_inverted |~ True
+                     & buttonConfig_color |?~ c
                      & style |~ Style "margin-bottom: 0.75em"
       button conf $ text $ "Basic " <> tshow c
   |]
@@ -147,7 +147,7 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Disabled" (def
     & subtitle ?~ text "A button can show it is currently unable to be interacted with")
     [example|
-  button (def & buttonDisabled |~ True) $ do
+  button (def & buttonConfig_disabled |~ True) $ do
     icon "user" def
     text "Followed"
   |]
@@ -158,21 +158,21 @@ buttonSection = Section "Button" (text "") $ do
   start <- button def $ text "Start"
   stop <- button def $ text "Stop"
   isLoading <- holdDyn True $ leftmost [True <$ start, False <$ stop]
-  divider (def & dividerHidden |~ True)
-  button (def & buttonLoading .~ Dyn isLoading) $ text "Loaded"
-  button (def & buttonBasic |~ True
-              & buttonLoading .~ Dyn isLoading) $ text "Loaded"
-  button (def & buttonEmphasis |?~ Primary
-              & buttonLoading .~ Dyn isLoading) $ text "Loaded"
-  button (def & buttonEmphasis |?~ Secondary
-              & buttonLoading .~ Dyn isLoading) $ text "Loaded"
+  divider (def & dividerConfig_hidden |~ True)
+  button (def & buttonConfig_loading .~ Dyn isLoading) $ text "Loaded"
+  button (def & buttonConfig_basic |~ True
+              & buttonConfig_loading .~ Dyn isLoading) $ text "Loaded"
+  button (def & buttonConfig_emphasis |?~ Primary
+              & buttonConfig_loading .~ Dyn isLoading) $ text "Loaded"
+  button (def & buttonConfig_emphasis |?~ Secondary
+              & buttonConfig_loading .~ Dyn isLoading) $ text "Loaded"
   |]
 
   mkExample "Social" (def
     & subtitle ?~ text "A button can be formatted in the style of a social website")
     [example|
   for_ [minBound .. maxBound] $ \s -> do
-    let conf = def & buttonSocial |?~ s
+    let conf = def & buttonConfig_social |?~ s
                    & style |~ Style "margin-bottom: 0.75em"
     button conf $ do
      icon (pure $ toClassText s) def
@@ -183,21 +183,21 @@ buttonSection = Section "Button" (text "") $ do
     & subtitle ?~ text "A button can have different sizes")
     [example|
   for_ [minBound .. maxBound] $ \s -> do
-    button (def & buttonSize |?~ s) $ text $ tshow s
+    button (def & buttonConfig_size |?~ s) $ text $ tshow s
   |]
 
   mkExample "Floated" (def
     & subtitle ?~ text "A button can be floated")
     [example|
-  button (def & buttonFloated |?~ LeftFloated) $ text "Left Floated"
-  button (def & buttonFloated |?~ RightFloated) $ text "Right Floated"
+  button (def & buttonConfig_floated |?~ LeftFloated) $ text "Left Floated"
+  button (def & buttonConfig_floated |?~ RightFloated) $ text "Right Floated"
   |]
 
   mkExample "Color" (def
     & subtitle ?~ text "A button can have different colors")
     [example|
   for_ [minBound .. maxBound] $ \c -> do
-    let conf = def & buttonColor |?~ c
+    let conf = def & buttonConfig_color |?~ c
                    & style |~ Style "margin-bottom: 0.75em"
     button conf $ text $ tshow c
   |]
@@ -205,11 +205,11 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Compact" (def
     & subtitle ?~ text "A button can reduce its padding")
     [example|
-  button (def & buttonCompact |~ True) $ text "Hold"
-  button (def & buttonCompact |~ True
-              & buttonIcon |~ True) $ icon "pause" def
-  button (def & buttonCompact |~ True
-              & buttonLabeledIcon |?~ LeftLabeled) $ do
+  button (def & buttonConfig_compact |~ True) $ text "Hold"
+  button (def & buttonConfig_compact |~ True
+              & buttonConfig_icon |~ True) $ icon "pause" def
+  button (def & buttonConfig_compact |~ True
+              & buttonConfig_labeledIcon |?~ LeftLabeled) $ do
     icon "pause" def
     text "Pause"
   |]
@@ -217,17 +217,17 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Toggle" (def
     & subtitle ?~ text "A button can be toggled"
     & dynamic ?~ dynCode
-    & inbetween ?~ (message (def & messageType |?~ InfoMessage)
+    & inbetween ?~ (message (def & messageConfig_type |?~ InfoMessage)
       $ paragraph $ do
         icon "info circle" def
         text "Semantic UI has some sneaky javascript that gives state to anything with a 'toggle' class. Here you must deal with state explicitly."))
     ([str|
   \resetEvent -> do
-    rec let conf = def & buttonEmphasis .~ Dyn (bool Nothing (Just Primary) <$> on)
+    rec let conf = def & buttonConfig_emphasis .~ Dyn (bool Nothing (Just Primary) <$> on)
         on <- toggle False <=< button conf $ text "Toggle"
     return on
   |], Left $ do
-    rec let conf = def & buttonEmphasis .~ Dyn (bool Nothing (Just Primary) <$> on)
+    rec let conf = def & buttonConfig_emphasis .~ Dyn (bool Nothing (Just Primary) <$> on)
         on <- toggle False <=< button conf $ text "Toggle"
     return on
     )
@@ -235,18 +235,18 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Fluid" (def
     & subtitle ?~ text "A button can fill its container")
     [example|
-  button (def & buttonFluid |~ True) $ text "Fits container"
+  button (def & buttonConfig_fluid |~ True) $ text "Fits container"
   |]
 
   mkExample "Circular" (def
     & subtitle ?~ text "A button can be circular")
     [example|
-  button (def & buttonCircular |~ True & buttonIcon |~ True) $
+  button (def & buttonConfig_circular |~ True & buttonConfig_icon |~ True) $
     icon "settings" def
   for_ [minBound .. maxBound] $ \s -> do
-    let conf = def & buttonSocial |?~ s
-                   & buttonCircular |~ True
-                  & buttonIcon |~ True
+    let conf = def & buttonConfig_social |?~ s
+                   & buttonConfig_circular |~ True
+                   & buttonConfig_icon |~ True
     button conf $ icon (pure $ toClassText s) def
   |]
 
@@ -254,10 +254,10 @@ buttonSection = Section "Button" (text "") $ do
     & subtitle ?~ text "A button can be attached to the top or bottom of other content"
     & inbetween ?~ upstreamIssue 5851 "Attached 'Button' elements are incorrectly sized, use an alternate tag until this is fixed upstream.")
     [example|
-  let conf = def & buttonType .~ DivButton
-  button (conf & buttonAttached |?~ Vertically TopAttached) $ text "Top"
-  segment (def & segmentAttached |?~ Attached) $ text "Segment"
-  button (conf & buttonAttached |?~ Vertically BottomAttached) $ text "Bottom"
+  let conf = def & buttonConfig_type .~ DivButton
+  button (conf & buttonConfig_attached |?~ Vertically TopAttached) $ text "Top"
+  segment (def & segmentConfig_attached |?~ Attached) $ text "Segment"
+  button (conf & buttonConfig_attached |?~ Vertically BottomAttached) $ text "Bottom"
   |]
 
   pageHeader H2 def $ text "Buttons"
@@ -276,13 +276,13 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Icon Buttons" (def
     & subtitle ?~ text "Buttons groups can show groups of icons")
     [example|
-  buttons (def & buttonsIcon |~ True) $ do
+  buttons (def & buttonsConfig_icon |~ True) $ do
     button def $ icon "align left" def
     button def $ icon "align center" def
     button def $ icon "align right" def
     button def $ icon "align justify" def
 
-  buttons (def & buttonsIcon |~ True) $ do
+  buttons (def & buttonsConfig_icon |~ True) $ do
     button def $ icon "bold" def
     button def $ icon "italic" def
     button def $ icon "underline" def
@@ -294,22 +294,22 @@ buttonSection = Section "Button" (text "") $ do
   buttons def $ do
     button def $ text "un"
     conditionalWithText $ pure "ou"
-    button (def & buttonPositive |?~ Positive) $ text "deux"
+    button (def & buttonConfig_positive |?~ Positive) $ text "deux"
   divider def
   buttons def $ do
     button def $ text "Cancel"
     conditional
-    button (def & buttonPositive |?~ Positive) $ text "Save"
+    button (def & buttonConfig_positive |?~ Positive) $ text "Save"
   |]
 
   mkExample "Attached group" (def
     & subtitle ?~ text "A group of buttons can be attached to the top or bottom of other content")
     [example|
-  buttons (def & buttonsAttached |?~ TopAttached & buttonsWidth |?~ Two) $ do
+  buttons (def & buttonsConfig_attached |?~ TopAttached & buttonsConfig_width |?~ Two) $ do
     button def $ text "One"
     button def $ text "Two"
-  segment (def & segmentAttached |?~ Attached) $ text "Segment"
-  buttons (def & buttonsAttached |?~ BottomAttached & buttonsWidth |?~ Two) $ do
+  segment (def & segmentConfig_attached |?~ Attached) $ text "Segment"
+  buttons (def & buttonsConfig_attached |?~ BottomAttached & buttonsConfig_width |?~ Two) $ do
     button def $ text "One"
     button def $ text "Two"
   |]
@@ -317,14 +317,14 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Horizontally Attached" (def
     & subtitle ?~ text "Buttons can be attached to the left or right of other content")
     [example|
-  button (def & buttonAttached |?~ Horizontally LeftAttached) $ text "Left"
-  button (def & buttonAttached |?~ Horizontally RightAttached) $ text "Right"
+  button (def & buttonConfig_attached |?~ Horizontally LeftAttached) $ text "Left"
+  button (def & buttonConfig_attached |?~ Horizontally RightAttached) $ text "Right"
   |]
 
   mkExample "Vertical Buttons" (def
     & subtitle ?~ text "Groups can be formatted to appear vertically")
     [example|
-  buttons (def & buttonsVertical |~ True) $ do
+  buttons (def & buttonsConfig_vertical |~ True) $ do
     button def $ text "Feed"
     button def $ text "Messages"
     button def $ text "Events"
@@ -334,7 +334,7 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Labeled Icon Buttons" (def
     & subtitle ?~ text "Groups can be formatted as labeled icons")
     [example|
-  buttons (def & buttonsVertical |~ True & buttonsLabeledIcon |~ True) $ do
+  buttons (def & buttonsConfig_vertical |~ True & buttonsConfig_labeledIcon |~ True) $ do
     button def $ do
       icon "pause" def
       text "Pause"
@@ -350,13 +350,13 @@ buttonSection = Section "Button" (text "") $ do
     & subtitle ?~ text "Groups can be formatted to use multiple button types together")
     [example|
   buttons def $ do
-    button (def & buttonLabeledIcon |?~ LeftLabeled) $ do
+    button (def & buttonConfig_labeledIcon |?~ LeftLabeled) $ do
       icon "left chevron" def
       text "Back"
     button def $ do
       icon "stop" def
       text "Stop"
-    button (def & buttonLabeledIcon |?~ RightLabeled) $ do
+    button (def & buttonConfig_labeledIcon |?~ RightLabeled) $ do
       icon "right chevron" def
       text "Forward"
   |]
@@ -364,16 +364,16 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Equal Width" (def
     & subtitle ?~ text "Groups can have their widths divided evenly")
     [example|
-  buttons (def & buttonsWidth |?~ Five) $ do
+  buttons (def & buttonsConfig_width |?~ Five) $ do
     button def $ text "Overview"
     button def $ text "Specs"
     button def $ text "Warranty"
     button def $ text "Reviews"
     button def $ text "Support"
 
-  divider $ def & dividerHidden |~ True
+  divider $ def & dividerConfig_hidden |~ True
 
-  buttons (def & buttonsWidth |?~ Three) $ do
+  buttons (def & buttonsConfig_width |?~ Three) $ do
     button def $ text "Overview"
     button def $ text "Specs"
     button def $ text "Support"
@@ -382,7 +382,7 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Colored Buttons" (def
     & subtitle ?~ text "Buttons can share a color")
     [example|
-  buttons (def & buttonsColor |?~ Blue) $ do
+  buttons (def & buttonsConfig_color |?~ Blue) $ do
     button def $ text "One"
     button def $ text "Two"
     button def $ text "Three"
@@ -391,7 +391,7 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Compact Buttons" (def
     & subtitle ?~ text "Buttons can be compact")
     [example|
-  buttons (def & buttonsCompact |~ True) $ do
+  buttons (def & buttonsConfig_compact |~ True) $ do
     button def $ text "One"
     button def $ text "Two"
     button def $ text "Three"
@@ -400,12 +400,12 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Floated Buttons" (def
     & subtitle ?~ text "Button groups can be floated")
     [example|
-  buttons (def & buttonsFloated |?~ LeftFloated) $ do
+  buttons (def & buttonsConfig_floated |?~ LeftFloated) $ do
     button def $ text "One"
     button def $ text "Two"
     button def $ text "Three"
 
-  buttons (def & buttonsFloated |?~ RightFloated) $ do
+  buttons (def & buttonsConfig_floated |?~ RightFloated) $ do
     button def $ text "One"
     button def $ text "Two"
     button def $ text "Three"
@@ -414,14 +414,14 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Basic Buttons" (def
     & subtitle ?~ text "Buttons can be less pronounced")
     [example|
-  buttons (def & buttonsBasic |~ True) $ do
+  buttons (def & buttonsConfig_basic |~ True) $ do
     button def $ text "One"
     button def $ text "Two"
     button def $ text "Three"
 
-  divider $ def & dividerHidden |~ True
+  divider $ def & dividerConfig_hidden |~ True
 
-  buttons (def & buttonsVertical |~ True & buttonsBasic |~ True) $ do
+  buttons (def & buttonsConfig_vertical |~ True & buttonsConfig_basic |~ True) $ do
     button def $ text "One"
     button def $ text "Two"
     button def $ text "Three"
@@ -430,29 +430,28 @@ buttonSection = Section "Button" (text "") $ do
   mkExample "Group Sizes" (def
     & subtitle ?~ text "Buttons can share a size")
     [example|
-  buttons (def & buttonsSize |?~ Large) $ do
+  buttons (def & buttonsConfig_size |?~ Large) $ do
     button def $ text "One"
     button def $ text "Two"
     button def $ text "Three"
 
-  divider $ def & dividerHidden |~ True
+  divider $ def & dividerConfig_hidden |~ True
 
-  let conf = def & buttonsSize |?~ Small
-                 & buttonsBasic |~ True
-                 & buttonsIcon |~ True
+  let conf = def & buttonsConfig_size |?~ Small
+                 & buttonsConfig_basic |~ True
+                 & buttonsConfig_icon |~ True
   buttons conf $ do
     button def $ icon "file" def
     button def $ icon "save" def
     button def $ icon "upload" def
     button def $ icon "download" def
 
-  divider $ def & dividerHidden |~ True
+  divider $ def & dividerConfig_hidden |~ True
 
-  buttons (def & buttonsSize |?~ Large) $ do
+  buttons (def & buttonsConfig_size |?~ Large) $ do
     button def $ text "One"
     conditional
     button def $ text "Three"
   |]
 
   return ()
-

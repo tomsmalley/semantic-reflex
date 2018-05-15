@@ -45,19 +45,11 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
         render = M.fromList [ (i, text $ tshow i) | i <- items ]
 
     e <- dyn $ ffor on $ \o -> case o of
-      True -> dropdown (def & dropdownPlaceholder |~ "Static") Nothing $
+      True -> dropdown (def & dropdownConfig_placeholder |~ "Static") Nothing $
         TaggedStatic render
-      False -> dropdown (def & dropdownPlaceholder |~ "Dynamic") Nothing $
+      False -> dropdown (def & dropdownConfig_placeholder |~ "Dynamic") Nothing $
         TaggedDynamic $ pure render
-    join <$> holdDyn (pure Nothing) e
-      |]
-
-  mkExample "Dropdown" (def
-    & dynamic ?~ dynCode
-    & subtitle ?~ text "A standard dropdown")
-    [resetExample|
-  \resetEvent -> do
-    dropdown def (Just 1) $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
+    join <$> holdDyn (pure Nothing) (_dropdown_value <$> e)
   |]
 
   mkExample "Dropdown" (def
@@ -65,7 +57,8 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     & subtitle ?~ text "A standard dropdown")
     [resetExample|
   \resetEvent -> do
-    dropdown def (Identity 1) $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
+    d <- dropdown def (Just 1) $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
+    return $ d ^. dropdown_value
   |]
 
   mkExample "Dropdown" (def
@@ -73,7 +66,17 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     & subtitle ?~ text "A standard dropdown")
     [resetExample|
   \resetEvent -> do
-    dropdown def [2] $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
+    d <- dropdown def (Identity 1) $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
+    return $ d ^. dropdown_value
+  |]
+
+  mkExample "Dropdown" (def
+    & dynamic ?~ dynCode
+    & subtitle ?~ text "A standard dropdown")
+    [resetExample|
+  \resetEvent -> do
+    d <- dropdown def [2] $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
+    return $ d ^. dropdown_value
   |]
 
 {-

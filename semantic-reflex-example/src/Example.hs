@@ -24,8 +24,8 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import Reflex.Dom.SemanticUI
 import Reflex.Dom.Core (text)
-import Reflex.Dom.RouteWriter
-import Reflex.Dom.NestedRoute
+import Reflex.Dom.Routing.Writer
+import Reflex.Dom.Routing.Nested
 import Language.Javascript.JSaddle hiding ((!!))
 
 import qualified Data.Map as M
@@ -119,8 +119,8 @@ progressTable =
 
 progressProgress :: forall t m. MonadWidget t m => m (Progress t m)
 progressProgress = progress (pure $ Range 0 vMax) (pure v) $ def
-  & progressColor |?~ Teal
-  & progressBar ?~ PercentageBar
+  & progressConfig_color |?~ Teal
+  & progressConfig_bar ?~ PercentageBar
   where
     categories = progressTable :: [Category t m]
     v = sum $ concatMap (fmap (\(_,i,_) -> implementedNum i) . categoryItems) categories
@@ -138,7 +138,7 @@ intro = Section "Introduction" blank $ do
       text "reflex-dom-semui"
     text " library, although it has since been completely rewritten to remove dependencies on external JavaScript."
 
-  message (def & messageType |?~ InfoMessage) $
+  message (def & messageConfig_type |?~ InfoMessage) $
     paragraph $ do
       icon "announcement" def
       text "The implementation of this library does not depend on the Semantic UI or jQuery JavaScript libraries."
@@ -152,20 +152,20 @@ intro = Section "Introduction" blank $ do
   -- Progress chart
   segments def $ for_ (progressTable @t @m) $ \(Category name items) -> mdo
 
-    open <- segment (def & segmentColor |?~ Teal) $ do
+    open <- segment (def & segmentConfig_color |?~ Teal) $ do
       (e, _) <- elAttr' "div" ("style" =: "cursor: pointer") $ do
         icon' (Dyn $ bool "caret right" "caret down" <$> open) def
         text name
       toggle False $ domEvent Click e
 
     let mkTransition dir = Transition SlideDown $ def
-          & transitionDirection ?~ dir
-          & transitionDuration .~ 0.3
+          & transitionConfig_direction ?~ dir
+          & transitionConfig_duration .~ 0.3
         actionConfig = def
-          & actionEvent ?~ (mkTransition . bool Out In <$> updated open)
-          & actionInitialDirection .~ Out
+          & action_event ?~ (mkTransition . bool Out In <$> updated open)
+          & action_initialDirection .~ Out
 
-    table (def & tableAttached |?~ Attached & action ?~ actionConfig) $ do
+    table (def & tableConfig_attached |?~ Attached & action ?~ actionConfig) $ do
       thead $ tr $ do
         th $ text "Feature"
         th $ text "Status"
@@ -203,7 +203,7 @@ testApp = do
   tog <- toggle True <=< button def $ text "Toggle"
   dyn $ ffor tog $ \case
     False -> for_ [1 :: Int ..2000] $ \i ->
-      button (def & buttonColor .~ Dyn (pure Nothing)) $
+      button (def & buttonConfig_color .~ Dyn (pure Nothing)) $
         text $ "Dynamic " <> tshow i
     True -> for_ [1 :: Int ..2000] $ \i -> button def $ text $ "Static " <> tshow i
   pure ()
@@ -218,18 +218,18 @@ runWithLoader = do
 
 loadingDimmer :: MonadWidget t m => Event t () -> m ()
 loadingDimmer evt =
-  dimmer (def & dimmerPage .~ True & action ?~
-    (def & actionEvent ?~ (Transition Fade def <$ evt))) $
+  dimmer (def & dimmerConfig_page .~ True & action ?~
+    (def & action_event ?~ (Transition Fade def <$ evt))) $
     divClass "ui huge text loader" $ text "Loading semantic-reflex docs..."
 
 app :: forall t m. MonadWidget t m => m ()
 app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
 
   -- Header
-  segment (def & attrs |~ ("id" =: "masthead") & segmentVertical |~ True) $
+  segment (def & attrs |~ ("id" =: "masthead") & segmentConfig_vertical |~ True) $
     divClass "ui container" $ do
       let conf = def
-            & headerPreContent ?~ semanticLogo
+            & headerConfig_preContent ?~ semanticLogo
             & style |~ Style "cursor: pointer"
       (e, _) <- pageHeader' H1 conf $ do
         text "Semantic UI for Reflex-DOM"
@@ -245,38 +245,38 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
         & elConfigAttributes |~ ("id" =: "main")
         & elConfigClasses |~ "ui container"
       linkHeaderConfig = def
-        & headerSub |~ True
-        & headerPreContent ?~ icon "info" (def & iconColor |?~ Teal)
+        & headerConfig_sub |~ True
+        & headerConfig_preContent ?~ icon "info" (def & iconConfig_color |?~ Teal)
         & style |~ Style "cursor: pointer"
       categoryConfig isOpen = linkHeaderConfig
-        & headerPreContent ?~ icon (Dyn $ bool "right angle" "down angle" <$> isOpen) def
+        & headerConfig_preContent ?~ icon (Dyn $ bool "right angle" "down angle" <$> isOpen) def
       wrapper isOpen = def
         & style |~ Style "margin-top: 1em"
         & action ?~ (def
-          & actionEvent ?~ (Transition Instant def <$ updated isOpen)
-          & actionInitialDirection .~ Out)
+          & action_event ?~ (Transition Instant def <$ updated isOpen)
+          & action_initialDirection .~ Out)
 
   -- Main content
   ui "div" mainConfig $ do
 
     -- Menu
     let s = Style "overflow: auto"
-    rail RightRail (def & railDividing |~ True & style |~ s) $ sticky def $ do
+    rail RightRail (def & railConfig_dividing |~ True & style |~ s) $ sticky def $ do
       (e, _) <- pageHeader' H4 linkHeaderConfig $ text "Introduction"
       tellRoute $ [] <$ domEvent Click e
       for_ (progressTable @t @m) $ \Category {..} -> mdo
         (e, _) <- pageHeader' H4 (categoryConfig isOpen) $ text categoryName
         isOpen <- toggle False $ domEvent Click e
         ui "div" (wrapper isOpen) $
-          menu (def & menuVertical |~ True & menuSecondary |~ True) $ do
+          menu (def & menuConfig_vertical |~ True & menuConfig_secondary |~ True) $ do
             for_ categoryItems $ \(item, status, mWidget) -> do
               case mWidget of
-                Nothing -> menuItem (def & menuItemDisabled |~ True) $ do
+                Nothing -> menuItem (def & menuItemConfig_disabled |~ True) $ do
                   text $ item <> " (No examples)"
                 Just _ -> do
                   (e, _) <- menuItem' def $ text item
                   tellRoute $ [toId item] <$ domEvent Click e
-      divider $ def & dividerHidden |~ True
+      divider $ def & dividerConfig_hidden |~ True
 
     withRoute $ \route -> case M.lookup route sections of
       Nothing -> localRedirect []
@@ -287,20 +287,20 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
         child
 
   -- Footer
-  segment (def & segmentVertical |~ True
+  segment (def & segmentConfig_vertical |~ True
               & style |~ Style "padding: 0") blank
-  segment (def & segmentVertical |~ True
-              & segmentAligned |?~ CenterAligned) $ do
-    buttons (def & buttonsSize |?~ Small) $ do
+  segment (def & segmentConfig_vertical |~ True
+              & segmentConfig_aligned |?~ CenterAligned) $ do
+    buttons (def & buttonsConfig_size |?~ Small) $ do
       hackageButton
       githubButton
-    divider $ def & dividerHidden |~ True
+    divider $ def & dividerConfig_hidden |~ True
     text $ "Animal icons courtesy of "
     let url = "https://www.creativetail.com/40-free-flat-animal-icons/"
     hyperlink url $ text "Creative Tail"
 
 semanticLogo :: MonadWidget t m => m ()
-semanticLogo = image (def & imageShape |?~ Rounded) $ Left $ Img url def
+semanticLogo = image (def & imageConfig_shape |?~ Rounded) $ Left $ Img url def
   where url = "https://semantic-ui.com/images/logo.png"
 
 githubButton :: MonadWidget t m => m ()
@@ -310,9 +310,9 @@ githubButton = void $ button conf $ do
   where
     url = "https://github.com/tomsmalley/semantic-reflex"
     conf = def
-      & buttonType .~ LinkButton & buttonColor |?~ Teal
+      & buttonConfig_type .~ LinkButton & buttonConfig_color |?~ Teal
       & attrs |~ ("href" =: url)
 
 hackageButton :: MonadWidget t m => m ()
 hackageButton = void $ button conf $ text "Hackage"
-  where conf = def & buttonType .~ LinkButton & buttonDisabled |~ True
+  where conf = def & buttonConfig_type .~ LinkButton & buttonConfig_disabled |~ True

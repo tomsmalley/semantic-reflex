@@ -40,7 +40,7 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
   |]
 
   mkExample "List Message" (def
-    & inbetween ?~ (message (def & messageType |?~ WarningMessage) $ do
+    & inbetween ?~ (message (def & messageConfig_type |?~ WarningMessage) $ do
         paragraph $ do
           icon "warning sign" def
           text "The list message implementation is not complete." )
@@ -56,10 +56,10 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
   mkExample "Icon Message" (def
     & subtitle ?~ text "A message can contain an icon")
     [example|
-  message (def & messageIcon ?~ Icon "inbox" def) $ do
+  message (def & messageConfig_icon ?~ Icon "inbox" def) $ do
     header def $ text "Have you heard about our mailing list?"
     paragraph $ text "Get the best news in your e-mail every day."
-  message (def & messageIcon ?~ Icon "notched circle loading" def) $ do
+  message (def & messageConfig_icon ?~ Icon "notched circle loading" def) $ do
     header def $ text "Just one second"
     paragraph $ text "We're fetching that content for you."
   |]
@@ -68,9 +68,9 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
     & subtitle ?~ text "A message that the user can choose to hide")
     [resetExample|
   \resetEvent -> do
-    let trans = Transition Fade $ def & transitionDuration .~ 0.2
-        config = def & action ?~ (def & actionEvent ?~ (Transition Instant
-              (def & transitionDirection ?~ In) <$ resetEvent))
+    let trans = Transition Fade $ def & transitionConfig_duration .~ 0.2
+        config = def & action ?~ (def & action_event ?~ (Transition Instant
+              (def & transitionConfig_direction ?~ In) <$ resetEvent))
     dismissableMessage trans config $ do
       header def $ text "Welcome back!"
       paragraph $ text "This is a special notification which you can dismiss if you're bored with it. It uses the given transition to hide the message when the user clicks on the close icon."
@@ -79,28 +79,28 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
   mkExample "Floating" (def
     & subtitle ?~ text "A message can float above the page")
     [example|
-  message (def & messageFloating |~ True) $ do
+  message (def & messageConfig_floating |~ True) $ do
     paragraph $ text "Way to go!"
   |]
 
   mkExample "Compact" (def
     & subtitle ?~ text "A message can only take up the width of its content")
     [example|
-  message (def & messageCompact |~ True) $ do
+  message (def & messageConfig_compact |~ True) $ do
     paragraph $ text "Get all the best inventions in your e-mail every day. Sign up now!"
   |]
 
   mkExample "Attached" (def
     & subtitle ?~ text "A message can be formatted to attach itself to other content")
     [example|
-  message (def & messageAttached |?~ TopAttached) $ do
+  message (def & messageConfig_attached |?~ TopAttached) $ do
     header def $ text "Welcome to our site!"
     paragraph $ text "Fill out the form below to sign-up for a new account"
 
-  segment (def & segmentAttached |?~ Attached) $ text "Content"
+  segment (def & segmentConfig_attached |?~ Attached) $ text "Content"
 
-  message (def & messageAttached |?~ BottomAttached
-               & messageType |?~ WarningMessage) $ do
+  message (def & messageConfig_attached |?~ BottomAttached
+               & messageConfig_type |?~ WarningMessage) $ do
     paragraph $ do
       icon "help" def
       text "Already signed up? "
@@ -111,7 +111,7 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
   mkExample "Warning" (def
     & subtitle ?~ text "A message may be formatted to display warning messages")
     [example|
-  message (def & messageType |?~ WarningMessage) $ do
+  message (def & messageConfig_type |?~ WarningMessage) $ do
     header def $ text "You must register before you can do that!"
     paragraph $ text "Visit our registration page, then try again"
   |]
@@ -119,7 +119,7 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
   mkExample "Info" (def
     & subtitle ?~ text "A message may be formatted to display information")
     [example|
-  message (def & messageType |?~ InfoMessage) $ do
+  message (def & messageConfig_type |?~ InfoMessage) $ do
     header def $ text "Was this what you wanted?"
     paragraph $ text "It's good to see you again."
   |]
@@ -127,14 +127,14 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
   mkExample "Positive / Success" (def
     & subtitle ?~ text "A message may be formatted to display a positive message")
     [example|
-  message (def & messageType |?~ MessageType Positive) $ do
+  message (def & messageConfig_type |?~ MessageType Positive) $ do
     header def $ text "You are eligible for a reward"
     paragraph $ do
       text "Go to your "
       el "b" $ text "special offers"
       text " page to see now."
 
-  message (def & messageType |?~ MessageType Success) $ do
+  message (def & messageConfig_type |?~ MessageType Success) $ do
     header def $ text "Your user registration was successful."
     paragraph $ text "You may now log-in with the username you have chosen"
   |]
@@ -142,11 +142,11 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
   mkExample "Negative / Error" (def
     & subtitle ?~ text "A message may be formatted to display a negative message")
     [example|
-  message (def & messageType |?~ MessageType Negative) $ do
+  message (def & messageConfig_type |?~ MessageType Negative) $ do
     header def $ text "I'm sorry Dave, I'm afraid I can't do that."
     paragraph $ text "I think you know what the problem is just as well as I do."
 
-  message (def & messageType |?~ MessageType Error) $ do
+  message (def & messageConfig_type |?~ MessageType Error) $ do
     header def $ text "There were some errors with your submission"
     paragraph $ text "You need to select your home country."
   |]
@@ -154,14 +154,14 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
   mkExample "Colored" (def
     & subtitle ?~ text "A message can be formatted to be different colors")
     [example|
-  for_ [minBound .. maxBound] $ \c -> message (def & messageColor |?~ c) $ do
+  for_ [minBound .. maxBound] $ \c -> message (def & messageConfig_color |?~ c) $ do
     paragraph $ text $ tshow c
   |]
 
   mkExample "Size" (def
     & subtitle ?~ text "A message can have different sizes")
     [example|
-  for_ [minBound .. maxBound] $ \s -> message (def & messageSize |?~ s) $ do
+  for_ [minBound .. maxBound] $ \s -> message (def & messageConfig_size |?~ s) $ do
     paragraph $ text $ "This is a " <> T.toLower (tshow s) <> " message."
   |]
 

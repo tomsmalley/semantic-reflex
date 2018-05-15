@@ -49,14 +49,14 @@ class DynShow t a where
 
 instance DynShow t (Checkbox t) where
   dynShow Checkbox {..} = do
-    change <- countWithLast _checkboxChange
+    change <- countWithLast _checkbox_change
     pure $ mconcat
       [ pure "Checkbox"
-      , (("\n  { _checkboxValue = " <>) . show) <$> _checkboxValue
-      , (("\n  , _checkboxChange = " <>) . show) <$> change
-      , (("\n  , _checkboxIsIndeterminate = " <>) . show)
-        <$> _checkboxIsIndeterminate
-      , (("\n  , _checkboxHasFocus = " <>) . show) <$> _checkboxHasFocus
+      , (("\n  { _checkbox_value = " <>) . show) <$> _checkbox_value
+      , (("\n  , _checkbox_change = " <>) . show) <$> change
+      , (("\n  , _checkbox_indeterminate = " <>) . show)
+        <$> _checkbox_indeterminate
+      , (("\n  , _checkbox_hasFocus = " <>) . show) <$> _checkbox_hasFocus
       , pure "\n  }"
       ]
 
@@ -64,7 +64,7 @@ instance DynShow t (Progress t m) where
   dynShow Progress {..} = do
     pure $ mconcat
       [ pure "Progress"
-      , (("\n  { _progressPercent = " <>) . show) <$> _progressPercent
+      , (("\n  { _progress_percent = " <>) . show) <$> _progress_percent
       , pure "\n  }"
       ]
 
@@ -75,7 +75,7 @@ instance DynShow t (TextInput t) where
     keydown <- countWithLast _textInput_keydown
     keyup <- countWithLast _textInput_keyup
     pure $ mconcat
-      [ pure "TextInputResult"
+      [ pure "TextInput"
       , (("\n  { _textInput_value = " <>) . show) <$> _textInput_value
       , (("\n  , _textInput_input = " <>) . show) <$> input
       , (("\n  , _textInput_keypress = " <>) . show) <$> keypress
@@ -84,7 +84,6 @@ instance DynShow t (TextInput t) where
       , (("\n  , _textInput_hasFocus = " <>) . show) <$> _textInput_hasFocus
       , pure "\n  }"
       ]
-
 
 dynShowCode :: (MonadWidget t m, DynShow t a) => a -> m ()
 dynShowCode a = do
@@ -119,7 +118,7 @@ upstreamIssue :: MonadWidget t m => Int -> Text -> m ()
 upstreamIssue issue msg = message def $ paragraph $ do
   icon "warning sign" def
   text msg
-  hyperlink url $ image (def & imageFloated |?~ RightFloated) $ Left $ Img (pure shield) def
+  hyperlink url $ image (def & imageConfig_floated |?~ RightFloated) $ Left $ Img (pure shield) def
   where
     shield = "https://img.shields.io/github/issues/detail/s/"
           <> "Semantic-Org/Semantic-UI/" <> tshow issue <> ".svg?maxAge=2592000"
@@ -131,39 +130,39 @@ mkExample
   -> m () -- (El t, a)
 mkExample name ExampleConf {..} (code, eitherWidget)
 
-  = let exampleConf = def & segmentPadded |~ True & segmentVertical |~ True
+  = let exampleConf = def & segmentConfig_padded |~ True & segmentConfig_vertical |~ True
                           & classes |~ "example"
 
     in void . segment exampleConf $ do
 
   -- Title
-  header (def & headerFloated |?~ LeftFloated) $ do
+  header (def & headerConfig_floated |?~ LeftFloated) $ do
     text name
     traverse_ subHeader _subtitle
 
   -- Control buttons
-  let bConf = def & buttonFloated |?~ RightFloated
-                  & buttonSize |?~ Large
-                  & buttonBasic |~ True
-                  & buttonIcon |~ True
-                  & buttonCircular |~ True
+  let bConf = def & buttonConfig_floated |?~ RightFloated
+                  & buttonConfig_size |?~ Large
+                  & buttonConfig_basic |~ True
+                  & buttonConfig_icon |~ True
+                  & buttonConfig_circular |~ True
   codeIsOpen <- toggle False <=< button bConf $ icon "code" def
   resetEvent <- case eitherWidget of
     Left _ -> return never
     Right _ -> button bConf $ icon "refresh" def
 
-  divider $ def & dividerHidden |~ True & dividerClearing |~ True
+  divider $ def & dividerConfig_hidden |~ True & dividerConfig_clearing |~ True
 
   for_ _inbetween $ \widget -> do
     widget
-    divider $ def & dividerHidden |~ True & dividerClearing |~ True
+    divider $ def & dividerConfig_hidden |~ True & dividerConfig_clearing |~ True
 
   let flexConfig a c = def
         & classes |~ addClass c "flex"
-        & segmentBasic |~ True
-        & segmentClearing |~ True
-        & segmentPadded .~ Dyn codeIsOpen
-        & segmentAttached .~ Dyn (bool Nothing (Just a) <$> codeIsOpen)
+        & segmentConfig_basic |~ True
+        & segmentConfig_clearing |~ True
+        & segmentConfig_padded .~ Dyn codeIsOpen
+        & segmentConfig_attached .~ Dyn (bool Nothing (Just a) <$> codeIsOpen)
 
   -- Widget segment
   widgetResult <- segment (flexConfig TopAttached "widget") $
@@ -179,11 +178,11 @@ mkExample name ExampleConf {..} (code, eitherWidget)
   -- Code segment
   let codeConfig evt = def
         & action ?~ (def
-          & actionEvent ?~ fmap mkTransition evt
-          & actionInitialDirection .~ Out)
-        & segmentAttached |?~ BottomAttached
+          & action_event ?~ fmap mkTransition evt
+          & action_initialDirection .~ Out)
+        & segmentConfig_attached |?~ BottomAttached
       mkTransition t = Transition Instant $ def
-        & transitionDirection ?~ bool Out In t
+        & transitionConfig_direction ?~ bool Out In t
 
   segment (codeConfig $ updated codeIsOpen) $ hscode code
 
