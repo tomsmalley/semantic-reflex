@@ -37,13 +37,13 @@ labels = Section "Label" blank $ do
   mkExample "Image" (def
     & subtitle ?~ text "A label can emphasize an image")
     [example|
-  label (def & labelImage |~ True) $ do
+  label (def & labelConfig_image |~ True) $ do
     image def $ Left $ Img "images/animals/duck.png" def
     text "Donald"
-  label (def & labelImage |~ True) $ do
+  label (def & labelConfig_image |~ True) $ do
     image def $ Left $ Img "images/animals/sheep.png" def
     text "Sam"
-  label (def & labelImage |~ True) $ do
+  label (def & labelConfig_image |~ True) $ do
     image def $ Left $ Img "images/animals/bee.png" def
     text "Betty"
   |]
@@ -51,25 +51,25 @@ labels = Section "Label" blank $ do
   mkExample "Pointing" (def
     & subtitle ?~ text "A label can point to adjacent content")
     [example|
-  input (def & inputFluid |~ True) $ textInput def
-  label (def & labelPointing |?~ AbovePointing) $
+  input (def & inputConfig_fluid |~ True) $ textInput def
+  label (def & labelConfig_pointing |?~ AbovePointing) $
     text "Please enter a value"
 
   divider def
 
-  label (def & labelPointing |?~ BelowPointing) $
+  label (def & labelConfig_pointing |?~ BelowPointing) $
     text "Please enter a value"
-  input (def & inputFluid |~ True) $ textInput def
+  input (def & inputConfig_fluid |~ True) $ textInput def
 
   divider def
 
   input def $ textInput def
-  label (def & labelPointing |?~ LeftPointing) $
+  label (def & labelConfig_pointing |?~ LeftPointing) $
     text "That name is taken!"
 
   divider def
 
-  label (def & labelPointing |?~ RightPointing) $
+  label (def & labelConfig_pointing |?~ RightPointing) $
     text "Your password must be 6 characters or more"
   input def $ textInput def
   |]
@@ -77,30 +77,30 @@ labels = Section "Label" blank $ do
   mkExample "Corner" (def
     & subtitle ?~ text "A label can position itself in the corner or an element")
     [example|
-  let conf = def & imageShape |?~ Rounded
+  let conf = def & imageConfig_shape |?~ Rounded
                  & style |~ Style "overflow: hidden"
 
   image conf $ Right $ do
-    label (def & labelCorner |?~ LeftCorner
-               & labelColor |?~ Pink
-               & labelLink .~ True) $ icon "heart" def
+    label (def & labelConfig_corner |?~ LeftCorner
+               & labelConfig_color |?~ Pink
+               & labelConfig_link .~ True) $ icon "heart" def
     img "images/animals/flamingo.png" def
-  divider $ def & dividerHidden |~ True
+  divider $ def & dividerConfig_hidden |~ True
   image conf $ Right $ do
-    label (def & labelCorner |?~ RightCorner
-               & labelColor |?~ Blue
-               & labelLink .~ True) $ icon "heart" def
+    label (def & labelConfig_corner |?~ RightCorner
+               & labelConfig_color |?~ Blue
+               & labelConfig_link .~ True) $ icon "heart" def
     img "images/animals/shark.png" def
   |]
 
   mkExample "Tag" (def
     & subtitle ?~ text "A label can appear as a tag")
     [example|
-  label (def & labelTag |~ True) $ text "New"
-  label (def & labelColor |?~ Red & labelTag |~ True
-             & labelLink .~ True) $ text "Upcoming"
-  label (def & labelColor |?~ Teal & labelTag |~ True
-             & labelLink .~ True) $ text "Featured"
+  label (def & labelConfig_tag |~ True) $ text "New"
+  label (def & labelConfig_color |?~ Red & labelConfig_tag |~ True
+             & labelConfig_link .~ True) $ text "Upcoming"
+  label (def & labelConfig_color |?~ Teal & labelConfig_tag |~ True
+             & labelConfig_link .~ True) $ text "Featured"
   |]
 
   mkExample "Ribbon" (def
@@ -108,37 +108,37 @@ labels = Section "Label" blank $ do
     [example|
   divClass "ui two column padded grid" $ do
     divClass "column" $ do
-      segment (def & segmentRaised |~ True) $ do
-        label (def & labelLink .~ True & labelColor |?~ Red
-                   & labelRibbon |?~ LeftRibbon) $ text "Overview"
+      segment (def & segmentConfig_raised |~ True) $ do
+        label (def & labelConfig_link .~ True & labelConfig_color |?~ Red
+                   & labelConfig_ribbon |?~ LeftRibbon) $ text "Overview"
         text "Account details"
         divider def
-        label (def & labelLink .~ True & labelColor |?~ Blue
-                   & labelRibbon |?~ LeftRibbon) $ text "Community"
+        label (def & labelConfig_link .~ True & labelConfig_color |?~ Blue
+                   & labelConfig_ribbon |?~ LeftRibbon) $ text "Community"
         text "User Reviews"
     divClass "column" $ do
       segment def $ do
-        label (def & labelLink .~ True & labelColor |?~ Orange
-                   & labelRibbon |?~ RightRibbon) $ text "Specs"
+        label (def & labelConfig_link .~ True & labelConfig_color |?~ Orange
+                   & labelConfig_ribbon |?~ RightRibbon) $ text "Specs"
         divider def
-        label (def & labelLink .~ True & labelColor |?~ Teal
-                   & labelRibbon |?~ RightRibbon) $ text "Reviews"
+        label (def & labelConfig_link .~ True & labelConfig_color |?~ Teal
+                   & labelConfig_ribbon |?~ RightRibbon) $ text "Reviews"
   |]
 
   mkExample "" def
     [example|
   image def $ Right $ do
-    label (def & labelLink .~ True & labelColor |?~ Yellow
-               & labelRibbon |?~ LeftRibbon) $ do
+    label (def & labelConfig_link .~ True & labelConfig_color |?~ Yellow
+               & labelConfig_ribbon |?~ LeftRibbon) $ do
       icon "tag" def
       text "Duck"
     img "images/animals/duck.png" def
 
-  divider $ def & dividerHidden |~ True
+  divider $ def & dividerConfig_hidden |~ True
 
   image def $ Right $ do
-    label (def & labelLink .~ True & labelColor |?~ Blue
-               & labelRibbon |?~ LeftRibbon) $ do
+    label (def & labelConfig_link .~ True & labelConfig_color |?~ Blue
+               & labelConfig_ribbon |?~ LeftRibbon) $ do
       icon "tag" def
       text "Dinosaur"
     img "images/animals/dinosaur.png" def
@@ -149,73 +149,73 @@ labels = Section "Label" blank $ do
     [example|
   divClass "ui two column grid" $ do
     divClass "column" $ segment def $ do
-      label (def & labelAttached |?~ (def & vertically .~ TopAttached)) $ text "HTML"
+      label (def & labelConfig_attached |?~ (def & labelAttached_vertically .~ TopAttached)) $ text "HTML"
       paragraph $ text "Hypertext Markup Language"
     divClass "column" $ segment def $ do
-      label (def & labelAttached |?~ (def & vertically .~ BottomAttached)) $ text "CSS"
+      label (def & labelConfig_attached |?~ (def & labelAttached_vertically .~ BottomAttached)) $ text "CSS"
       paragraph $ text "Cascading Style Sheets"
   divClass "ui four column grid" $ do
     divClass "column" $ segment def $ do
-        label (def & labelAttached |?~ (def & horizontally ?~ LeftAttached)) $ text "Top Left"
+        label (def & labelConfig_attached |?~ (def & labelAttached_horizontally ?~ LeftAttached)) $ text "Top Left"
         paragraph $ text "Top Left Attached"
     divClass "column" $ segment def $ do
-        label (def & labelAttached |?~ LabelAttached TopAttached (Just RightAttached)) $ text "Top Right"
+        label (def & labelConfig_attached |?~ LabelAttached TopAttached (Just RightAttached)) $ text "Top Right"
         paragraph $ text "Top Right Attached"
     divClass "column" $ segment def $ do
-        label (def & labelAttached |?~ LabelAttached BottomAttached (Just LeftAttached)) $ text "Bottom Left"
+        label (def & labelConfig_attached |?~ LabelAttached BottomAttached (Just LeftAttached)) $ text "Bottom Left"
         paragraph $ text "Bottom Left Attached"
     divClass "column" $ segment def $ do
-        label (def & labelAttached |?~ LabelAttached BottomAttached (Just RightAttached)) $ text "Bottom Right"
+        label (def & labelConfig_attached |?~ LabelAttached BottomAttached (Just RightAttached)) $ text "Bottom Right"
         paragraph $ text "Bottom Right Attached"
   |]
 
   mkExample "Horizontal" (def
     & subtitle ?~ text "A horizontal label is formatted to label content along-side it horizontally")
     [example|
-  list (def & listDivided |~ True & listSelection |~ True) $ do
-    let conf = def & labelHorizontal |~ True
+  list (def & listConfig_divided |~ True & listConfig_selection |~ True) $ do
+    let conf = def & labelConfig_horizontal |~ True
     listItem def $ do
-      label (conf & labelColor |?~ Red) $ text "Fruit"
+      label (conf & labelConfig_color |?~ Red) $ text "Fruit"
       text "Strawberries"
     listItem def $ do
-      label (conf & labelColor |?~ Purple) $ text "Sweets"
+      label (conf & labelConfig_color |?~ Purple) $ text "Sweets"
       text "Starburst"
     listItem def $ do
-      label (conf & labelColor |?~ Red) $ text "Fruit"
+      label (conf & labelConfig_color |?~ Red) $ text "Fruit"
       text "Raspberries"
     listItem def $ do
-      label (conf & labelColor |?~ Blue) $ text "Animal"
+      label (conf & labelConfig_color |?~ Blue) $ text "Animal"
       text "Dog"
   |]
 
   mkExample "Floating" (def
     & subtitle ?~ text "A label can float above another element")
     [example|
-  segments (def & segmentsCompact |~ True) $ do
+  segments (def & segmentsConfig_compact |~ True) $ do
     segment def $ do
       icon "mail" def
       text "Messages"
-      label (def & labelFloating |~ True & labelColor |?~ Red) $ text "22"
+      label (def & labelConfig_floating |~ True & labelConfig_color |?~ Red) $ text "22"
     segment def $ do
       icon "users" def
       text "Friends"
-      label (def & labelFloating |~ True & labelColor |?~ Teal) $ text "14"
+      label (def & labelConfig_floating |~ True & labelConfig_color |?~ Teal) $ text "14"
   |]
 
   mkExample "Detail" (def
     & subtitle ?~ text "A label can include a detail")
     [example|
-  label (def & labelColor |?~ Orange & labelImage |~ True) $ do
+  label (def & labelConfig_color |?~ Orange & labelConfig_image |~ True) $ do
     image def $ Left $ Img "images/animals/mouse.png" def
     text "Michael"
     detail "Mouse"
 
-  label (def & labelColor |?~ Yellow & labelImage |~ True) $ do
+  label (def & labelConfig_color |?~ Yellow & labelConfig_image |~ True) $ do
     image def $ Left $ Img "images/animals/spider.png" def
     text "Sabrina"
     detail "Spider"
 
-  label (def & labelColor |?~ Blue & labelImage |~ True) $ do
+  label (def & labelConfig_color |?~ Blue & labelConfig_image |~ True) $ do
     image def $ Left $ Img "images/animals/wolf.png" def
     text "William"
     detail "Wolf"
@@ -229,11 +229,11 @@ labels = Section "Label" blank $ do
         mkLabel (name, animal, mColor) = mdo
           let
             conf = def
-              & labelColor |~ mColor
-              & labelImage |~ True
+              & labelConfig_color |~ mColor
+              & labelConfig_image |~ True
               & transition ?~ (def & transConfigEvent ?~ (leftmost
-              [ Transition Instant (def & transitionDirection ?~ In) <$ resetEvent
-              , Transition Scale (def & transitionDirection ?~ Out) <$ eClose
+              [ Transition Instant (def & transitionConfig_direction ?~ In) <$ resetEvent
+              , Transition Scale (def & transitionConfig_direction ?~ Out) <$ eClose
               ]))
           eClose <- label conf $ do
             image def $ Left $ Img (pure $ src animal) def
@@ -254,11 +254,11 @@ labels = Section "Label" blank $ do
         mkLabel (name, animal, mColor) = mdo
           let
             conf = def
-              & labelColor |~ mColor
-              & labelImage |~ True
-              & action ?~ (def & actionEvent ?~ (leftmost
-              [ Transition Instant (def & transitionDirection ?~ In) <$ resetEvent
-              , Transition Scale (def & transitionDirection ?~ Out) <$ eClose
+              & labelConfig_color |~ mColor
+              & labelConfig_image |~ True
+              & action ?~ (def & action_event ?~ (leftmost
+              [ Transition Instant (def & transitionConfig_direction ?~ In) <$ resetEvent
+              , Transition Scale (def & transitionConfig_direction ?~ Out) <$ eClose
               ]))
           eClose <- label conf $ do
             image def $ Left $ Img (pure $ src animal) def

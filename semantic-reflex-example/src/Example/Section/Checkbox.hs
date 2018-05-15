@@ -14,7 +14,7 @@ module Example.Section.Checkbox where
 
 import Control.Lens
 import Reflex.Dom.SemanticUI
-import Reflex.Dom.Core hiding (Checkbox, CheckboxConfig, checkbox, button)
+import Reflex.Dom.Core hiding (Checkbox, CheckboxConfig, checkbox, button, checkboxConfig_setValue, checkbox_value)
 
 import Example.QQ
 import Example.Common
@@ -22,7 +22,7 @@ import Example.Common
 checkboxes :: forall t m. MonadWidget t m => Section t m
 checkboxes = Section "Checkbox" (simpleLink "https://semantic-ui.com/modules/checkbox.html") $ do
 
-  message (def & messageType |?~ InfoMessage) $ paragraph $ do
+  message (def & messageConfig_type |?~ InfoMessage) $ paragraph $ do
     icon "announcement" def
     text "The implementation of the Checkbox module does not depend on the Semantic UI or jQuery Javascript libraries."
 
@@ -46,22 +46,22 @@ checkboxes = Section "Checkbox" (simpleLink "https://semantic-ui.com/modules/che
     [resetExample|
   \resetEvent -> do
     normal <- checkbox (text "Normal checkbox") $ def
-      & checkboxSetValue . event ?~ (False <$ resetEvent)
+      & checkboxConfig_setValue . event ?~ (False <$ resetEvent)
 
-    divider $ def & dividerHidden |~ True
+    divider $ def & dividerConfig_hidden |~ True
 
     toggle <- checkbox (text "Toggle checkbox (checked by default)") $ def
-      & checkboxType |?~ Toggle
-      & checkboxSetValue . event ?~ (True <$ resetEvent)
-      & checkboxSetValue . initial .~ True
+      & checkboxConfig_type |?~ Toggle
+      & checkboxConfig_setValue . event ?~ (True <$ resetEvent)
+      & checkboxConfig_setValue . initial .~ True
 
-    divider $ def & dividerHidden |~ True
+    divider $ def & dividerConfig_hidden |~ True
 
     slider <- checkbox (text "Slider checkbox") $ def
-      & checkboxType |?~ Slider
-      & checkboxSetValue . event ?~ (False <$ resetEvent)
+      & checkboxConfig_type |?~ Slider
+      & checkboxConfig_setValue . event ?~ (False <$ resetEvent)
 
-    return $ traverse (view checkboxValue) [normal, toggle, slider]
+    return $ traverse (view checkbox_value) [normal, toggle, slider]
   |]
 
   mkExample "Disabled" (def
@@ -75,21 +75,21 @@ checkboxes = Section "Checkbox" (simpleLink "https://semantic-ui.com/modules/che
       holdDyn False $ leftmost
         [ True <$ enable, False <$ disable, False <$ resetEvent ]
 
-    divider $ def & dividerHidden |~ True
+    divider $ def & dividerConfig_hidden |~ True
 
     normal <- checkbox (text "Initially disabled") $ def
-      & checkboxSetValue . event ?~ (False <$ resetEvent)
-      & checkboxDisabled .~ Dyn (fmap not enabled)
+      & checkboxConfig_setValue . event ?~ (False <$ resetEvent)
+      & checkboxConfig_disabled .~ Dyn (fmap not enabled)
 
-    divider $ def & dividerHidden |~ True
+    divider $ def & dividerConfig_hidden |~ True
 
     toggle <- checkbox (text "Initially disabled (checked by default)") $ def
-      & checkboxType |?~ Toggle
-      & checkboxSetValue . event ?~ (True <$ resetEvent)
-      & checkboxSetValue . initial .~ True
-      & checkboxDisabled .~ Dyn (fmap not enabled)
+      & checkboxConfig_type |?~ Toggle
+      & checkboxConfig_setValue . event ?~ (True <$ resetEvent)
+      & checkboxConfig_setValue . initial .~ True
+      & checkboxConfig_disabled .~ Dyn (fmap not enabled)
 
-    return $ traverse (view checkboxValue) [normal, toggle]
+    return $ traverse (view checkbox_value) [normal, toggle]
   |]
 
   mkExample "Indeterminate" (def
@@ -103,13 +103,13 @@ checkboxes = Section "Checkbox" (simpleLink "https://semantic-ui.com/modules/che
       return $ leftmost
         [ True <$ enable, False <$ disable, True <$ resetEvent ]
 
-    divider $ def & dividerHidden |~ True
+    divider $ def & dividerConfig_hidden |~ True
 
     checkbox (text "Indeterminate") $ def
-      & checkboxSetValue . event ?~ (True <$ resetEvent)
-      & checkboxSetIndeterminate . event ?~ eIndeterminate
-      & checkboxSetIndeterminate . initial .~ True
-      & checkboxSetValue . initial .~ True
+      & checkboxConfig_setValue . event ?~ (True <$ resetEvent)
+      & checkboxConfig_setIndeterminate . event ?~ eIndeterminate
+      & checkboxConfig_setIndeterminate . initial .~ True
+      & checkboxConfig_setValue . initial .~ True
   |]
 
   mkExample "Fitted" (def
@@ -117,24 +117,24 @@ checkboxes = Section "Checkbox" (simpleLink "https://semantic-ui.com/modules/che
     & subtitle ?~ text "A fitted checkbox does not leave padding for a label")
     [resetExample|
   \resetEvent -> do
-    normal <- segment (def & segmentCompact |~ True)
+    normal <- segment (def & segmentConfig_compact |~ True)
       $ checkbox blank $ def
-        & checkboxFitted |~ True
-        & checkboxSetValue . event ?~ (False <$ resetEvent)
+        & checkboxConfig_fitted |~ True
+        & checkboxConfig_setValue . event ?~ (False <$ resetEvent)
 
-    slider <- segment (def & segmentCompact |~ True)
+    slider <- segment (def & segmentConfig_compact |~ True)
       $ checkbox blank $ def
-        & checkboxFitted |~ True
-        & checkboxType |?~ Toggle
-        & checkboxSetValue . event ?~ (False <$ resetEvent)
+        & checkboxConfig_fitted |~ True
+        & checkboxConfig_type |?~ Toggle
+        & checkboxConfig_setValue . event ?~ (False <$ resetEvent)
 
-    toggle <- segment (def & segmentCompact |~ True)
+    toggle <- segment (def & segmentConfig_compact |~ True)
       $ checkbox blank $ def
-        & checkboxFitted |~ True
-        & checkboxType |?~ Slider
-        & checkboxSetValue . event ?~ (False <$ resetEvent)
+        & checkboxConfig_fitted |~ True
+        & checkboxConfig_type |?~ Slider
+        & checkboxConfig_setValue . event ?~ (False <$ resetEvent)
 
-    return $ traverse (view checkboxValue) [normal, slider, toggle]
+    return $ traverse (view checkbox_value) [normal, slider, toggle]
   |]
 
   return ()

@@ -36,29 +36,29 @@ dividers = Section "Divider" (text "A divider visually segments content into gro
   mkExample "Content Divider" (def
     & subtitle ?~ text "A horizontal divider with content inside it")
     [example|
-  segment (def & segmentAligned |?~ CenterAligned & segmentBasic |~ True) $ do
+  segment (def & segmentConfig_aligned |?~ CenterAligned & segmentConfig_basic |~ True) $ do
     input def $ do
-      textInput $ def & textInputPlaceholder |~ "Search..."
+      textInput $ def & textInputConfig_placeholder |~ "Search..."
     contentDivider def $ text "Or"
-    button (def & buttonColor |?~ Teal) $ text "Create New Order"
+    button (def & buttonConfig_color |?~ Teal) $ text "Create New Order"
   |]
 
   mkExample "Header Divider" (def
     & subtitle ?~ text "A content divider can include a header")
     [example|
   contentDivider def $
-    pageHeader H4 (def & headerPreContent ?~ icon "tag" def) $ text "Description"
+    pageHeader H4 (def & headerConfig_preContent ?~ icon "tag" def) $ text "Description"
   paragraph $ text "Quisque ac efficitur dolor. Vestibulum ut elit id eros congue dapibus. Pellentesque sollicitudin a erat bibendum placerat. Curabitur in tellus sollicitudin, dapibus eros sit amet, eleifend risus. Vestibulum tempor erat a tellus gravida venenatis. Nulla auctor metus quis leo posuere, eget dignissim leo condimentum. In hac habitasse platea dictumst. Donec."
   |]
 
   mkExample "Inverted" (def
     & subtitle ?~ text "A divider can have its colors inverted")
     [example|
-  segment (def & segmentInverted |~ True) $ do
+  segment (def & segmentConfig_inverted |~ True) $ do
     paragraph $ text "Vestibulum orci nisl, ultrices at consequat commodo, pretium venenatis risus. Vivamus imperdiet massa sed posuere scelerisque. Duis egestas felis sed est fringilla, eget tempor nibh vestibulum. Fusce tempus enim non dolor ultrices fringilla. Pellentesque sagittis consectetur ante eu condimentum."
-    divider $ def & dividerInverted |~ True
+    divider $ def & dividerConfig_inverted |~ True
     paragraph $ text "Nulla lacinia velit sapien, nec maximus turpis ornare a. Donec libero sapien, dignissim a tortor sed, iaculis feugiat libero. Donec dignissim sapien eget eros malesuada, vitae blandit leo sodales. Donec ante felis, porta at lectus vitae, condimentum lobortis libero. Donec a pretium massa. Vivamus eget malesuada leo, quis consequat metus."
-    contentDivider (def & dividerInverted |~ True) $ text "Horizontal"
+    contentDivider (def & dividerConfig_inverted |~ True) $ text "Horizontal"
   |]
 
   mkExample "Fitted" (def
@@ -66,7 +66,7 @@ dividers = Section "Divider" (text "A divider visually segments content into gro
     [example|
   segment def $ do
     text "Duis lectus magna, egestas euismod dolor non, ornare ornare leo. Mauris et dolor quis purus ornare laoreet. Pellentesque euismod mi tellus, eget lacinia sapien malesuada dapibus. Duis ac efficitur ante."
-    divider $ def & dividerFitted |~ True
+    divider $ def & dividerConfig_fitted |~ True
     text "Sed in odio vel lectus mattis molestie a fringilla nibh. Aliquam et rhoncus augue. Ut tempor est eu est bibendum, imperdiet semper lectus vehicula. Proin ultrices, turpis in ullamcorper accumsan, mauris magna malesuada massa, gravida malesuada purus metus sed ante."
   |]
 
@@ -74,7 +74,7 @@ dividers = Section "Divider" (text "A divider visually segments content into gro
     & subtitle ?~ text "A hidden divider divides content without a visible line")
     [example|
   text "Maecenas maximus sapien sit amet neque vulputate venenatis. Sed accumsan egestas pellentesque. Nam ullamcorper urna orci, a egestas felis placerat quis. Vivamus aliquet risus vel nunc pretium tincidunt sed eu nunc."
-  divider $ def & dividerHidden |~ True
+  divider $ def & dividerConfig_hidden |~ True
   text "Donec mauris nulla, placerat et venenatis eu, eleifend sit amet risus. Suspendisse ornare varius accumsan. Donec quis massa augue. Nam ac urna enim."
   |]
 
@@ -83,7 +83,7 @@ dividers = Section "Divider" (text "A divider visually segments content into gro
     [example|
   header def $ text "Section One"
   paragraph $ text "Nam ac sapien rutrum, tempor purus vel, porttitor neque. Aliquam molestie tellus in sem laoreet bibendum. In accumsan metus a diam consectetur, ut sagittis libero dapibus. Duis at elementum urna. Proin rhoncus odio eget sem auctor pharetra. Donec sit amet lobortis ante. Etiam placerat nibh at blandit euismod. Maecenas at ex quam."
-  divider $ def & dividerSection |~ True
+  divider $ def & dividerConfig_section |~ True
   header def $ text "Section Two"
   paragraph $ text "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Donec semper ut tellus nec tincidunt. Curabitur in turpis pulvinar dui sodales placerat quis pulvinar felis. Integer auctor velit quis nunc placerat dignissim."
   |]
@@ -91,8 +91,8 @@ dividers = Section "Divider" (text "A divider visually segments content into gro
   mkExample "Clearing" (def
     & subtitle ?~ text "A divider can clear floated content")
     [example|
-  header (def & headerFloated |?~ RightFloated) $ text "Floated Content"
-  divider $ def & dividerClearing |~ True
+  header (def & headerConfig_floated |?~ RightFloated) $ text "Floated Content"
+  divider $ def & dividerConfig_clearing |~ True
   paragraph $ text "Phasellus aliquet, orci vitae tempor gravida, magna felis aliquam sapien, sit amet feugiat mi lorem at risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos."
   |]
 

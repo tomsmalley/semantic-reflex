@@ -33,7 +33,7 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
     header def $ text "Some Content"
     paragraph $ text $ "Suspendisse hendrerit justo id dignissim maximus. Ut maximus eu arcu sit amet egestas. Aenean et dictum felis. Ut rhoncus ipsum non luctus scelerisque. Proin pellentesque sed mauris efficitur aliquet. Duis imperdiet pulvinar rhoncus. Fusce tempor sem aliquet, mattis turpis vitae, rutrum orci. Aliquam in metus volutpat mi commodo dignissim et sed magna."
 
-    dimmer (def & dimmerDimmed . event ?~ (Nothing <$ evt)) $ do
+    dimmer (def & dimmerConfig_dimmed . event ?~ (Nothing <$ evt)) $ do
       divClass "ui text loader" $ text "Dimmed"
   |]
 
@@ -41,8 +41,8 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
     & subtitle ?~ text "A dimmer can have content")
     [example|
   evt <- buttons def $ do
-    on <- button (def & buttonIcon |~ True) $ icon "plus" def
-    off <- button (def & buttonIcon |~ True) $ icon "minus" def
+    on <- button (def & buttonConfig_icon |~ True) $ icon "plus" def
+    off <- button (def & buttonConfig_icon |~ True) $ icon "minus" def
     return $ leftmost [ Just In <$ on, Just Out <$ off ]
 
   segment def $ do
@@ -50,11 +50,11 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
     paragraph $ text $ "Suspendisse hendrerit justo id dignissim maximus. Ut maximus eu arcu sit amet egestas. Aenean et dictum felis. Ut rhoncus ipsum non luctus scelerisque. Proin pellentesque sed mauris efficitur aliquet. Duis imperdiet pulvinar rhoncus. Fusce tempor sem aliquet, mattis turpis vitae, rutrum orci. Aliquam in metus volutpat mi commodo dignissim et sed magna."
     paragraph $ text $ "Fusce varius bibendum eleifend. Integer ut finibus risus. Nunc non condimentum lorem. Sed aliquam scelerisque maximus. In hac habitasse platea dictumst. Nam mollis orci sem, vel posuere mi sollicitudin molestie. Praesent at pretium ex. Proin condimentum lacus sit amet risus volutpat, vitae feugiat ante iaculis. Nullam id interdum diam, nec sagittis quam. Ut finibus dapibus nunc sed tincidunt. Vestibulum mi lorem, euismod ut molestie id, viverra vitae ex."
 
-    dimmer (def & dimmerDimmed . event ?~ evt) $ do
+    dimmer (def & dimmerConfig_dimmed . event ?~ evt) $ do
       divClass "content" $ divClass "center" $ do
-        let conf = def & headerPreContent ?~ icon "heart" def
-                       & headerLargeIcon |~ True
-                       & headerInverted |~ True
+        let conf = def & headerConfig_preContent ?~ icon "heart" def
+                       & headerConfig_largeIcon |~ True
+                       & headerConfig_inverted |~ True
         pageHeader H2 conf $ do
           text "Dimmed Message!"
   |]
@@ -64,12 +64,12 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
     [example|
   on <- button def $ icon "plus" def >> text "Show"
 
-  dimmer (def & dimmerPage .~ True
-              & dimmerDimmed . event ?~ (Just In <$ on)) $ do
+  dimmer (def & dimmerConfig_page .~ True
+              & dimmerConfig_dimmed . event ?~ (Just In <$ on)) $ do
     divClass "content" $ divClass "center" $ do
-      let conf = def & headerPreContent ?~ icon "mail" def
-                     & headerLargeIcon |~ True
-                     & headerInverted |~ True
+      let conf = def & headerConfig_preContent ?~ icon "mail" def
+                     & headerConfig_largeIcon |~ True
+                     & headerConfig_inverted |~ True
       pageHeader H2 conf $ do
         text "Dimmed Message!"
         subHeader $ text "Dimmer sub-header"
@@ -80,21 +80,21 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
     on <- button def $ icon "plus" def >> text "Show"
 
     let conf = def
-          & dimmerDimmed . event ?~ leftmost
+          & dimmerConfig_dimmed . event ?~ leftmost
             [ Just In <$ on, Just Out <$ close ]
-          & dimmerPage .~ True
-          & dimmerCloseOnClick |~ False
+          & dimmerConfig_page .~ True
+          & dimmerConfig_closeOnClick |~ False
 
     close <- dimmer conf $ do
       divClass "content" $ divClass "center" $ do
-        let conf = def & headerPreContent ?~ icon "warning sign" def
-                       & headerLargeIcon |~ True
-                       & headerInverted |~ True
+        let conf = def & headerConfig_preContent ?~ icon "warning sign" def
+                       & headerConfig_largeIcon |~ True
+                       & headerConfig_inverted |~ True
         pageHeader H2 conf $ do
           text "Persistent Dimmer"
           subHeader $ text "You can't dismiss me without clicking the button"
 
-        divider $ def & dividerHidden |~ True
+        divider $ def & dividerConfig_hidden |~ True
 
         button def $ text "Dismiss"
     |] $ Left $ mdo
@@ -102,21 +102,21 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
     on <- button def $ icon "plus" def >> text "Show"
 
     let conf = def
-          & dimmerDimmed . event ?~ leftmost
+          & dimmerConfig_dimmed . event ?~ leftmost
             [ Just In <$ on, Just Out <$ close ]
-          & dimmerPage .~ True
-          & dimmerCloseOnClick |~ False
+          & dimmerConfig_page .~ True
+          & dimmerConfig_closeOnClick |~ False
 
     close <- dimmer conf $ do
       divClass "content" $ divClass "center" $ do
-        let conf = def & headerPreContent ?~ icon "warning sign" def
-                       & headerLargeIcon |~ True
-                       & headerInverted |~ True
+        let conf = def & headerConfig_preContent ?~ icon "warning sign" def
+                       & headerConfig_largeIcon |~ True
+                       & headerConfig_inverted |~ True
         pageHeader H2 conf $ do
           text "Persistent Dimmer"
           subHeader $ text "You can't dismiss me without clicking the button"
 
-        divider $ def & dividerHidden |~ True
+        divider $ def & dividerConfig_hidden |~ True
 
         button def $ text "Dismiss"
 
@@ -144,14 +144,14 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
           [ Just In <$ domEvent Mouseenter e
           , Just Out <$ domEvent Mouseleave e ]
 
-    e <- image' (def & imageSize |?~ Medium) $ Right $ do
-      dimmer (def & dimmerDimmed . event ?~ evt
-                  & dimmerCloseOnClick |~ False) $ do
+    e <- image' (def & imageConfig_size |?~ Medium) $ Right $ do
+      dimmer (def & dimmerConfig_dimmed . event ?~ evt
+                  & dimmerConfig_closeOnClick |~ False) $ do
         divClass "content" $ divClass "center" $ do
-          pageHeader H2 (def & headerInverted |~ True) $ text "Title"
-          button (def & buttonEmphasis |?~ Primary) $ text "Add"
+          pageHeader H2 (def & headerConfig_inverted |~ True) $ text "Title"
+          button (def & buttonConfig_emphasis |?~ Primary) $ text "Add"
           button def $ text "View"
-      image (def & imageSize |?~ Medium) $ Left $
+      image (def & imageConfig_size |?~ Medium) $ Left $
         Img "images/animals/cat.png" def
 
     return ()

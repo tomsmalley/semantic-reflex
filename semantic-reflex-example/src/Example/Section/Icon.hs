@@ -28,86 +28,86 @@ iconSection = Section "Icon" blank $ do
   mkExample "Disabled" (def
     & subtitle ?~ text "An icon can show that it is disabled")
     [example|
-  icon "users" $ def & iconDisabled |~ True
+  icon "users" $ def & iconConfig_disabled |~ True
   |]
 
   mkExample "Loading" (def
     & subtitle ?~ text "An icon can be used as a simple loader")
     [example|
-  icon "spinner" $ def & iconLoading |~ True
-  icon "notched circle" $ def & iconLoading |~ True
-  icon "asterisk" $ def & iconLoading |~ True
+  icon "spinner" $ def & iconConfig_loading |~ True
+  icon "notched circle" $ def & iconConfig_loading |~ True
+  icon "asterisk" $ def & iconConfig_loading |~ True
   |]
 
   mkExample "Fitted" (def
     & subtitle ?~ text "An icon can have no whitespace around it")
     [example|
   text "Fitted"
-  icon "help" $ def & iconFitted |~ True
+  icon "help" $ def & iconConfig_fitted |~ True
   text "Icon"
   |]
 
   mkExample "Size" (def
     & subtitle ?~ text "An icon can vary in size")
     [example|
-  for_ [minBound .. maxBound] $ \s -> icon "home" $ def & iconSize |?~ s
+  for_ [minBound .. maxBound] $ \s -> icon "home" $ def & iconConfig_size |?~ s
   |]
 
   mkExample "Link" (def
     & subtitle ?~ text "An icon can be formatted as a link")
     [example|
-  icon "close" $ def & iconLink |~ True
-  icon "help" $ def & iconLink |~ True
+  icon "close" $ def & iconConfig_link |~ True
+  icon "help" $ def & iconConfig_link |~ True
   |]
 
   mkExample "Flipped" (def
     & subtitle ?~ text "An icon can be flipped")
     [example|
   icon "thumbs outline up" def
-  icon "thumbs outline up" $ def & iconFlipped |?~ HorizontallyFlipped
-  icon "thumbs outline up" $ def & iconFlipped |?~ VerticallyFlipped
+  icon "thumbs outline up" $ def & iconConfig_flipped |?~ HorizontallyFlipped
+  icon "thumbs outline up" $ def & iconConfig_flipped |?~ VerticallyFlipped
   |]
 
   mkExample "Rotated" (def
     & subtitle ?~ text "An icon can be rotated")
     [example|
   icon "smile" def
-  icon "smile" $ def & iconRotated |?~ Clockwise
-  icon "smile" $ def & iconRotated |?~ Anticlockwise
+  icon "smile" $ def & iconConfig_rotated |?~ Clockwise
+  icon "smile" $ def & iconConfig_rotated |?~ Anticlockwise
   |]
 
   mkExample "Circular" (def
     & subtitle ?~ text "An icon can be formatted to appear circular")
     [example|
-  icon "users" $ def & iconCircular |~ True
-  icon "users" $ def & iconCircular |~ True & iconColor |?~ Teal
-  icon "users" $ def & iconCircular |~ True & iconInverted |~ True
+  icon "users" $ def & iconConfig_circular |~ True
+  icon "users" $ def & iconConfig_circular |~ True & iconConfig_color |?~ Teal
+  icon "users" $ def & iconConfig_circular |~ True & iconConfig_inverted |~ True
   icon "users" $ def
-    & iconCircular |~ True & iconColor |?~ Teal & iconInverted |~ True
+    & iconConfig_circular |~ True & iconConfig_color |?~ Teal & iconConfig_inverted |~ True
   |]
 
   mkExample "Bordered" (def
     & subtitle ?~ text "An icon can be formatted to appear bordered")
     [example|
-  icon "users" $ def & iconBordered |~ True
-  icon "users" $ def & iconBordered |~ True & iconColor |?~ Teal
-  icon "users" $ def & iconBordered |~ True & iconInverted |~ True
+  icon "users" $ def & iconConfig_bordered |~ True
+  icon "users" $ def & iconConfig_bordered |~ True & iconConfig_color |?~ Teal
+  icon "users" $ def & iconConfig_bordered |~ True & iconConfig_inverted |~ True
   icon "users" $ def
-    & iconBordered |~ True & iconColor |?~ Teal & iconInverted |~ True
+    & iconConfig_bordered |~ True & iconConfig_color |?~ Teal & iconConfig_inverted |~ True
   |]
 
   mkExample "Colored" (def
     & subtitle ?~ text "An icon can be formatted with different colors")
     [example|
-  for_ [minBound .. maxBound] $ \c -> icon "users" $ def & iconColor |?~ c
+  for_ [minBound .. maxBound] $ \c -> icon "users" $ def & iconConfig_color |?~ c
   |]
 
   mkExample "Inverted" (def
     & subtitle ?~ text "An icon can have its colors inverted for contrast")
     [example|
-  segment (def & segmentCompact |~ True & segmentInverted |~ True) $ do
+  segment (def & segmentConfig_compact |~ True & segmentConfig_inverted |~ True) $ do
     for_ [minBound .. maxBound] $ \c -> icon "users" $ def
-      & iconColor |?~ c & iconInverted |~ True
+      & iconConfig_color |?~ c & iconConfig_inverted |~ True
   |]
 
   pageHeader H3 def $ text "Groups"
@@ -116,27 +116,27 @@ iconSection = Section "Icon" blank $ do
     & inbetween ?~ upstreamIssue 5861 "There is an upstream issue causing icon groups to be off-centre."
     & subtitle ?~ text "Several icons can be used together as a group")
     [example|
-  icons (def & iconsSize |?~ Huge) $ do
-    icon "circle" $ def & iconColor |?~ Blue
-    icon "announcement" $ def & iconInverted |~ True & iconSize |?~ Tiny
-  icons (def & iconsSize |?~ Huge) $ do
+  icons (def & iconsConfig_size |?~ Huge) $ do
+    icon "circle" $ def & iconConfig_color |?~ Blue
+    icon "announcement" $ def & iconConfig_inverted |~ True & iconConfig_size |?~ Tiny
+  icons (def & iconsConfig_size |?~ Huge) $ do
     icon "thin circle" def
-    icon "user" $ def & iconSize |?~ Tiny
-  icons (def & iconsSize |?~ Huge) $ do
+    icon "user" $ def & iconConfig_size |?~ Tiny
+  icons (def & iconsConfig_size |?~ Huge) $ do
     icon "certificate" $ def
-      & iconLoading |~ True & iconColor |?~ Grey & iconInverted |~ True
-    icon "cloud download" $ def & iconSize |?~ Tiny
+      & iconConfig_loading |~ True & iconConfig_color |?~ Grey & iconConfig_inverted |~ True
+    icon "cloud download" $ def & iconConfig_size |?~ Tiny
   |]
 
   mkExample "Corner Icon" (def
     & subtitle ?~ text "A group of icons can display a smaller corner icon")
     [example|
-  icons (def & iconsSize |?~ Huge) $ do
+  icons (def & iconsConfig_size |?~ Huge) $ do
     icon "line chart" def
-    icon "dollar" $ def & iconCorner |?~ TopLeft & iconColor |?~ Green
-  icons (def & iconsSize |?~ Huge) $ do
-    icon "heart" $ def & iconColor |?~ Pink
-    icon "plus" $ def & iconCorner |?~ BottomRight
+    icon "dollar" $ def & iconConfig_corner |?~ TopLeft & iconConfig_color |?~ Green
+  icons (def & iconsConfig_size |?~ Huge) $ do
+    icon "heart" $ def & iconConfig_color |?~ Pink
+    icon "plus" $ def & iconConfig_corner |?~ BottomRight
   |]
 
   return ()

@@ -39,7 +39,7 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
 
   mkExample "Page Headers" (def
     & subtitle ?~ text "Headers may be oriented to give the hierarchy of a section in the context of the page"
-    & inbetween ?~ (message (def & messageType |?~ InfoMessage) $ do
+    & inbetween ?~ (message (def & messageConfig_type |?~ InfoMessage) $ do
       paragraph $ text "Page headings are sized using 'rem' and are not affected by surrounding content size."))
     [example|
   pageHeader H1 def $ text "First Header"
@@ -51,57 +51,57 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
 
   mkExample "Content Headers" (def
     & subtitle ?~ text "Headers may be oriented to give the importance of a section in the context of the content that surrounds it"
-    & inbetween ?~ (message (def & messageType |?~ InfoMessage) $ do
+    & inbetween ?~ (message (def & messageConfig_type |?~ InfoMessage) $ do
       paragraph $ text "Content headings are sized using 'em' and are based on the font-size of their container."))
     [resetExample|
   \resetEvent -> do
     dSize <- buttons def $ do
-      plus <- button (def & buttonIcon |~ True) $ icon "plus" def
-      minus <- button (def & buttonIcon |~ True) $ icon "minus" def
+      plus <- button (def & buttonConfig_icon |~ True) $ icon "plus" def
+      minus <- button (def & buttonConfig_icon |~ True) $ icon "minus" def
       foldDyn (\f a -> fromMaybe a $ f a) Medium $
         leftmost [ succMaybe <$ plus, predMaybe <$ minus, const (Just Medium) <$ resetEvent ]
 
-    segment (def & segmentSize .~ Dyn (Just <$> dSize)) $ do
-      header (def & headerSize |?~ H1) $ text "First Header"
-      header (def & headerSize |?~ H2) $ text "Second Header"
-      header (def & headerSize |?~ H3) $ text "Third Header"
-      header (def & headerSize |?~ H4) $ text "Fourth Header"
-      header (def & headerSize |?~ H5) $ text "Fifth Header"
+    segment (def & segmentConfig_size .~ Dyn (Just <$> dSize)) $ do
+      header (def & headerConfig_size |?~ H1) $ text "First Header"
+      header (def & headerConfig_size |?~ H2) $ text "Second Header"
+      header (def & headerConfig_size |?~ H3) $ text "Third Header"
+      header (def & headerConfig_size |?~ H4) $ text "Fourth Header"
+      header (def & headerConfig_size |?~ H5) $ text "Fifth Header"
   |]
 
   mkExample "Icon Headers" (def
     & subtitle ?~ text "A header can be formatted to emphasise an icon")
     [example|
   pageHeader H2 (def
-    & headerPreContent ?~ icon "settings" def
-    & headerLargeIcon |~ True
-    & headerAligned |?~ CenterAligned) $ do
+    & headerConfig_preContent ?~ icon "settings" def
+    & headerConfig_largeIcon |~ True
+    & headerConfig_aligned |?~ CenterAligned) $ do
     text "Account Settings"
     subHeader $ text "Manage your account settings and set e-mail preferences."
 
   header (def
-    & headerLargeIcon |~ True
-    & headerPreContent ?~ icon "users" (def & iconCircular |~ True & iconInverted |~ True)
-    & headerAligned |?~ CenterAligned) $ do
+    & headerConfig_largeIcon |~ True
+    & headerConfig_preContent ?~ icon "users" (def & iconConfig_circular |~ True & iconConfig_inverted |~ True)
+    & headerConfig_aligned |?~ CenterAligned) $ do
     text "Friends"
   |]
 
   mkExample "Sub Headers" (def
     & subtitle ?~ text "A header may be formatted to label smaller or de-emphasised content")
     [example|
-  list (def & listHorizontal |~ True) $ do
-    let animal name = image (def & imageSize |?~ Mini & imageShape |?~ Circular) $
+  list (def & listConfig_horizontal |~ True) $ do
+    let animal name = image (def & imageConfig_size |?~ Mini & imageConfig_shape |?~ Circular) $
           Left $ Img (pure $ "images/animals/" <> name <> ".png") def
-    listItem (def & listItemPreContent ?~ animal "bat") $ do
-      header (def & headerSub |~ True) $ text "Benjamin"
+    listItem (def & listItemConfig_preContent ?~ animal "bat") $ do
+      header (def & headerConfig_sub |~ True) $ text "Benjamin"
       text "Bat"
 
-    listItem (def & listItemPreContent ?~ animal "horse") $ do
-      header (def & headerSub |~ True) $ text "Harriet"
+    listItem (def & listItemConfig_preContent ?~ animal "horse") $ do
+      header (def & headerConfig_sub |~ True) $ text "Harriet"
       text "Horse"
 
-    listItem (def & listItemPreContent ?~ animal "monkey") $ do
-      header (def & headerSub |~ True) $ text "Molly"
+    listItem (def & listItemConfig_preContent ?~ animal "monkey") $ do
+      header (def & headerConfig_sub |~ True) $ text "Molly"
       text "Monkey"
   |]
 
@@ -109,7 +109,7 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
     & subtitle ?~ text "A header may contain an image before the content")
     [example|
   let url = "images/animals/penguin.png"
-  header (def & headerPreContent ?~ image (def & imageShape |?~ Circular) (Left $ Img url def)) $ do
+  header (def & headerConfig_preContent ?~ image (def & imageConfig_shape |?~ Circular) (Left $ Img url def)) $ do
     text "Penelope"
     subHeader $ text "Penguin"
   |]
@@ -117,9 +117,9 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
   mkExample "Icon" (def
     & subtitle ?~ text "A header may contain an icon before the content")
     [example|
-  pageHeader H2 (def & headerPreContent ?~ icon "plug" def) $ text "Uptime Guarantee"
+  pageHeader H2 (def & headerConfig_preContent ?~ icon "plug" def) $ text "Uptime Guarantee"
 
-  pageHeader H2 (def & headerPreContent ?~ icon "settings" def) $ do
+  pageHeader H2 (def & headerConfig_preContent ?~ icon "settings" def) $ do
     text "Account Settings"
     subHeader $ text "Manage your preferences"
   |]
@@ -130,7 +130,7 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
   pageHeader H2 def $ do
     text "Add calendar event"
     icon "add to calendar" $ def
-      & iconLink |~ True & iconColor |?~ Teal
+      & iconConfig_link |~ True & iconConfig_color |?~ Teal
       & style |~ Style "margin-left: 0.5em"
   |]
 
@@ -157,64 +157,64 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
   mkExample "Disabled" (def
     & subtitle ?~ text "A header may show that it is inactive")
     [example|
-  header (def & headerDisabled |~ True) $ text "Disabled Header"
+  header (def & headerConfig_disabled |~ True) $ text "Disabled Header"
   |]
 
   mkExample "Block" (def
     & subtitle ?~ text "A header can be formatted to appear inside a content block")
     [example|
-  pageHeader H3 (def & headerBlock |~ True) $ text "Block Header"
+  pageHeader H3 (def & headerConfig_block |~ True) $ text "Block Header"
   |]
 
   mkExample "Dividing" (def
     & subtitle ?~ text "A header can be formatted to divide itself from the content below it")
     [example|
   paragraph $ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam at diam mauris. Cras quis purus fringilla, maximus ex volutpat, tristique velit. In in pulvinar tellus, a ultrices erat. Quisque sit amet gravida lectus, vel viverra mauris."
-  pageHeader H3 (def & headerDividing |~ True) $ text "Dividing Header"
+  pageHeader H3 (def & headerConfig_dividing |~ True) $ text "Dividing Header"
   paragraph $ text "Nam diam neque, euismod nec maximus ut, lacinia egestas ex. Etiam condimentum finibus venenatis. Sed commodo lobortis dolor nec molestie. Maecenas commodo metus diam, nec accumsan est consectetur quis. Nunc sed est nunc. Duis turpis ipsum, vulputate non mi placerat, vehicula dignissim est. Integer venenatis tortor nec massa dapibus, sed laoreet eros lacinia."
   |]
 
   mkExample "Attached" (def
     & subtitle ?~ text "A header can be attached to other content such as a segment")
     [example|
-  header (def & headerAttached |?~ TopAttached) $ text "Top Attached"
-  segment (def & segmentAttached |?~ Attached) $ paragraph $ text "Nullam tincidunt, elit et placerat convallis, lacus erat convallis turpis, id tincidunt eros leo ac felis. Nam tincidunt eget ligula vel cursus. Nam eu vehicula lacus. Sed quis tellus nec massa semper condimentum sit amet non libero."
-  header (def & headerAttached |?~ Attached) $ text "Attached"
-  segment (def & segmentAttached |?~ Attached) $ paragraph $ text "Aliquam tincidunt libero nec turpis porta consectetur. Nam eget ex auctor, sagittis diam at, pharetra leo. Phasellus venenatis iaculis sem id posuere."
-  header (def & headerAttached |?~ BottomAttached) $ text "Bottom Attached"
+  header (def & headerConfig_attached |?~ TopAttached) $ text "Top Attached"
+  segment (def & segmentConfig_attached |?~ Attached) $ paragraph $ text "Nullam tincidunt, elit et placerat convallis, lacus erat convallis turpis, id tincidunt eros leo ac felis. Nam tincidunt eget ligula vel cursus. Nam eu vehicula lacus. Sed quis tellus nec massa semper condimentum sit amet non libero."
+  header (def & headerConfig_attached |?~ Attached) $ text "Attached"
+  segment (def & segmentConfig_attached |?~ Attached) $ paragraph $ text "Aliquam tincidunt libero nec turpis porta consectetur. Nam eget ex auctor, sagittis diam at, pharetra leo. Phasellus venenatis iaculis sem id posuere."
+  header (def & headerConfig_attached |?~ BottomAttached) $ text "Bottom Attached"
   |]
 
   mkExample "Floating" (def
     & subtitle ?~ text "A header can sit to the left or right of other content")
     [example|
-  header (def & headerFloated |?~ LeftFloated) $
+  header (def & headerConfig_floated |?~ LeftFloated) $
     text "Go Back"
-  header (def & headerFloated |?~ RightFloated) $
+  header (def & headerConfig_floated |?~ RightFloated) $
     text "Go Forward"
   |]
 
   mkExample "Text Alignment" (def
     & subtitle ?~ text "A header can have its text aligned to a side")
     [example|
-  header (def & headerAligned |?~ RightAligned) $ text "Right"
-  header (def & headerAligned |?~ LeftAligned) $ text "Left"
-  header (def & headerAligned |?~ Justified) $
+  header (def & headerConfig_aligned |?~ RightAligned) $ text "Right"
+  header (def & headerConfig_aligned |?~ LeftAligned) $ text "Left"
+  header (def & headerConfig_aligned |?~ Justified) $
     text "This should take up the full width even if only one line"
-  header (def & headerAligned |?~ CenterAligned) $ text "Center"
+  header (def & headerConfig_aligned |?~ CenterAligned) $ text "Center"
   |]
 
   mkExample "Colored" (def
     & subtitle ?~ text "A header can be formatted with different colors")
     [example|
-  let makeHeader c = header (def & headerColor |?~ c) $ text $ tshow c
+  let makeHeader c = header (def & headerConfig_color |?~ c) $ text $ tshow c
   traverse_ makeHeader [Red .. Grey]
   |]
 
   mkExample "Inverted" (def
     & subtitle ?~ text "A header can have its colors inverted for contrast")
     [example|
-  segment (def & segmentInverted |~ True) $ do
-    let mkHeader c = header (def & headerColor |?~ c & headerInverted |~ True) $
+  segment (def & segmentConfig_inverted |~ True) $ do
+    let mkHeader c = header (def & headerConfig_color |?~ c & headerConfig_inverted |~ True) $
           text $ tshow c
     traverse_ mkHeader [Red .. Grey]
   |]

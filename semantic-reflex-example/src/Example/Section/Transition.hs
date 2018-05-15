@@ -26,22 +26,22 @@ animalUrl :: Reflex t => Text -> Active t Text
 animalUrl a = pure $ "images/animals/" <> a <> ".png"
 
 mkButton :: MonadWidget t m => TransitionType
-         -> m (Event t Transition)
+         -> m (Event t TransitionOrAnimation)
 mkButton t = do
-  run <- button (def & buttonFluid |~ True) $ do
+  run <- button (def & buttonConfig_fluid |~ True) $ do
     text $ T.pack $ spaceBeforeUpper $ show t
   return $ Transition t def <$ run
 
-mkImages :: MonadWidget t m => Text -> Event t Transition -> m ()
+mkImages :: MonadWidget t m => Text -> Event t TransitionOrAnimation -> m ()
 mkImages animal evt = do
-  divider $ def & dividerHidden |~ True
+  divider $ def & dividerConfig_hidden |~ True
   let imgConfig =  def
-        & imageSize |?~ Small & imageShape |?~ Rounded & imageInline |~ True
-  image (imgConfig & imageSpaced |?~ RightSpaced
-                   & action ?~ (def & actionEvent ?~ evt)) $ Left $ Img (animalUrl animal) def
-  image (imgConfig & imageSpaced |?~ LeftSpaced
+        & imageConfig_size |?~ Small & imageConfig_shape |?~ Rounded & imageConfig_inline |~ True
+  image (imgConfig & imageConfig_spaced |?~ RightSpaced
+                   & action ?~ (def & action_event ?~ evt)) $ Left $ Img (animalUrl animal) def
+  image (imgConfig & imageConfig_spaced |?~ LeftSpaced
                    & action ?~ (def
-                   & actionEvent ?~ fmap (\(Transition t c) -> Transition t $ c & transitionCancelling .~ True) evt)) $ Left $ Img (animalUrl animal) def
+                   & action_event ?~ fmap (\(Transition t c) -> Transition t $ c & transitionConfig_cancelling .~ True) evt)) $ Left $ Img (animalUrl animal) def
 
 mkButtons :: MonadWidget t m => Text -> [TransitionType] -> m ()
 mkButtons _ [] = return ()
@@ -52,13 +52,13 @@ mkButtons animal types = do
   evt <- buttons buttonsConfig $ leftmost <$> traverse mkButton types
   mkImages animal evt
   where buttonsConfig = def
-          & buttonsWidth |?~ toEnum (length types)
-          & buttonsSize |?~ Small
+          & buttonsConfig_width |?~ toEnum (length types)
+          & buttonsConfig_size |?~ Small
 
 transitions :: MonadWidget t m => Section t m
 transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/transition.html") $ do
 
-  message (def & messageType |?~ InfoMessage) $ paragraph $ do
+  message (def & messageConfig_type |?~ InfoMessage) $ paragraph $ do
     icon "announcement" def
     text "The implementation of the Transition module does not depend on the Semantic UI or jQuery Javascript libraries."
 
@@ -67,7 +67,7 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
   hscode $(printDefinition oneline stripParens ''TransitionType)
   hscode $(printDefinition oneline stripParens ''AnimationType)
 
-  hscode $(printDefinition id stripParens ''Transition)
+  hscode $(printDefinition id stripParens ''TransitionOrAnimation)
   hscode $(printDefinition id stripParens ''TransitionConfig)
 
   paragraph $ text "If the direction of a transition event is not specified, the transition will flip the current state of the element. Animation events will cause hidden elements to be shown, and they will remain shown after the animation finishes."
@@ -84,8 +84,8 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
       \(anim, animal) -> divClass "center aligned column" $ do
         run <- button (def & style |~ Style "margin-bottom: 1em") $
           text $ tshow anim
-        image (def & imageSize |?~ Small & imageShape |?~ Rounded
-                   & action ?~ (def & actionEvent ?~ (Animation anim def <$ run))) $
+        image (def & imageConfig_size |?~ Small & imageConfig_shape |?~ Rounded
+                   & action ?~ (def & action_event ?~ (Animation anim def <$ run))) $
           Left $ Img (animalUrl animal) def
   |]
 
@@ -97,10 +97,10 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
       \(anim, animal) -> divClass "center aligned column" $ do
         run <- button (def & style |~ Style "margin-bottom: 1em") $
           text $ tshow anim
-        image (def & imageSize |?~ Small & imageShape |?~ Rounded
+        image (def & imageConfig_size |?~ Small & imageConfig_shape |?~ Rounded
                    & action ?~ (def
-                      & actionEvent ?~ (Animation anim (def
-                        & transitionCancelling .~ True) <$ run)))
+                      & action_event ?~ (Animation anim (def
+                        & transitionConfig_cancelling .~ True) <$ run)))
           $ Left $ Img (animalUrl animal) def
   |]
 
@@ -113,15 +113,15 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
     eHide <- button def $ text "Hide"
     return $ leftmost
       [ Transition Instant def <$ eToggle
-      , Transition Instant (def & transitionDirection ?~ In) <$ eShow
-      , Transition Instant (def & transitionDirection ?~ Out) <$ eHide
+      , Transition Instant (def & transitionConfig_direction ?~ In) <$ eShow
+      , Transition Instant (def & transitionConfig_direction ?~ Out) <$ eHide
       ]
 
-  divider $ def & dividerHidden |~ True
+  divider $ def & dividerConfig_hidden |~ True
 
   image (def
-    & imageSize |?~ Small & imageShape |?~ Rounded
-    & action ?~ (def & actionEvent ?~ eTransition)) $ Left $ Img (animalUrl "crocodile") def
+    & imageConfig_size |?~ Small & imageConfig_shape |?~ Rounded
+    & action ?~ (def & action_event ?~ eTransition)) $ Left $ Img (animalUrl "crocodile") def
   |]
 
   mkExample "Scale" (def
