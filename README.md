@@ -4,7 +4,12 @@ This library aims to provide a type safe Haskell reimplementation of Semantic UI
 
 There are no dependencies on upstream JavaScript (either Semantic-UI or jQuery).
 
-Currently only version 2.2 of the Semantic-UI CSS is supported.
+Semantic-UI CSS support:
+
+| Version | Supported | Notes                                   |
+| ------- | --------- | --------------------------------------- |
+| 2.2     | Yes       |                                         |
+| 2.3     | Yes       | [Changes](https://semantic-ui.com/introduction/new.html#/twothree) |
 
 ## Building
 

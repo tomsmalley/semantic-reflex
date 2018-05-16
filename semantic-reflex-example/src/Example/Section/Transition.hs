@@ -87,6 +87,15 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
         image (def & imageConfig_size |?~ Small & imageConfig_shape |?~ Rounded
                    & action ?~ (def & action_event ?~ (Animation anim def <$ run))) $
           Left $ Img (animalUrl animal) def
+
+  divClass "ui six column vertically paded grid" $
+    divClass "center aligned column" $ do
+      run <- button (def & style |~ Style "margin-bottom: 1em") $
+        text "Glow"
+      container (def & style |~ Style "padding: 1em"
+                     & action ?~ (def & action_event ?~ (Animation Glow def <$ run))) $
+        image (def & imageConfig_shape |?~ Rounded) $
+          Left $ Img (animalUrl "lion") def
   |]
 
   mkExample "Cancelling Animations" (def
@@ -102,6 +111,16 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
                       & action_event ?~ (Animation anim (def
                         & transitionConfig_cancelling .~ True) <$ run)))
           $ Left $ Img (animalUrl animal) def
+
+  divClass "ui six column vertically paded grid" $
+    divClass "center aligned column" $ do
+      run <- button (def & style |~ Style "margin-bottom: 1em") $
+        text "Glow"
+      container (def & style |~ Style "padding: 1em"
+                     & action ?~ (def & action_event ?~ (Animation Glow (def
+                       & transitionConfig_cancelling .~ True) <$ run))) $
+        image (def & imageConfig_shape |?~ Rounded) $
+          Left $ Img (animalUrl "lion") def
   |]
 
   mkExample "Transitions" (def
@@ -170,6 +189,12 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
     & subtitle ?~ text "An element can slide in or out")
     [example|
   mkButtons "wolf" [SlideDown, SlideUp, SlideLeft, SlideRight]
+  |]
+
+  mkExample "Zoom" (def
+    & subtitle ?~ text "An element can zoom into view from far away")
+    [example|
+  mkButtons "bat" [Zoom]
   |]
 
   return ()
