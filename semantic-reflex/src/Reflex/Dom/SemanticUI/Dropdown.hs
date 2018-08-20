@@ -76,6 +76,7 @@ data DropdownConfig t = DropdownConfig
   , _dropdownConfig_as :: Dynamic t (Maybe DropdownStyle)
   , _dropdownConfig_unselectable :: Bool
   , _dropdownConfig_closeOnClickSelection :: Bool
+  , _dropdownConfig_searchValue :: Event t Text
   , _dropdownConfig_searchFunction :: Text -> Text -> Bool
   -- ^ The function used for searching items. Should return 'True' when the
   -- first argument is in the second argument. Default implementation is case
@@ -100,6 +101,7 @@ instance Reflex t => Default (DropdownConfig t) where
     , _dropdownConfig_as = pure Nothing
     , _dropdownConfig_unselectable = False
     , _dropdownConfig_closeOnClickSelection = True
+    , _dropdownConfig_searchValue = never
     , _dropdownConfig_searchFunction = \s t -> T.toCaseFold s `T.isInfixOf` T.toCaseFold t
     , _dropdownConfig_elConfig = def
     }
@@ -286,7 +288,7 @@ searchDropdown config@DropdownConfig {..} ini items = mdo
     searchInput <- textInput $ def
       & textInputConfig_attrs |~ "class" =: "search"
       & textInputConfig_placeholder .~ _dropdownConfig_placeholder
-      & textInputConfig_value .~ SetValue ini (Just $ fmap snd $ choose)
+      & textInputConfig_value .~ SetValue ini (Just $ leftmost [_dropdownConfig_searchValue, snd <$> choose])
 
     (menuEl, (elemMap, clickIndex)) <- ui' "div" (dropdownMenuConfig $ updated isOpen) $
       taggedActiveSelectViewListWithKey hover itemMap $ \_ val selected -> do
