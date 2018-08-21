@@ -282,8 +282,8 @@ searchDropdown config@DropdownConfig {..} ini items = mdo
       itemMap = M.fromList . zipWith (\i t -> (Just i, t)) [0..] <$> items
       search = _textInput_value searchInput
 
-  (dropdownElement, (clickIndex, searchInput)) <- ui' "div" elConf $ mdo
-    icon "dropdown" def
+  (dropdownElement, (clickIndex, searchInput, ic)) <- ui' "div" elConf $ mdo
+    ic <- icon' "dropdown" def
 
     searchInput <- textInput $ def
       & textInputConfig_attrs |~ "class" =: "search"
@@ -310,7 +310,7 @@ searchDropdown config@DropdownConfig {..} ini items = mdo
 
     alterScroll menuEl hover elemMap
 
-    pure (clickIndex, searchInput)
+    pure (clickIndex, searchInput, ic)
 
   let nextIndex Nothing _ = 0
       nextIndex (Just i) is = succ i `min` pred (length is)
@@ -349,12 +349,20 @@ searchDropdown config@DropdownConfig {..} ini items = mdo
       Enter -> HTMLElement.blur $ _textInput_element searchInput
       _ -> pure ()
 
+  let textInputEl = Types.uncheckedCastTo Types.HTMLElement $ _textInput_element searchInput
+
+  void $ performEvent $ ffor (current isOpen <@ domEvent Mousedown ic) $
+    \fcs -> liftJSM $ bool HTMLElement.focus HTMLElement.blur fcs textInputEl
+
   -- This delay allows the item click events to pass before closing the dropdown box
   searchInputFocus <- delay 0.1 $ updated $ _textInput_hasFocus searchInput
   initFocus <- sample $ current $ _textInput_hasFocus searchInput
   let closeEvents = if _dropdownConfig_closeOnClickSelection then void clickIndex else never
+      openEvents = foldMap ($ searchInput) [domEvent Click, keydown Space, keydown Enter]
+
   isOpen <- holdUniqDyn <=< holdDyn initFocus $ leftmost
     [ False <$ closeEvents
+    , True <$ openEvents
     , searchInputFocus
     ]
 
