@@ -49,6 +49,7 @@ library
     , jsaddle         >= 0.8.0.0 && < 0.10
     , lens            >= 4.15.2
     , mtl
+    , reflex-dom
     , reflex-dom-core >= 0.4 && < 0.5
     , reflex-dom-nested-routing
     , random

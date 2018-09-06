@@ -22,7 +22,8 @@ import Data.Foldable (for_)
 import Data.Maybe (mapMaybe)
 import Data.Monoid ((<>))
 import Data.Text (Text)
-import Reflex.Dom.SemanticUI
+import Reflex.Dom.SemanticUI hiding (mainWidget)
+import Reflex.Dom (mainWidget)
 import Reflex.Dom.Core (text)
 import Reflex.Dom.Routing.Writer
 import Reflex.Dom.Routing.Nested
@@ -195,7 +196,7 @@ intro = Section "Introduction" blank $ do
 toId :: Text -> Text
 toId = T.intercalate "-" . T.words . T.toLower
 
-main :: JSM ()
+main :: IO ()
 main = mainWidget runWithLoader
 
 testApp :: MonadWidget t m => m ()
