@@ -1,8 +1,0 @@
-resolver: ghc-8.0.2
-system-ghc: true
-
-packages:
-- location: semantic-reflex
-- location: semantic-reflex-example
-
-extra-deps:

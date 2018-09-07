@@ -78,14 +78,13 @@ executable semantic-reflex-example
   default-language: Haskell2010
   build-depends:
       base >= 4.8 && < 4.10
+    , file-embed >= 0.0.10 && < 0.1
     , semantic-reflex-example
-  if !impl(ghcjs)
-    build-depends:
-        semantic-reflex
-      , bytestring
-      , file-embed
   ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
+  if !impl(ghcjs)
+    build-depends: jsaddle-warp
   if impl(ghcjs)
+    build-depends: reflex-dom
     ghc-options: -dedupe
     cpp-options: -DGHCJS_GC_INTERVAL=60000
 

@@ -1,0 +1,1 @@
+nix-shell --attr shells.ghc --run "ghcid -c 'ghci -XCPP -XFlexibleContexts -XFlexibleInstances -XLambdaCase -XMultiParamTypeClasses -XOverloadedStrings -XRankNTypes -XRecordWildCards -XScopedTypeVariables -isemantic-reflex/src -isemantic-reflex-example/src semantic-reflex-example/Main.hs' -W -T main"

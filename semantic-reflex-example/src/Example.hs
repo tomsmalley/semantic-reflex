@@ -18,12 +18,12 @@ module Example where
 
 import Control.Monad (void, (<=<))
 import Data.Bool (bool)
+import Data.FileEmbed
 import Data.Foldable (for_)
 import Data.Maybe (mapMaybe)
 import Data.Monoid ((<>))
 import Data.Text (Text)
-import Reflex.Dom.SemanticUI hiding (mainWidget)
-import Reflex.Dom (mainWidget)
+import Reflex.Dom.SemanticUI
 import Reflex.Dom.Core (text)
 import Reflex.Dom.Routing.Writer
 import Reflex.Dom.Routing.Nested
@@ -31,6 +31,7 @@ import Language.Javascript.JSaddle hiding ((!!))
 
 import qualified Data.Map as M
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 
 import Example.QQ
 import Example.Common
@@ -196,8 +197,13 @@ intro = Section "Introduction" blank $ do
 toId :: Text -> Text
 toId = T.intercalate "-" . T.words . T.toLower
 
-main :: IO ()
-main = mainWidget runWithLoader
+main :: JSM ()
+main = mainWidgetWithHead headContents runWithLoader
+
+headContents :: DomBuilder t m => m ()
+headContents = do
+  elAttr "link" ("rel" =: "stylesheet" <> "href" =: "https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.css") blank
+  el "style" $ text $(makeRelativeToProject "resources/styling.css" >>= embedStringFile)
 
 testApp :: MonadWidget t m => m ()
 testApp = do

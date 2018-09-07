@@ -33,12 +33,9 @@ A compiled version of the code in the `example` folder is available in `docs/ind
 The example app can be run by GHC or GHCJS. For GHC it uses jsaddle-warp to run
 a warp server, this is useful for development:
 
-    $ nix-shell --attr env
-    [nix-shell]$ ghcid -c 'stack ghci semantic-reflex semantic-reflex-example' -W -T Main.main
+    $ ./repl
 
-We use stack ghci to load multiple targets, so we don't have to reload ghci when
-working on the library and examples at the same time.
-This will print the url of the warp server where the app is running.
+Provided everything compiles, you should be able to point your browser at `localhost:3911` and see the examples.
 
 For compiling for GHCJS just run `make`, and the result will be copied into the
 `docs` folder.
