@@ -71,7 +71,7 @@ library
     , ScopedTypeVariables
 
   build-depends:
-      base              >= 4.8 && < 4.11
+      base              >= 4.8 && < 4.12
     , bytestring
     , containers
     -- >= 0.5.9
@@ -80,7 +80,7 @@ library
     , file-embed        >= 0.0.10 && < 0.1
     , ghcjs-dom
     , jsaddle           >= 0.8.0.0 && < 0.10
-    , lens              >= 4.15.2 && < 4.16
+    , lens              >= 4.15.2
     , mtl
     , random
     , reflex            >= 0.5 && < 0.6
