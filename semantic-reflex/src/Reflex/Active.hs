@@ -132,12 +132,15 @@ instance Reflex t => Applicative (Active t) where
   Dyn f <*> Static a = Dyn (f <*> pure a)
   Dyn f <*> Dyn a = Dyn (f <*> a)
 
+instance (Reflex t, Semigroup a) => Semigroup (Active t a) where
+  Static a <> Static b = Static (a <> b)
+  Static a <> Dyn b = Dyn (pure a <> b)
+  Dyn a <> Static b = Dyn (a <> pure b)
+  Dyn a <> Dyn b = Dyn (a <> b)
+
 instance (Reflex t, Monoid a) => Monoid (Active t a) where
   mempty = Static mempty
-  Static a `mappend` Static b = Static (a `mappend` b)
-  Static a `mappend` Dyn b = Dyn (pure a `mappend` b)
-  Dyn a `mappend` Static b = Dyn (a `mappend` pure b)
-  Dyn a `mappend` Dyn b = Dyn (a `mappend` b)
+  mappend = (<>)
   mconcat = distributeListOverActiveWith mappend mconcat
 
 instance IsString a => IsString (Active t a) where
