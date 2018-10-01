@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GADTs #-}
@@ -138,9 +139,11 @@ instance (Reflex t, Semigroup a) => Semigroup (Active t a) where
   Dyn a <> Static b = Dyn (a <> pure b)
   Dyn a <> Dyn b = Dyn (a <> b)
 
-instance (Reflex t, Monoid a) => Monoid (Active t a) where
+instance (Reflex t, Semigroup a, Monoid a) => Monoid (Active t a) where
   mempty = Static mempty
+#if !(MIN_VERSION_base(4,11,0))
   mappend = (<>)
+#endif
   mconcat = distributeListOverActiveWith mappend mconcat
 
 instance IsString a => IsString (Active t a) where
@@ -168,4 +171,3 @@ distributeListOverActiveWith joinB f as
       (pure $ f consts)
       (distributeListOverDynWith f dynamics)
   where (consts, dynamics) = unzipActive as
-
