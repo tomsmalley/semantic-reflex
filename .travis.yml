@@ -1,0 +1,9 @@
+language: nix
+
+nix: 2.0.4
+
+sudo: yes
+
+script:
+  - echo "YES" | ./reflex-platform/setup-nix
+  - make
