@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 -- | Semantic-UI Header elements
 --
 -- https://semantic-ui.com/elements/header.html
@@ -32,11 +34,7 @@ module Reflex.Dom.SemanticUI.Header
 
   ) where
 
-#ifdef USE_TEMPLATE_HASKELL
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-#else
-import Control.Lens.Type
-#endif
 
 import Data.Default
 import Data.Semigroup ((<>))
@@ -100,9 +98,7 @@ data HeaderConfig t m = HeaderConfig
   -- main content to be placed into a div with class "content".
   , _headerConfig_elConfig   :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''HeaderConfig
-#endif
 
 instance HasElConfig t (HeaderConfig t m) where
   elConfig = headerConfig_elConfig
@@ -189,7 +185,3 @@ subHeader' = divClass' "sub header"
 -- | Create a subheader. A subheader can be placed into a 'header's content.
 subHeader :: UI t m => m a -> m a
 subHeader = fmap snd . subHeader'
-
-#ifndef USE_TEMPLATE_HASKELL
-#include "Header.th.hs"
-#endif

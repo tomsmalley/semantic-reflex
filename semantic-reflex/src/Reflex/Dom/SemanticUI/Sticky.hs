@@ -1,12 +1,9 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Reflex.Dom.SemanticUI.Sticky where
 
-#ifdef USE_TEMPLATE_HASKELL
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-#else
-import Control.Lens.Type
-#endif
 
 import Control.Monad
 import Data.Default
@@ -33,9 +30,7 @@ data StickyConfig t = StickyConfig
   { _stickyConfig_pushing :: Bool
   , _stickyConfig_elConfig :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''StickyConfig
-#endif
 
 instance HasElConfig t (StickyConfig t) where
   elConfig = stickyConfig_elConfig
@@ -142,7 +137,3 @@ sticky
   :: (MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace, UI t m)
   => StickyConfig t -> m a -> m a
 sticky conf = fmap snd . sticky' conf
-
-#ifndef USE_TEMPLATE_HASKELL
-#include "Sticky.th.hs"
-#endif

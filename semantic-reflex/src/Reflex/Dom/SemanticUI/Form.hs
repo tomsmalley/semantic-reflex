@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- | Semantic UI forms.
 -- https://semantic-ui.com/collections/form.html
@@ -12,12 +13,7 @@ module Reflex.Dom.SemanticUI.Form
 
   ) where
 
-#ifdef USE_TEMPLATE_HASKELL
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-#else
-import Control.Lens.Type
-import Control.Lens.Iso
-#endif
 
 import Control.Lens ((<&>))
 import Control.Monad (void)
@@ -45,9 +41,7 @@ import qualified GHCJS.DOM.EventTarget as EventTarget
 data FormConfig t = FormConfig
   { _formConfig_elConfig :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''FormConfig
-#endif
 
 instance HasElConfig t (FormConfig t) where
   elConfig = formConfig_elConfig
@@ -114,7 +108,3 @@ form
   :: (DOM.MonadJSM m, DOM.MonadJSM (Performable m), DomBuilderSpace m ~ GhcjsDomSpace, UI t m)
   => FormConfig t -> m a -> m a
 form config = fmap snd . form' config
-
-#ifndef USE_TEMPLATE_HASKELL
-#include "Form.th.hs"
-#endif

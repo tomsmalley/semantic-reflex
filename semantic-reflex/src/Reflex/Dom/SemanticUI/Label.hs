@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Reflex.Dom.SemanticUI.Label
   (
 
@@ -27,11 +29,7 @@ module Reflex.Dom.SemanticUI.Label
 
   ) where
 
-#ifdef USE_TEMPLATE_HASKELL
 import Control.Lens.TH (makeLenses, makeLensesWith, lensRules, simpleLenses)
-#else
-import Control.Lens.Type
-#endif
 
 import Control.Monad (void)
 import Data.Default
@@ -79,9 +77,7 @@ data LabelAttached = LabelAttached
   { _labelAttached_vertically :: VerticalAttached
   , _labelAttached_horizontally :: Maybe HorizontalAttached
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLenses ''LabelAttached
-#endif
 
 instance Default LabelAttached where
   def = LabelAttached TopAttached Nothing
@@ -115,9 +111,7 @@ data LabelConfig t = LabelConfig
   , _labelConfig_link :: Bool
   , _labelConfig_elConfig :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''LabelConfig
-#endif
 
 instance HasElConfig t (LabelConfig t) where
   elConfig = labelConfig_elConfig
@@ -176,7 +170,3 @@ label' config@LabelConfig {..} = ui' elType elConf
 
 label :: UI t m => LabelConfig t -> m a -> m a
 label c = fmap snd . label' c
-
-#ifndef USE_TEMPLATE_HASKELL
-#include "Label.th.hs"
-#endif

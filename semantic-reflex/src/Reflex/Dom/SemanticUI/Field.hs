@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 -- | Semantic UI fields.
 -- https://semantic-ui.com/collections/form.html
 module Reflex.Dom.SemanticUI.Field
@@ -11,11 +13,7 @@ module Reflex.Dom.SemanticUI.Field
 
   ) where
 
-#ifdef USE_TEMPLATE_HASKELL
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-#else
-import Control.Lens.Type
-#endif
 
 import Data.Default
 import Data.Semigroup ((<>))
@@ -30,9 +28,7 @@ data FieldConfig t = FieldConfig
   { _fieldConfig_error :: Active t Bool
   , _fieldConfig_elConfig :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''FieldConfig
-#endif
 
 instance HasElConfig t (FieldConfig t) where
   elConfig = fieldConfig_elConfig
@@ -63,7 +59,3 @@ field' config@FieldConfig {..} content
 -- | Field UI Element.
 field :: UI t m => FieldConfig t -> m a -> m a
 field config = fmap snd . field' config
-
-#ifndef USE_TEMPLATE_HASKELL
-#include "Field.th.hs"
-#endif
