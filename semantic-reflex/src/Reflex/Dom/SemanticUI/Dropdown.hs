@@ -170,7 +170,7 @@ dropdown config@DropdownConfig {..} ini items = mdo
       else for_ f $ \k -> void $ divClass "text" $ taggedActive id (void . dyn)
         $ fromMaybe blank . M.lookup k <$> items
 
-    (menuEl, (clickItem, dSelection)) <- ui' "div" (dropdownMenuConfig eOpen) $ do
+    (menuEl, (clickItem, dSelection)) <- ui' "div" (dropdownMenuConfig $ updated isOpen) $ do
       (elemMap, eMaybeK) <- taggedActiveSelectViewListWithKey dSelection
         (M.mapKeysMonotonic pure <$> items) $ \_k v dSelected -> do
           let itemConf = def & classes .~ Dyn dClasses
@@ -221,8 +221,6 @@ dropdown config@DropdownConfig {..} ini items = mdo
     , not <$> tag (current isOpen) toggleEvents
     ]
 
-  let eOpen = updated isOpen
-
   pure $ Dropdown
     { _dropdown_value = selection
     , _dropdown_blur = closeEvents
@@ -232,16 +230,16 @@ dropdown config@DropdownConfig {..} ini items = mdo
 -- | Dropdown menu element config, this hides/shows the menu according to the
 -- input event
 dropdownMenuConfig :: Reflex t => Event t Bool -> ActiveElConfig t
-dropdownMenuConfig eOpen = def
+dropdownMenuConfig transition = def
   & classes |~ "menu"
-  & action ?~ (def
-    & action_initialDirection .~ Out
-    & action_forceVisible .~ True
-    & action_event ?~ fmap mkTransition eOpen)
-  where mkTransition open = Transition SlideDown $ def
+  & action ?~ def
+    { _action_initialDirection = Out
+    , _action_transition = mkTransition <$> transition
+    , _action_transitionStateClasses = forceVisible
+    }
+  where mkTransition open = Transition SlideDown (Just $ if open then In else Out) $ def
           & transitionConfig_duration .~ 0.2
           & transitionConfig_cancelling .~ True
-          & transitionConfig_direction ?~ if open then In else Out
 
 -- | Alter the scroll position of the dropdown menu when the selected item
 -- is outside of its bounds

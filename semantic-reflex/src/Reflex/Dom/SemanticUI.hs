@@ -32,6 +32,7 @@ import Reflex.Dom.SemanticUI.Progress   as Components
 --import Reflex.Dom.SemanticUI.RadioGroup as Components
 import Reflex.Dom.SemanticUI.Rail       as Components
 import Reflex.Dom.SemanticUI.Segment    as Components
+import Reflex.Dom.SemanticUI.Sidebar    as Components
 import Reflex.Dom.SemanticUI.Sticky     as Components
 import Reflex.Dom.SemanticUI.Table      as Components
 import Reflex.Dom.SemanticUI.Transition as Components

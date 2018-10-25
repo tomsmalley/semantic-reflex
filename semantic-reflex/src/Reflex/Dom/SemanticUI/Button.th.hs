@@ -1,1295 +1,1295 @@
 -- src/Reflex/Dom/SemanticUI/Button.hs:96:1-65: Splicing declarations
 buttonsConfig_attached ::
-  forall t_aUAj.
-  Lens' (ButtonsConfig t_aUAj) (Active t_aUAj (Maybe VerticalAttached))
+  forall t_aTlw.
+  Lens' (ButtonsConfig t_aTlw) (Active t_aTlw (Maybe VerticalAttached))
 buttonsConfig_attached
-  f_aUEZ
-  (ButtonsConfig x1_aUF0
-                 x2_aUF1
-                 x3_aUF2
-                 x4_aUF3
-                 x5_aUF4
-                 x6_aUF5
-                 x7_aUF6
-                 x8_aUF7
-                 x9_aUF8
-                 x10_aUF9
-                 x11_aUFa)
+  f_aTwM
+  (ButtonsConfig x1_aTwN
+                 x2_aTwO
+                 x3_aTwP
+                 x4_aTwQ
+                 x5_aTwR
+                 x6_aTwS
+                 x7_aTwT
+                 x8_aTwU
+                 x9_aTwV
+                 x10_aTwX
+                 x11_aTwY)
   = fmap
-      (\ y1_aUFb
+      (\ y1_aTx0
          -> ButtonsConfig
-              x1_aUF0
-              x2_aUF1
-              x3_aUF2
-              x4_aUF3
-              x5_aUF4
-              x6_aUF5
-              x7_aUF6
-              y1_aUFb
-              x9_aUF8
-              x10_aUF9
-              x11_aUFa)
-      (f_aUEZ x8_aUF7)
+              x1_aTwN
+              x2_aTwO
+              x3_aTwP
+              x4_aTwQ
+              x5_aTwR
+              x6_aTwS
+              x7_aTwT
+              y1_aTx0
+              x9_aTwV
+              x10_aTwX
+              x11_aTwY)
+      (f_aTwM x8_aTwU)
 {-# INLINE buttonsConfig_attached #-}
 buttonsConfig_basic ::
-  forall t_aUAj. Lens' (ButtonsConfig t_aUAj) (Active t_aUAj Bool)
+  forall t_aTlw. Lens' (ButtonsConfig t_aTlw) (Active t_aTlw Bool)
 buttonsConfig_basic
-  f_aUFc
-  (ButtonsConfig x1_aUFd
-                 x2_aUFe
-                 x3_aUFf
-                 x4_aUFg
-                 x5_aUFh
-                 x6_aUFi
-                 x7_aUFj
-                 x8_aUFk
-                 x9_aUFl
-                 x10_aUFm
-                 x11_aUFn)
+  f_aTx3
+  (ButtonsConfig x1_aTx4
+                 x2_aTx5
+                 x3_aTx6
+                 x4_aTx7
+                 x5_aTx8
+                 x6_aTxb
+                 x7_aTxc
+                 x8_aTxd
+                 x9_aTxe
+                 x10_aTxf
+                 x11_aTxg)
   = fmap
-      (\ y1_aUFo
+      (\ y1_aTxh
          -> ButtonsConfig
-              y1_aUFo
-              x2_aUFe
-              x3_aUFf
-              x4_aUFg
-              x5_aUFh
-              x6_aUFi
-              x7_aUFj
-              x8_aUFk
-              x9_aUFl
-              x10_aUFm
-              x11_aUFn)
-      (f_aUFc x1_aUFd)
+              y1_aTxh
+              x2_aTx5
+              x3_aTx6
+              x4_aTx7
+              x5_aTx8
+              x6_aTxb
+              x7_aTxc
+              x8_aTxd
+              x9_aTxe
+              x10_aTxf
+              x11_aTxg)
+      (f_aTx3 x1_aTx4)
 {-# INLINE buttonsConfig_basic #-}
 buttonsConfig_color ::
-  forall t_aUAj.
-  Lens' (ButtonsConfig t_aUAj) (Active t_aUAj (Maybe Color))
+  forall t_aTlw.
+  Lens' (ButtonsConfig t_aTlw) (Active t_aTlw (Maybe Color))
 buttonsConfig_color
-  f_aUFp
-  (ButtonsConfig x1_aUFq
-                 x2_aUFr
-                 x3_aUFs
-                 x4_aUFt
-                 x5_aUFu
-                 x6_aUFv
-                 x7_aUFw
-                 x8_aUFx
-                 x9_aUFy
-                 x10_aUFz
-                 x11_aUFA)
+  f_aTxk
+  (ButtonsConfig x1_aTxl
+                 x2_aTxm
+                 x3_aTxn
+                 x4_aTxo
+                 x5_aTxp
+                 x6_aTxq
+                 x7_aTxr
+                 x8_aTxs
+                 x9_aTxt
+                 x10_aTxu
+                 x11_aTxv)
   = fmap
-      (\ y1_aUFB
+      (\ y1_aTxx
          -> ButtonsConfig
-              x1_aUFq
-              x2_aUFr
-              x3_aUFs
-              x4_aUFt
-              x5_aUFu
-              y1_aUFB
-              x7_aUFw
-              x8_aUFx
-              x9_aUFy
-              x10_aUFz
-              x11_aUFA)
-      (f_aUFp x6_aUFv)
+              x1_aTxl
+              x2_aTxm
+              x3_aTxn
+              x4_aTxo
+              x5_aTxp
+              y1_aTxx
+              x7_aTxr
+              x8_aTxs
+              x9_aTxt
+              x10_aTxu
+              x11_aTxv)
+      (f_aTxk x6_aTxq)
 {-# INLINE buttonsConfig_color #-}
 buttonsConfig_compact ::
-  forall t_aUAj. Lens' (ButtonsConfig t_aUAj) (Active t_aUAj Bool)
+  forall t_aTlw. Lens' (ButtonsConfig t_aTlw) (Active t_aTlw Bool)
 buttonsConfig_compact
-  f_aUFC
-  (ButtonsConfig x1_aUFD
-                 x2_aUFE
-                 x3_aUFF
-                 x4_aUFG
-                 x5_aUFH
-                 x6_aUFI
-                 x7_aUFJ
-                 x8_aUFK
-                 x9_aUFL
-                 x10_aUFM
-                 x11_aUFN)
+  f_aTxD
+  (ButtonsConfig x1_aTxE
+                 x2_aTxF
+                 x3_aTxG
+                 x4_aTxH
+                 x5_aTxI
+                 x6_aTxJ
+                 x7_aTxK
+                 x8_aTxL
+                 x9_aTxM
+                 x10_aTxN
+                 x11_aTxO)
   = fmap
-      (\ y1_aUFO
+      (\ y1_aTxP
          -> ButtonsConfig
-              x1_aUFD
-              x2_aUFE
-              x3_aUFF
-              x4_aUFG
-              y1_aUFO
-              x6_aUFI
-              x7_aUFJ
-              x8_aUFK
-              x9_aUFL
-              x10_aUFM
-              x11_aUFN)
-      (f_aUFC x5_aUFH)
+              x1_aTxE
+              x2_aTxF
+              x3_aTxG
+              x4_aTxH
+              y1_aTxP
+              x6_aTxJ
+              x7_aTxK
+              x8_aTxL
+              x9_aTxM
+              x10_aTxN
+              x11_aTxO)
+      (f_aTxD x5_aTxI)
 {-# INLINE buttonsConfig_compact #-}
 buttonsConfig_elConfig ::
-  forall t_aUAj. Lens' (ButtonsConfig t_aUAj) (ActiveElConfig t_aUAj)
+  forall t_aTlw. Lens' (ButtonsConfig t_aTlw) (ActiveElConfig t_aTlw)
 buttonsConfig_elConfig
-  f_aUFP
-  (ButtonsConfig x1_aUFQ
-                 x2_aUFR
-                 x3_aUFT
-                 x4_aUFV
-                 x5_aUFW
-                 x6_aUFX
-                 x7_aUFY
-                 x8_aUFZ
-                 x9_aUG0
-                 x10_aUG1
-                 x11_aUG2)
+  f_aTxS
+  (ButtonsConfig x1_aTxT
+                 x2_aTxU
+                 x3_aTxV
+                 x4_aTxW
+                 x5_aTxZ
+                 x6_aTy0
+                 x7_aTy1
+                 x8_aTy2
+                 x9_aTy3
+                 x10_aTy4
+                 x11_aTy5)
   = fmap
-      (\ y1_aUG3
+      (\ y1_aTy6
          -> ButtonsConfig
-              x1_aUFQ
-              x2_aUFR
-              x3_aUFT
-              x4_aUFV
-              x5_aUFW
-              x6_aUFX
-              x7_aUFY
-              x8_aUFZ
-              x9_aUG0
-              x10_aUG1
-              y1_aUG3)
-      (f_aUFP x11_aUG2)
+              x1_aTxT
+              x2_aTxU
+              x3_aTxV
+              x4_aTxW
+              x5_aTxZ
+              x6_aTy0
+              x7_aTy1
+              x8_aTy2
+              x9_aTy3
+              x10_aTy4
+              y1_aTy6)
+      (f_aTxS x11_aTy5)
 {-# INLINE buttonsConfig_elConfig #-}
 buttonsConfig_floated ::
-  forall t_aUAj.
-  Lens' (ButtonsConfig t_aUAj) (Active t_aUAj (Maybe Floated))
+  forall t_aTlw.
+  Lens' (ButtonsConfig t_aTlw) (Active t_aTlw (Maybe Floated))
 buttonsConfig_floated
-  f_aUG4
-  (ButtonsConfig x1_aUG5
-                 x2_aUG6
-                 x3_aUG7
-                 x4_aUG8
-                 x5_aUG9
-                 x6_aUGa
-                 x7_aUGb
-                 x8_aUGc
-                 x9_aUGd
-                 x10_aUGe
-                 x11_aUGf)
+  f_aTy9
+  (ButtonsConfig x1_aTya
+                 x2_aTyb
+                 x3_aTyc
+                 x4_aTyd
+                 x5_aTye
+                 x6_aTyf
+                 x7_aTyg
+                 x8_aTyh
+                 x9_aTyj
+                 x10_aTyk
+                 x11_aTym)
   = fmap
-      (\ y1_aUGg
+      (\ y1_aTyn
          -> ButtonsConfig
-              x1_aUG5
-              x2_aUG6
-              x3_aUG7
-              x4_aUG8
-              x5_aUG9
-              x6_aUGa
-              x7_aUGb
-              x8_aUGc
-              x9_aUGd
-              y1_aUGg
-              x11_aUGf)
-      (f_aUG4 x10_aUGe)
+              x1_aTya
+              x2_aTyb
+              x3_aTyc
+              x4_aTyd
+              x5_aTye
+              x6_aTyf
+              x7_aTyg
+              x8_aTyh
+              x9_aTyj
+              y1_aTyn
+              x11_aTym)
+      (f_aTy9 x10_aTyk)
 {-# INLINE buttonsConfig_floated #-}
 buttonsConfig_icon ::
-  forall t_aUAj. Lens' (ButtonsConfig t_aUAj) (Active t_aUAj Bool)
+  forall t_aTlw. Lens' (ButtonsConfig t_aTlw) (Active t_aTlw Bool)
 buttonsConfig_icon
-  f_aUGh
-  (ButtonsConfig x1_aUGi
-                 x2_aUGk
-                 x3_aUGl
-                 x4_aUGm
-                 x5_aUGn
-                 x6_aUGo
-                 x7_aUGp
-                 x8_aUGq
-                 x9_aUGr
-                 x10_aUGs
-                 x11_aUGt)
+  f_aTyp
+  (ButtonsConfig x1_aTyq
+                 x2_aTyr
+                 x3_aTys
+                 x4_aTyt
+                 x5_aTyu
+                 x6_aTyv
+                 x7_aTyw
+                 x8_aTyx
+                 x9_aTyy
+                 x10_aTyz
+                 x11_aTyA)
   = fmap
-      (\ y1_aUGu
+      (\ y1_aTyB
          -> ButtonsConfig
-              x1_aUGi
-              y1_aUGu
-              x3_aUGl
-              x4_aUGm
-              x5_aUGn
-              x6_aUGo
-              x7_aUGp
-              x8_aUGq
-              x9_aUGr
-              x10_aUGs
-              x11_aUGt)
-      (f_aUGh x2_aUGk)
+              x1_aTyq
+              y1_aTyB
+              x3_aTys
+              x4_aTyt
+              x5_aTyu
+              x6_aTyv
+              x7_aTyw
+              x8_aTyx
+              x9_aTyy
+              x10_aTyz
+              x11_aTyA)
+      (f_aTyp x2_aTyr)
 {-# INLINE buttonsConfig_icon #-}
 buttonsConfig_labeledIcon ::
-  forall t_aUAj. Lens' (ButtonsConfig t_aUAj) (Active t_aUAj Bool)
+  forall t_aTlw. Lens' (ButtonsConfig t_aTlw) (Active t_aTlw Bool)
 buttonsConfig_labeledIcon
-  f_aUGv
-  (ButtonsConfig x1_aUGw
-                 x2_aUGx
-                 x3_aUGy
-                 x4_aUGz
-                 x5_aUGA
-                 x6_aUGB
-                 x7_aUGC
-                 x8_aUGD
-                 x9_aUGE
-                 x10_aUGF
-                 x11_aUGG)
+  f_aTyE
+  (ButtonsConfig x1_aTyF
+                 x2_aTyG
+                 x3_aTyH
+                 x4_aTyI
+                 x5_aTyJ
+                 x6_aTyK
+                 x7_aTyL
+                 x8_aTyM
+                 x9_aTyN
+                 x10_aTyO
+                 x11_aTyP)
   = fmap
-      (\ y1_aUGH
+      (\ y1_aTyQ
          -> ButtonsConfig
-              x1_aUGw
-              x2_aUGx
-              y1_aUGH
-              x4_aUGz
-              x5_aUGA
-              x6_aUGB
-              x7_aUGC
-              x8_aUGD
-              x9_aUGE
-              x10_aUGF
-              x11_aUGG)
-      (f_aUGv x3_aUGy)
+              x1_aTyF
+              x2_aTyG
+              y1_aTyQ
+              x4_aTyI
+              x5_aTyJ
+              x6_aTyK
+              x7_aTyL
+              x8_aTyM
+              x9_aTyN
+              x10_aTyO
+              x11_aTyP)
+      (f_aTyE x3_aTyH)
 {-# INLINE buttonsConfig_labeledIcon #-}
 buttonsConfig_size ::
-  forall t_aUAj.
-  Lens' (ButtonsConfig t_aUAj) (Active t_aUAj (Maybe Size))
+  forall t_aTlw.
+  Lens' (ButtonsConfig t_aTlw) (Active t_aTlw (Maybe Size))
 buttonsConfig_size
-  f_aUGI
-  (ButtonsConfig x1_aUGJ
-                 x2_aUGK
-                 x3_aUGL
-                 x4_aUGM
-                 x5_aUGN
-                 x6_aUGP
-                 x7_aUGQ
-                 x8_aUGR
-                 x9_aUGS
-                 x10_aUGT
-                 x11_aUGU)
+  f_aTyU
+  (ButtonsConfig x1_aTyV
+                 x2_aTyW
+                 x3_aTyX
+                 x4_aTyY
+                 x5_aTyZ
+                 x6_aTz0
+                 x7_aTz1
+                 x8_aTz2
+                 x9_aTz3
+                 x10_aTz4
+                 x11_aTz5)
   = fmap
-      (\ y1_aUGV
+      (\ y1_aTz6
          -> ButtonsConfig
-              x1_aUGJ
-              x2_aUGK
-              x3_aUGL
-              x4_aUGM
-              x5_aUGN
-              x6_aUGP
-              y1_aUGV
-              x8_aUGR
-              x9_aUGS
-              x10_aUGT
-              x11_aUGU)
-      (f_aUGI x7_aUGQ)
+              x1_aTyV
+              x2_aTyW
+              x3_aTyX
+              x4_aTyY
+              x5_aTyZ
+              x6_aTz0
+              y1_aTz6
+              x8_aTz2
+              x9_aTz3
+              x10_aTz4
+              x11_aTz5)
+      (f_aTyU x7_aTz1)
 {-# INLINE buttonsConfig_size #-}
 buttonsConfig_vertical ::
-  forall t_aUAj. Lens' (ButtonsConfig t_aUAj) (Active t_aUAj Bool)
+  forall t_aTlw. Lens' (ButtonsConfig t_aTlw) (Active t_aTlw Bool)
 buttonsConfig_vertical
-  f_aUGW
-  (ButtonsConfig x1_aUGY
-                 x2_aUGZ
-                 x3_aUH0
-                 x4_aUH1
-                 x5_aUH2
-                 x6_aUH3
-                 x7_aUH4
-                 x8_aUH5
-                 x9_aUH6
-                 x10_aUH7
-                 x11_aUH8)
+  f_aTz8
+  (ButtonsConfig x1_aTz9
+                 x2_aTza
+                 x3_aTzb
+                 x4_aTzc
+                 x5_aTzd
+                 x6_aTze
+                 x7_aTzf
+                 x8_aTzg
+                 x9_aTzh
+                 x10_aTzi
+                 x11_aTzj)
   = fmap
-      (\ y1_aUH9
+      (\ y1_aTzk
          -> ButtonsConfig
-              x1_aUGY
-              x2_aUGZ
-              x3_aUH0
-              y1_aUH9
-              x5_aUH2
-              x6_aUH3
-              x7_aUH4
-              x8_aUH5
-              x9_aUH6
-              x10_aUH7
-              x11_aUH8)
-      (f_aUGW x4_aUH1)
+              x1_aTz9
+              x2_aTza
+              x3_aTzb
+              y1_aTzk
+              x5_aTzd
+              x6_aTze
+              x7_aTzf
+              x8_aTzg
+              x9_aTzh
+              x10_aTzi
+              x11_aTzj)
+      (f_aTz8 x4_aTzc)
 {-# INLINE buttonsConfig_vertical #-}
 buttonsConfig_width ::
-  forall t_aUAj.
-  Lens' (ButtonsConfig t_aUAj) (Active t_aUAj (Maybe Width))
+  forall t_aTlw.
+  Lens' (ButtonsConfig t_aTlw) (Active t_aTlw (Maybe Width))
 buttonsConfig_width
-  f_aUHb
-  (ButtonsConfig x1_aUHc
-                 x2_aUHd
-                 x3_aUHe
-                 x4_aUHf
-                 x5_aUHg
-                 x6_aUHh
-                 x7_aUHi
-                 x8_aUHj
-                 x9_aUHk
-                 x10_aUHl
-                 x11_aUHm)
+  f_aTzo
+  (ButtonsConfig x1_aTzp
+                 x2_aTzq
+                 x3_aTzr
+                 x4_aTzs
+                 x5_aTzt
+                 x6_aTzu
+                 x7_aTzv
+                 x8_aTzw
+                 x9_aTzx
+                 x10_aTzy
+                 x11_aTzz)
   = fmap
-      (\ y1_aUHn
+      (\ y1_aTzA
          -> ButtonsConfig
-              x1_aUHc
-              x2_aUHd
-              x3_aUHe
-              x4_aUHf
-              x5_aUHg
-              x6_aUHh
-              x7_aUHi
-              x8_aUHj
-              y1_aUHn
-              x10_aUHl
-              x11_aUHm)
-      (f_aUHb x9_aUHk)
+              x1_aTzp
+              x2_aTzq
+              x3_aTzr
+              x4_aTzs
+              x5_aTzt
+              x6_aTzu
+              x7_aTzv
+              x8_aTzw
+              y1_aTzA
+              x10_aTzy
+              x11_aTzz)
+      (f_aTzo x9_aTzx)
 {-# INLINE buttonsConfig_width #-}
 -- src/Reflex/Dom/SemanticUI/Button.hs:142:1-71: Splicing declarations
 labeledButtonConfig_elConfig ::
-  forall t_aUM0.
-  Lens' (LabeledButtonConfig t_aUM0) (ActiveElConfig t_aUM0)
+  forall t_aTNd.
+  Lens' (LabeledButtonConfig t_aTNd) (ActiveElConfig t_aTNd)
 labeledButtonConfig_elConfig
-  f_aV6F
-  (LabeledButtonConfig x1_aV6G x2_aV6H)
+  f_aUuX
+  (LabeledButtonConfig x1_aUuY x2_aUuZ)
   = fmap
-      (\ y1_aV6I -> LabeledButtonConfig x1_aV6G y1_aV6I) (f_aV6F x2_aV6H)
+      (\ y1_aUv0 -> LabeledButtonConfig x1_aUuY y1_aUv0) (f_aUuX x2_aUuZ)
 {-# INLINE labeledButtonConfig_elConfig #-}
 labeledButtonConfig_side ::
-  forall t_aUM0.
-  Lens' (LabeledButtonConfig t_aUM0) (Active t_aUM0 Labeled)
+  forall t_aTNd.
+  Lens' (LabeledButtonConfig t_aTNd) (Active t_aTNd Labeled)
 labeledButtonConfig_side
-  f_aV6J
-  (LabeledButtonConfig x1_aV6K x2_aV6L)
+  f_aUv4
+  (LabeledButtonConfig x1_aUv5 x2_aUv6)
   = fmap
-      (\ y1_aV6M -> LabeledButtonConfig y1_aV6M x2_aV6L) (f_aV6J x1_aV6K)
+      (\ y1_aUv7 -> LabeledButtonConfig y1_aUv7 x2_aUv6) (f_aUv4 x1_aUv5)
 {-# INLINE labeledButtonConfig_side #-}
 -- src/Reflex/Dom/SemanticUI/Button.hs:175:1-66: Splicing declarations
 animatedButton_hiddenContent ::
-  forall t_aV83 m_aV84.
-  Lens' (AnimatedButton t_aV83 m_aV84) (m_aV84 ())
+  forall t_aUvT m_aUvU.
+  Lens' (AnimatedButton t_aUvT m_aUvU) (m_aUvU ())
 animatedButton_hiddenContent
-  f_aVDc
-  (AnimatedButton x1_aVDd x2_aVDe)
+  f_aV2y
+  (AnimatedButton x1_aV2z x2_aV2A)
   = fmap
-      (\ y1_aVDf -> AnimatedButton x1_aVDd y1_aVDf) (f_aVDc x2_aVDe)
+      (\ y1_aV2B -> AnimatedButton x1_aV2z y1_aV2B) (f_aV2y x2_aV2A)
 {-# INLINE animatedButton_hiddenContent #-}
 animatedButton_type ::
-  forall t_aV83 m_aV84.
-  Lens' (AnimatedButton t_aV83 m_aV84) (Active t_aV83 AnimatedButtonType)
-animatedButton_type f_aVDg (AnimatedButton x1_aVDh x2_aVDi)
+  forall t_aUvT m_aUvU.
+  Lens' (AnimatedButton t_aUvT m_aUvU) (Active t_aUvT AnimatedButtonType)
+animatedButton_type f_aV2C (AnimatedButton x1_aV2D x2_aV2E)
   = fmap
-      (\ y1_aVDj -> AnimatedButton y1_aVDj x2_aVDi) (f_aVDg x1_aVDh)
+      (\ y1_aV2F -> AnimatedButton y1_aV2F x2_aV2E) (f_aV2C x1_aV2D)
 {-# INLINE animatedButton_type #-}
 -- src/Reflex/Dom/SemanticUI/Button.hs:226:1-64: Splicing declarations
 buttonConfig_animated ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Maybe (AnimatedButton t_aVDl m_aVDm))
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Maybe (AnimatedButton t_aVus m_aVut))
 buttonConfig_animated
-  f_aW5S
-  (ButtonConfig x1_aW5T
-                x2_aW5U
-                x3_aW5V
-                x4_aW5W
-                x5_aW5X
-                x6_aW5Y
-                x7_aW5Z
-                x8_aW60
-                x9_aW61
-                x10_aW62
-                x11_aW63
-                x12_aW64
-                x13_aW65
-                x14_aW66
-                x15_aW67
-                x16_aW68
-                x17_aW69
-                x18_aW6a
-                x19_aW6b)
+  f_aVI4
+  (ButtonConfig x1_aVI5
+                x2_aVI6
+                x3_aVI7
+                x4_aVI8
+                x5_aVI9
+                x6_aVIa
+                x7_aVIb
+                x8_aVIc
+                x9_aVId
+                x10_aVIe
+                x11_aVIf
+                x12_aVIg
+                x13_aVIh
+                x14_aVIi
+                x15_aVIj
+                x16_aVIk
+                x17_aVIl
+                x18_aVIm
+                x19_aVIn)
   = fmap
-      (\ y1_aW6c
+      (\ y1_aVIo
          -> ButtonConfig
-              x1_aW5T
-              x2_aW5U
-              x3_aW5V
-              x4_aW5W
-              x5_aW5X
-              x6_aW5Y
-              x7_aW5Z
-              x8_aW60
-              x9_aW61
-              x10_aW62
-              x11_aW63
-              x12_aW64
-              x13_aW65
-              x14_aW66
-              x15_aW67
-              x16_aW68
-              y1_aW6c
-              x18_aW6a
-              x19_aW6b)
-      (f_aW5S x17_aW69)
+              x1_aVI5
+              x2_aVI6
+              x3_aVI7
+              x4_aVI8
+              x5_aVI9
+              x6_aVIa
+              x7_aVIb
+              x8_aVIc
+              x9_aVId
+              x10_aVIe
+              x11_aVIf
+              x12_aVIg
+              x13_aVIh
+              x14_aVIi
+              x15_aVIj
+              x16_aVIk
+              y1_aVIo
+              x18_aVIm
+              x19_aVIn)
+      (f_aVI4 x17_aVIl)
 {-# INLINE buttonConfig_animated #-}
 buttonConfig_attached ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl (Maybe ExclusiveAttached))
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus (Maybe ExclusiveAttached))
 buttonConfig_attached
-  f_aW6d
-  (ButtonConfig x1_aW6e
-                x2_aW6f
-                x3_aW6g
-                x4_aW6h
-                x5_aW6i
-                x6_aW6j
-                x7_aW6k
-                x8_aW6l
-                x9_aW6m
-                x10_aW6n
-                x11_aW6o
-                x12_aW6p
-                x13_aW6q
-                x14_aW6r
-                x15_aW6s
-                x16_aW6t
-                x17_aW6u
-                x18_aW6v
-                x19_aW6w)
+  f_aVIp
+  (ButtonConfig x1_aVIq
+                x2_aVIr
+                x3_aVIs
+                x4_aVIt
+                x5_aVIu
+                x6_aVIv
+                x7_aVIw
+                x8_aVIx
+                x9_aVIy
+                x10_aVIz
+                x11_aVIA
+                x12_aVIB
+                x13_aVIC
+                x14_aVID
+                x15_aVIE
+                x16_aVIF
+                x17_aVIG
+                x18_aVIH
+                x19_aVII)
   = fmap
-      (\ y1_aW6x
+      (\ y1_aVIJ
          -> ButtonConfig
-              x1_aW6e
-              x2_aW6f
-              x3_aW6g
-              x4_aW6h
-              x5_aW6i
-              x6_aW6j
-              x7_aW6k
-              x8_aW6l
-              x9_aW6m
-              x10_aW6n
-              x11_aW6o
-              x12_aW6p
-              x13_aW6q
-              x14_aW6r
-              x15_aW6s
-              y1_aW6x
-              x17_aW6u
-              x18_aW6v
-              x19_aW6w)
-      (f_aW6d x16_aW6t)
+              x1_aVIq
+              x2_aVIr
+              x3_aVIs
+              x4_aVIt
+              x5_aVIu
+              x6_aVIv
+              x7_aVIw
+              x8_aVIx
+              x9_aVIy
+              x10_aVIz
+              x11_aVIA
+              x12_aVIB
+              x13_aVIC
+              x14_aVID
+              x15_aVIE
+              y1_aVIJ
+              x17_aVIG
+              x18_aVIH
+              x19_aVII)
+      (f_aVIp x16_aVIF)
 {-# INLINE buttonConfig_attached #-}
 buttonConfig_basic ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl Bool)
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus Bool)
 buttonConfig_basic
-  f_aW6y
-  (ButtonConfig x1_aW6z
-                x2_aW6A
-                x3_aW6B
-                x4_aW6C
-                x5_aW6D
-                x6_aW6E
-                x7_aW6F
-                x8_aW6G
-                x9_aW6H
-                x10_aW6I
-                x11_aW6J
-                x12_aW6K
-                x13_aW6L
-                x14_aW6M
-                x15_aW6N
-                x16_aW6O
-                x17_aW6P
-                x18_aW6Q
-                x19_aW6R)
+  f_aVIK
+  (ButtonConfig x1_aVIL
+                x2_aVIM
+                x3_aVIN
+                x4_aVIO
+                x5_aVIP
+                x6_aVIQ
+                x7_aVIR
+                x8_aVIS
+                x9_aVIT
+                x10_aVIU
+                x11_aVIV
+                x12_aVIW
+                x13_aVIX
+                x14_aVIY
+                x15_aVIZ
+                x16_aVJ0
+                x17_aVJ1
+                x18_aVJ2
+                x19_aVJ3)
   = fmap
-      (\ y1_aW6S
+      (\ y1_aVJ4
          -> ButtonConfig
-              x1_aW6z
-              x2_aW6A
-              y1_aW6S
-              x4_aW6C
-              x5_aW6D
-              x6_aW6E
-              x7_aW6F
-              x8_aW6G
-              x9_aW6H
-              x10_aW6I
-              x11_aW6J
-              x12_aW6K
-              x13_aW6L
-              x14_aW6M
-              x15_aW6N
-              x16_aW6O
-              x17_aW6P
-              x18_aW6Q
-              x19_aW6R)
-      (f_aW6y x3_aW6B)
+              x1_aVIL
+              x2_aVIM
+              y1_aVJ4
+              x4_aVIO
+              x5_aVIP
+              x6_aVIQ
+              x7_aVIR
+              x8_aVIS
+              x9_aVIT
+              x10_aVIU
+              x11_aVIV
+              x12_aVIW
+              x13_aVIX
+              x14_aVIY
+              x15_aVIZ
+              x16_aVJ0
+              x17_aVJ1
+              x18_aVJ2
+              x19_aVJ3)
+      (f_aVIK x3_aVIN)
 {-# INLINE buttonConfig_basic #-}
 buttonConfig_circular ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl Bool)
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus Bool)
 buttonConfig_circular
-  f_aW6T
-  (ButtonConfig x1_aW6U
-                x2_aW6V
-                x3_aW6W
-                x4_aW6X
-                x5_aW6Y
-                x6_aW6Z
-                x7_aW70
-                x8_aW71
-                x9_aW72
-                x10_aW73
-                x11_aW74
-                x12_aW75
-                x13_aW76
-                x14_aW77
-                x15_aW78
-                x16_aW79
-                x17_aW7a
-                x18_aW7b
-                x19_aW7c)
+  f_aVJ5
+  (ButtonConfig x1_aVJ6
+                x2_aVJ7
+                x3_aVJ8
+                x4_aVJ9
+                x5_aVJa
+                x6_aVJb
+                x7_aVJc
+                x8_aVJd
+                x9_aVJe
+                x10_aVJf
+                x11_aVJg
+                x12_aVJh
+                x13_aVJi
+                x14_aVJj
+                x15_aVJk
+                x16_aVJl
+                x17_aVJm
+                x18_aVJn
+                x19_aVJo)
   = fmap
-      (\ y1_aW7d
+      (\ y1_aVJp
          -> ButtonConfig
-              x1_aW6U
-              x2_aW6V
-              x3_aW6W
-              x4_aW6X
-              x5_aW6Y
-              x6_aW6Z
-              x7_aW70
-              y1_aW7d
-              x9_aW72
-              x10_aW73
-              x11_aW74
-              x12_aW75
-              x13_aW76
-              x14_aW77
-              x15_aW78
-              x16_aW79
-              x17_aW7a
-              x18_aW7b
-              x19_aW7c)
-      (f_aW6T x8_aW71)
+              x1_aVJ6
+              x2_aVJ7
+              x3_aVJ8
+              x4_aVJ9
+              x5_aVJa
+              x6_aVJb
+              x7_aVJc
+              y1_aVJp
+              x9_aVJe
+              x10_aVJf
+              x11_aVJg
+              x12_aVJh
+              x13_aVJi
+              x14_aVJj
+              x15_aVJk
+              x16_aVJl
+              x17_aVJm
+              x18_aVJn
+              x19_aVJo)
+      (f_aVJ5 x8_aVJd)
 {-# INLINE buttonConfig_circular #-}
 buttonConfig_color ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl (Maybe Color))
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus (Maybe Color))
 buttonConfig_color
-  f_aW7e
-  (ButtonConfig x1_aW7f
-                x2_aW7g
-                x3_aW7h
-                x4_aW7i
-                x5_aW7j
-                x6_aW7k
-                x7_aW7l
-                x8_aW7m
-                x9_aW7n
-                x10_aW7o
-                x11_aW7p
-                x12_aW7q
-                x13_aW7r
-                x14_aW7s
-                x15_aW7t
-                x16_aW7u
-                x17_aW7v
-                x18_aW7w
-                x19_aW7x)
+  f_aVJq
+  (ButtonConfig x1_aVJr
+                x2_aVJs
+                x3_aVJt
+                x4_aVJu
+                x5_aVJv
+                x6_aVJw
+                x7_aVJx
+                x8_aVJy
+                x9_aVJz
+                x10_aVJA
+                x11_aVJB
+                x12_aVJC
+                x13_aVJD
+                x14_aVJE
+                x15_aVJF
+                x16_aVJG
+                x17_aVJH
+                x18_aVJI
+                x19_aVJJ)
   = fmap
-      (\ y1_aW7y
+      (\ y1_aVJK
          -> ButtonConfig
-              x1_aW7f
-              x2_aW7g
-              x3_aW7h
-              x4_aW7i
-              x5_aW7j
-              x6_aW7k
-              x7_aW7l
-              x8_aW7m
-              y1_aW7y
-              x10_aW7o
-              x11_aW7p
-              x12_aW7q
-              x13_aW7r
-              x14_aW7s
-              x15_aW7t
-              x16_aW7u
-              x17_aW7v
-              x18_aW7w
-              x19_aW7x)
-      (f_aW7e x9_aW7n)
+              x1_aVJr
+              x2_aVJs
+              x3_aVJt
+              x4_aVJu
+              x5_aVJv
+              x6_aVJw
+              x7_aVJx
+              x8_aVJy
+              y1_aVJK
+              x10_aVJA
+              x11_aVJB
+              x12_aVJC
+              x13_aVJD
+              x14_aVJE
+              x15_aVJF
+              x16_aVJG
+              x17_aVJH
+              x18_aVJI
+              x19_aVJJ)
+      (f_aVJq x9_aVJz)
 {-# INLINE buttonConfig_color #-}
 buttonConfig_compact ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl Bool)
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus Bool)
 buttonConfig_compact
-  f_aW7z
-  (ButtonConfig x1_aW7A
-                x2_aW7B
-                x3_aW7C
-                x4_aW7D
-                x5_aW7E
-                x6_aW7F
-                x7_aW7G
-                x8_aW7H
-                x9_aW7I
-                x10_aW7J
-                x11_aW7K
-                x12_aW7L
-                x13_aW7M
-                x14_aW7N
-                x15_aW7O
-                x16_aW7P
-                x17_aW7Q
-                x18_aW7R
-                x19_aW7S)
+  f_aVJL
+  (ButtonConfig x1_aVJM
+                x2_aVJN
+                x3_aVJO
+                x4_aVJP
+                x5_aVJQ
+                x6_aVJR
+                x7_aVJS
+                x8_aVJT
+                x9_aVJU
+                x10_aVJV
+                x11_aVJW
+                x12_aVJX
+                x13_aVJY
+                x14_aVJZ
+                x15_aVK0
+                x16_aVK1
+                x17_aVK2
+                x18_aVK3
+                x19_aVK4)
   = fmap
-      (\ y1_aW7T
+      (\ y1_aVK5
          -> ButtonConfig
-              x1_aW7A
-              y1_aW7T
-              x3_aW7C
-              x4_aW7D
-              x5_aW7E
-              x6_aW7F
-              x7_aW7G
-              x8_aW7H
-              x9_aW7I
-              x10_aW7J
-              x11_aW7K
-              x12_aW7L
-              x13_aW7M
-              x14_aW7N
-              x15_aW7O
-              x16_aW7P
-              x17_aW7Q
-              x18_aW7R
-              x19_aW7S)
-      (f_aW7z x2_aW7B)
+              x1_aVJM
+              y1_aVK5
+              x3_aVJO
+              x4_aVJP
+              x5_aVJQ
+              x6_aVJR
+              x7_aVJS
+              x8_aVJT
+              x9_aVJU
+              x10_aVJV
+              x11_aVJW
+              x12_aVJX
+              x13_aVJY
+              x14_aVJZ
+              x15_aVK0
+              x16_aVK1
+              x17_aVK2
+              x18_aVK3
+              x19_aVK4)
+      (f_aVJL x2_aVJN)
 {-# INLINE buttonConfig_compact #-}
 buttonConfig_disabled ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl Bool)
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus Bool)
 buttonConfig_disabled
-  f_aW7U
-  (ButtonConfig x1_aW7V
-                x2_aW7W
-                x3_aW7X
-                x4_aW7Y
-                x5_aW7Z
-                x6_aW80
-                x7_aW81
-                x8_aW82
-                x9_aW83
-                x10_aW84
-                x11_aW85
-                x12_aW86
-                x13_aW87
-                x14_aW88
-                x15_aW89
-                x16_aW8a
-                x17_aW8b
-                x18_aW8c
-                x19_aW8d)
+  f_aVK6
+  (ButtonConfig x1_aVK7
+                x2_aVK8
+                x3_aVK9
+                x4_aVKa
+                x5_aVKb
+                x6_aVKc
+                x7_aVKd
+                x8_aVKe
+                x9_aVKf
+                x10_aVKg
+                x11_aVKh
+                x12_aVKi
+                x13_aVKj
+                x14_aVKk
+                x15_aVKl
+                x16_aVKm
+                x17_aVKn
+                x18_aVKo
+                x19_aVKp)
   = fmap
-      (\ y1_aW8e
+      (\ y1_aVKq
          -> ButtonConfig
-              y1_aW8e
-              x2_aW7W
-              x3_aW7X
-              x4_aW7Y
-              x5_aW7Z
-              x6_aW80
-              x7_aW81
-              x8_aW82
-              x9_aW83
-              x10_aW84
-              x11_aW85
-              x12_aW86
-              x13_aW87
-              x14_aW88
-              x15_aW89
-              x16_aW8a
-              x17_aW8b
-              x18_aW8c
-              x19_aW8d)
-      (f_aW7U x1_aW7V)
+              y1_aVKq
+              x2_aVK8
+              x3_aVK9
+              x4_aVKa
+              x5_aVKb
+              x6_aVKc
+              x7_aVKd
+              x8_aVKe
+              x9_aVKf
+              x10_aVKg
+              x11_aVKh
+              x12_aVKi
+              x13_aVKj
+              x14_aVKk
+              x15_aVKl
+              x16_aVKm
+              x17_aVKn
+              x18_aVKo
+              x19_aVKp)
+      (f_aVK6 x1_aVK7)
 {-# INLINE buttonConfig_disabled #-}
 buttonConfig_elConfig ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (ActiveElConfig t_aVDl)
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (ActiveElConfig t_aVus)
 buttonConfig_elConfig
-  f_aW8f
-  (ButtonConfig x1_aW8g
-                x2_aW8h
-                x3_aW8i
-                x4_aW8j
-                x5_aW8k
-                x6_aW8l
-                x7_aW8m
-                x8_aW8n
-                x9_aW8o
-                x10_aW8p
-                x11_aW8q
-                x12_aW8r
-                x13_aW8s
-                x14_aW8t
-                x15_aW8u
-                x16_aW8v
-                x17_aW8w
-                x18_aW8x
-                x19_aW8y)
+  f_aVKr
+  (ButtonConfig x1_aVKs
+                x2_aVKt
+                x3_aVKu
+                x4_aVKv
+                x5_aVKw
+                x6_aVKx
+                x7_aVKy
+                x8_aVKz
+                x9_aVKA
+                x10_aVKB
+                x11_aVKC
+                x12_aVKD
+                x13_aVKE
+                x14_aVKF
+                x15_aVKG
+                x16_aVKH
+                x17_aVKJ
+                x18_aVKL
+                x19_aVKM)
   = fmap
-      (\ y1_aW8z
+      (\ y1_aVKN
          -> ButtonConfig
-              x1_aW8g
-              x2_aW8h
-              x3_aW8i
-              x4_aW8j
-              x5_aW8k
-              x6_aW8l
-              x7_aW8m
-              x8_aW8n
-              x9_aW8o
-              x10_aW8p
-              x11_aW8q
-              x12_aW8r
-              x13_aW8s
-              x14_aW8t
-              x15_aW8u
-              x16_aW8v
-              x17_aW8w
-              x18_aW8x
-              y1_aW8z)
-      (f_aW8f x19_aW8y)
+              x1_aVKs
+              x2_aVKt
+              x3_aVKu
+              x4_aVKv
+              x5_aVKw
+              x6_aVKx
+              x7_aVKy
+              x8_aVKz
+              x9_aVKA
+              x10_aVKB
+              x11_aVKC
+              x12_aVKD
+              x13_aVKE
+              x14_aVKF
+              x15_aVKG
+              x16_aVKH
+              x17_aVKJ
+              x18_aVKL
+              y1_aVKN)
+      (f_aVKr x19_aVKM)
 {-# INLINE buttonConfig_elConfig #-}
 buttonConfig_emphasis ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl (Maybe Emphasis))
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus (Maybe Emphasis))
 buttonConfig_emphasis
-  f_aW8A
-  (ButtonConfig x1_aW8B
-                x2_aW8C
-                x3_aW8D
-                x4_aW8E
-                x5_aW8F
-                x6_aW8G
-                x7_aW8H
-                x8_aW8I
-                x9_aW8J
-                x10_aW8K
-                x11_aW8L
-                x12_aW8M
-                x13_aW8N
-                x14_aW8O
-                x15_aW8P
-                x16_aW8Q
-                x17_aW8R
-                x18_aW8S
-                x19_aW8T)
+  f_aVKO
+  (ButtonConfig x1_aVKP
+                x2_aVKQ
+                x3_aVKR
+                x4_aVKS
+                x5_aVKT
+                x6_aVKU
+                x7_aVKV
+                x8_aVKW
+                x9_aVKX
+                x10_aVKY
+                x11_aVKZ
+                x12_aVL0
+                x13_aVL1
+                x14_aVL2
+                x15_aVL3
+                x16_aVL4
+                x17_aVL5
+                x18_aVL6
+                x19_aVL7)
   = fmap
-      (\ y1_aW8U
+      (\ y1_aVL9
          -> ButtonConfig
-              x1_aW8B
-              x2_aW8C
-              x3_aW8D
-              x4_aW8E
-              x5_aW8F
-              x6_aW8G
-              x7_aW8H
-              x8_aW8I
-              x9_aW8J
-              x10_aW8K
-              y1_aW8U
-              x12_aW8M
-              x13_aW8N
-              x14_aW8O
-              x15_aW8P
-              x16_aW8Q
-              x17_aW8R
-              x18_aW8S
-              x19_aW8T)
-      (f_aW8A x11_aW8L)
+              x1_aVKP
+              x2_aVKQ
+              x3_aVKR
+              x4_aVKS
+              x5_aVKT
+              x6_aVKU
+              x7_aVKV
+              x8_aVKW
+              x9_aVKX
+              x10_aVKY
+              y1_aVL9
+              x12_aVL0
+              x13_aVL1
+              x14_aVL2
+              x15_aVL3
+              x16_aVL4
+              x17_aVL5
+              x18_aVL6
+              x19_aVL7)
+      (f_aVKO x11_aVKZ)
 {-# INLINE buttonConfig_emphasis #-}
 buttonConfig_floated ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl (Maybe Floated))
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus (Maybe Floated))
 buttonConfig_floated
-  f_aW8V
-  (ButtonConfig x1_aW8W
-                x2_aW8X
-                x3_aW8Y
-                x4_aW8Z
-                x5_aW90
-                x6_aW91
-                x7_aW92
-                x8_aW93
-                x9_aW94
-                x10_aW95
-                x11_aW96
-                x12_aW97
-                x13_aW98
-                x14_aW99
-                x15_aW9a
-                x16_aW9b
-                x17_aW9c
-                x18_aW9d
-                x19_aW9e)
+  f_aVLa
+  (ButtonConfig x1_aVLb
+                x2_aVLc
+                x3_aVLd
+                x4_aVLe
+                x5_aVLf
+                x6_aVLg
+                x7_aVLh
+                x8_aVLi
+                x9_aVLj
+                x10_aVLk
+                x11_aVLl
+                x12_aVLm
+                x13_aVLn
+                x14_aVLo
+                x15_aVLp
+                x16_aVLq
+                x17_aVLr
+                x18_aVLs
+                x19_aVLt)
   = fmap
-      (\ y1_aW9f
+      (\ y1_aVLu
          -> ButtonConfig
-              x1_aW8W
-              x2_aW8X
-              x3_aW8Y
-              x4_aW8Z
-              x5_aW90
-              x6_aW91
-              x7_aW92
-              x8_aW93
-              x9_aW94
-              x10_aW95
-              x11_aW96
-              x12_aW97
-              x13_aW98
-              y1_aW9f
-              x15_aW9a
-              x16_aW9b
-              x17_aW9c
-              x18_aW9d
-              x19_aW9e)
-      (f_aW8V x14_aW99)
+              x1_aVLb
+              x2_aVLc
+              x3_aVLd
+              x4_aVLe
+              x5_aVLf
+              x6_aVLg
+              x7_aVLh
+              x8_aVLi
+              x9_aVLj
+              x10_aVLk
+              x11_aVLl
+              x12_aVLm
+              x13_aVLn
+              y1_aVLu
+              x15_aVLp
+              x16_aVLq
+              x17_aVLr
+              x18_aVLs
+              x19_aVLt)
+      (f_aVLa x14_aVLo)
 {-# INLINE buttonConfig_floated #-}
 buttonConfig_fluid ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl Bool)
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus Bool)
 buttonConfig_fluid
-  f_aW9g
-  (ButtonConfig x1_aW9h
-                x2_aW9i
-                x3_aW9j
-                x4_aW9k
-                x5_aW9l
-                x6_aW9m
-                x7_aW9n
-                x8_aW9o
-                x9_aW9p
-                x10_aW9q
-                x11_aW9r
-                x12_aW9s
-                x13_aW9t
-                x14_aW9u
-                x15_aW9v
-                x16_aW9w
-                x17_aW9x
-                x18_aW9y
-                x19_aW9z)
+  f_aVLw
+  (ButtonConfig x1_aVLx
+                x2_aVLy
+                x3_aVLz
+                x4_aVLA
+                x5_aVLB
+                x6_aVLC
+                x7_aVLD
+                x8_aVLE
+                x9_aVLF
+                x10_aVLG
+                x11_aVLI
+                x12_aVLJ
+                x13_aVLK
+                x14_aVLL
+                x15_aVLM
+                x16_aVLN
+                x17_aVLO
+                x18_aVLP
+                x19_aVLQ)
   = fmap
-      (\ y1_aW9A
+      (\ y1_aVLR
          -> ButtonConfig
-              x1_aW9h
-              x2_aW9i
-              x3_aW9j
-              x4_aW9k
-              x5_aW9l
-              x6_aW9m
-              y1_aW9A
-              x8_aW9o
-              x9_aW9p
-              x10_aW9q
-              x11_aW9r
-              x12_aW9s
-              x13_aW9t
-              x14_aW9u
-              x15_aW9v
-              x16_aW9w
-              x17_aW9x
-              x18_aW9y
-              x19_aW9z)
-      (f_aW9g x7_aW9n)
+              x1_aVLx
+              x2_aVLy
+              x3_aVLz
+              x4_aVLA
+              x5_aVLB
+              x6_aVLC
+              y1_aVLR
+              x8_aVLE
+              x9_aVLF
+              x10_aVLG
+              x11_aVLI
+              x12_aVLJ
+              x13_aVLK
+              x14_aVLL
+              x15_aVLM
+              x16_aVLN
+              x17_aVLO
+              x18_aVLP
+              x19_aVLQ)
+      (f_aVLw x7_aVLD)
 {-# INLINE buttonConfig_fluid #-}
 buttonConfig_icon ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl Bool)
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus Bool)
 buttonConfig_icon
-  f_aW9B
-  (ButtonConfig x1_aW9C
-                x2_aW9D
-                x3_aW9E
-                x4_aW9F
-                x5_aW9G
-                x6_aW9H
-                x7_aW9I
-                x8_aW9J
-                x9_aW9K
-                x10_aW9L
-                x11_aW9M
-                x12_aW9N
-                x13_aW9O
-                x14_aW9P
-                x15_aW9Q
-                x16_aW9R
-                x17_aW9S
-                x18_aW9T
-                x19_aW9U)
+  f_aVLT
+  (ButtonConfig x1_aVLU
+                x2_aVLV
+                x3_aVLW
+                x4_aVLX
+                x5_aVLY
+                x6_aVLZ
+                x7_aVM1
+                x8_aVM2
+                x9_aVM3
+                x10_aVM4
+                x11_aVM5
+                x12_aVM6
+                x13_aVM7
+                x14_aVM8
+                x15_aVM9
+                x16_aVMa
+                x17_aVMb
+                x18_aVMc
+                x19_aVMd)
   = fmap
-      (\ y1_aW9V
+      (\ y1_aVMe
          -> ButtonConfig
-              x1_aW9C
-              x2_aW9D
-              x3_aW9E
-              y1_aW9V
-              x5_aW9G
-              x6_aW9H
-              x7_aW9I
-              x8_aW9J
-              x9_aW9K
-              x10_aW9L
-              x11_aW9M
-              x12_aW9N
-              x13_aW9O
-              x14_aW9P
-              x15_aW9Q
-              x16_aW9R
-              x17_aW9S
-              x18_aW9T
-              x19_aW9U)
-      (f_aW9B x4_aW9F)
+              x1_aVLU
+              x2_aVLV
+              x3_aVLW
+              y1_aVMe
+              x5_aVLY
+              x6_aVLZ
+              x7_aVM1
+              x8_aVM2
+              x9_aVM3
+              x10_aVM4
+              x11_aVM5
+              x12_aVM6
+              x13_aVM7
+              x14_aVM8
+              x15_aVM9
+              x16_aVMa
+              x17_aVMb
+              x18_aVMc
+              x19_aVMd)
+      (f_aVLT x4_aVLX)
 {-# INLINE buttonConfig_icon #-}
 buttonConfig_inverted ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl Bool)
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus Bool)
 buttonConfig_inverted
-  f_aW9W
-  (ButtonConfig x1_aW9X
-                x2_aW9Y
-                x3_aW9Z
-                x4_aWa0
-                x5_aWa1
-                x6_aWa2
-                x7_aWa3
-                x8_aWa4
-                x9_aWa5
-                x10_aWa6
-                x11_aWa7
-                x12_aWa8
-                x13_aWa9
-                x14_aWaa
-                x15_aWab
-                x16_aWac
-                x17_aWad
-                x18_aWae
-                x19_aWaf)
+  f_aVMg
+  (ButtonConfig x1_aVMh
+                x2_aVMi
+                x3_aVMj
+                x4_aVMk
+                x5_aVMl
+                x6_aVMm
+                x7_aVMn
+                x8_aVMp
+                x9_aVMr
+                x10_aVMs
+                x11_aVMt
+                x12_aVMu
+                x13_aVMv
+                x14_aVMw
+                x15_aVMx
+                x16_aVMy
+                x17_aVMz
+                x18_aVMA
+                x19_aVMB)
   = fmap
-      (\ y1_aWag
+      (\ y1_aVMC
          -> ButtonConfig
-              x1_aW9X
-              x2_aW9Y
-              x3_aW9Z
-              x4_aWa0
-              y1_aWag
-              x6_aWa2
-              x7_aWa3
-              x8_aWa4
-              x9_aWa5
-              x10_aWa6
-              x11_aWa7
-              x12_aWa8
-              x13_aWa9
-              x14_aWaa
-              x15_aWab
-              x16_aWac
-              x17_aWad
-              x18_aWae
-              x19_aWaf)
-      (f_aW9W x5_aWa1)
+              x1_aVMh
+              x2_aVMi
+              x3_aVMj
+              x4_aVMk
+              y1_aVMC
+              x6_aVMm
+              x7_aVMn
+              x8_aVMp
+              x9_aVMr
+              x10_aVMs
+              x11_aVMt
+              x12_aVMu
+              x13_aVMv
+              x14_aVMw
+              x15_aVMx
+              x16_aVMy
+              x17_aVMz
+              x18_aVMA
+              x19_aVMB)
+      (f_aVMg x5_aVMl)
 {-# INLINE buttonConfig_inverted #-}
 buttonConfig_labeledIcon ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl (Maybe Labeled))
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus (Maybe Labeled))
 buttonConfig_labeledIcon
-  f_aWah
-  (ButtonConfig x1_aWai
-                x2_aWaj
-                x3_aWak
-                x4_aWal
-                x5_aWam
-                x6_aWan
-                x7_aWao
-                x8_aWap
-                x9_aWaq
-                x10_aWar
-                x11_aWas
-                x12_aWat
-                x13_aWau
-                x14_aWav
-                x15_aWaw
-                x16_aWax
-                x17_aWay
-                x18_aWaz
-                x19_aWaA)
+  f_aVMD
+  (ButtonConfig x1_aVME
+                x2_aVMF
+                x3_aVMG
+                x4_aVMH
+                x5_aVMI
+                x6_aVMJ
+                x7_aVMK
+                x8_aVML
+                x9_aVMM
+                x10_aVMN
+                x11_aVMO
+                x12_aVMP
+                x13_aVMQ
+                x14_aVMR
+                x15_aVMS
+                x16_aVMT
+                x17_aVMU
+                x18_aVMV
+                x19_aVMW)
   = fmap
-      (\ y1_aWaB
+      (\ y1_aVMX
          -> ButtonConfig
-              x1_aWai
-              x2_aWaj
-              x3_aWak
-              x4_aWal
-              x5_aWam
-              x6_aWan
-              x7_aWao
-              x8_aWap
-              x9_aWaq
-              x10_aWar
-              x11_aWas
-              x12_aWat
-              x13_aWau
-              x14_aWav
-              y1_aWaB
-              x16_aWax
-              x17_aWay
-              x18_aWaz
-              x19_aWaA)
-      (f_aWah x15_aWaw)
+              x1_aVME
+              x2_aVMF
+              x3_aVMG
+              x4_aVMH
+              x5_aVMI
+              x6_aVMJ
+              x7_aVMK
+              x8_aVML
+              x9_aVMM
+              x10_aVMN
+              x11_aVMO
+              x12_aVMP
+              x13_aVMQ
+              x14_aVMR
+              y1_aVMX
+              x16_aVMT
+              x17_aVMU
+              x18_aVMV
+              x19_aVMW)
+      (f_aVMD x15_aVMS)
 {-# INLINE buttonConfig_labeledIcon #-}
 buttonConfig_loading ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl Bool)
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus Bool)
 buttonConfig_loading
-  f_aWaC
-  (ButtonConfig x1_aWaD
-                x2_aWaE
-                x3_aWaF
-                x4_aWaG
-                x5_aWaH
-                x6_aWaI
-                x7_aWaJ
-                x8_aWaK
-                x9_aWaL
-                x10_aWaM
-                x11_aWaN
-                x12_aWaO
-                x13_aWaP
-                x14_aWaQ
-                x15_aWaR
-                x16_aWaS
-                x17_aWaT
-                x18_aWaU
-                x19_aWaV)
+  f_aVMZ
+  (ButtonConfig x1_aVN0
+                x2_aVN1
+                x3_aVN2
+                x4_aVN3
+                x5_aVN4
+                x6_aVN5
+                x7_aVN6
+                x8_aVN7
+                x9_aVN8
+                x10_aVN9
+                x11_aVNa
+                x12_aVNb
+                x13_aVNc
+                x14_aVNd
+                x15_aVNe
+                x16_aVNf
+                x17_aVNg
+                x18_aVNh
+                x19_aVNi)
   = fmap
-      (\ y1_aWaW
+      (\ y1_aVNj
          -> ButtonConfig
-              x1_aWaD
-              x2_aWaE
-              x3_aWaF
-              x4_aWaG
-              x5_aWaH
-              y1_aWaW
-              x7_aWaJ
-              x8_aWaK
-              x9_aWaL
-              x10_aWaM
-              x11_aWaN
-              x12_aWaO
-              x13_aWaP
-              x14_aWaQ
-              x15_aWaR
-              x16_aWaS
-              x17_aWaT
-              x18_aWaU
-              x19_aWaV)
-      (f_aWaC x6_aWaI)
+              x1_aVN0
+              x2_aVN1
+              x3_aVN2
+              x4_aVN3
+              x5_aVN4
+              y1_aVNj
+              x7_aVN6
+              x8_aVN7
+              x9_aVN8
+              x10_aVN9
+              x11_aVNa
+              x12_aVNb
+              x13_aVNc
+              x14_aVNd
+              x15_aVNe
+              x16_aVNf
+              x17_aVNg
+              x18_aVNh
+              x19_aVNi)
+      (f_aVMZ x6_aVN5)
 {-# INLINE buttonConfig_loading #-}
 buttonConfig_positive ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl (Maybe Positive))
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus (Maybe Positive))
 buttonConfig_positive
-  f_aWaX
-  (ButtonConfig x1_aWaY
-                x2_aWaZ
-                x3_aWb0
-                x4_aWb1
-                x5_aWb2
-                x6_aWb3
-                x7_aWb4
-                x8_aWb5
-                x9_aWb6
-                x10_aWb7
-                x11_aWb8
-                x12_aWb9
-                x13_aWba
-                x14_aWbb
-                x15_aWbc
-                x16_aWbd
-                x17_aWbe
-                x18_aWbf
-                x19_aWbg)
+  f_aVNl
+  (ButtonConfig x1_aVNm
+                x2_aVNn
+                x3_aVNo
+                x4_aVNp
+                x5_aVNr
+                x6_aVNs
+                x7_aVNt
+                x8_aVNu
+                x9_aVNv
+                x10_aVNw
+                x11_aVNx
+                x12_aVNy
+                x13_aVNz
+                x14_aVNA
+                x15_aVNB
+                x16_aVNC
+                x17_aVND
+                x18_aVNE
+                x19_aVNF)
   = fmap
-      (\ y1_aWbh
+      (\ y1_aVNG
          -> ButtonConfig
-              x1_aWaY
-              x2_aWaZ
-              x3_aWb0
-              x4_aWb1
-              x5_aWb2
-              x6_aWb3
-              x7_aWb4
-              x8_aWb5
-              x9_aWb6
-              x10_aWb7
-              x11_aWb8
-              y1_aWbh
-              x13_aWba
-              x14_aWbb
-              x15_aWbc
-              x16_aWbd
-              x17_aWbe
-              x18_aWbf
-              x19_aWbg)
-      (f_aWaX x12_aWb9)
+              x1_aVNm
+              x2_aVNn
+              x3_aVNo
+              x4_aVNp
+              x5_aVNr
+              x6_aVNs
+              x7_aVNt
+              x8_aVNu
+              x9_aVNv
+              x10_aVNw
+              x11_aVNx
+              y1_aVNG
+              x13_aVNz
+              x14_aVNA
+              x15_aVNB
+              x16_aVNC
+              x17_aVND
+              x18_aVNE
+              x19_aVNF)
+      (f_aVNl x12_aVNy)
 {-# INLINE buttonConfig_positive #-}
 buttonConfig_size ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl (Maybe Size))
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus (Maybe Size))
 buttonConfig_size
-  f_aWbi
-  (ButtonConfig x1_aWbj
-                x2_aWbk
-                x3_aWbl
-                x4_aWbm
-                x5_aWbn
-                x6_aWbo
-                x7_aWbp
-                x8_aWbq
-                x9_aWbr
-                x10_aWbs
-                x11_aWbt
-                x12_aWbu
-                x13_aWbv
-                x14_aWbw
-                x15_aWbx
-                x16_aWby
-                x17_aWbz
-                x18_aWbA
-                x19_aWbB)
+  f_aVNI
+  (ButtonConfig x1_aVNJ
+                x2_aVNK
+                x3_aVNL
+                x4_aVNM
+                x5_aVNN
+                x6_aVNO
+                x7_aVNP
+                x8_aVNQ
+                x9_aVNR
+                x10_aVNS
+                x11_aVNU
+                x12_aVNV
+                x13_aVNW
+                x14_aVNX
+                x15_aVNY
+                x16_aVNZ
+                x17_aVO0
+                x18_aVO1
+                x19_aVO2)
   = fmap
-      (\ y1_aWbC
+      (\ y1_aVO3
          -> ButtonConfig
-              x1_aWbj
-              x2_aWbk
-              x3_aWbl
-              x4_aWbm
-              x5_aWbn
-              x6_aWbo
-              x7_aWbp
-              x8_aWbq
-              x9_aWbr
-              y1_aWbC
-              x11_aWbt
-              x12_aWbu
-              x13_aWbv
-              x14_aWbw
-              x15_aWbx
-              x16_aWby
-              x17_aWbz
-              x18_aWbA
-              x19_aWbB)
-      (f_aWbi x10_aWbs)
+              x1_aVNJ
+              x2_aVNK
+              x3_aVNL
+              x4_aVNM
+              x5_aVNN
+              x6_aVNO
+              x7_aVNP
+              x8_aVNQ
+              x9_aVNR
+              y1_aVO3
+              x11_aVNU
+              x12_aVNV
+              x13_aVNW
+              x14_aVNX
+              x15_aVNY
+              x16_aVNZ
+              x17_aVO0
+              x18_aVO1
+              x19_aVO2)
+      (f_aVNI x10_aVNS)
 {-# INLINE buttonConfig_size #-}
 buttonConfig_social ::
-  forall t_aVDl m_aVDm.
-  Lens' (ButtonConfig t_aVDl m_aVDm) (Active t_aVDl (Maybe Social))
+  forall t_aVus m_aVut.
+  Lens' (ButtonConfig t_aVus m_aVut) (Active t_aVus (Maybe Social))
 buttonConfig_social
-  f_aWbD
-  (ButtonConfig x1_aWbE
-                x2_aWbF
-                x3_aWbG
-                x4_aWbH
-                x5_aWbI
-                x6_aWbJ
-                x7_aWbK
-                x8_aWbL
-                x9_aWbM
-                x10_aWbN
-                x11_aWbO
-                x12_aWbP
-                x13_aWbQ
-                x14_aWbR
-                x15_aWbS
-                x16_aWbT
-                x17_aWbU
-                x18_aWbV
-                x19_aWbW)
+  f_aVO5
+  (ButtonConfig x1_aVO7
+                x2_aVO8
+                x3_aVO9
+                x4_aVOa
+                x5_aVOb
+                x6_aVOc
+                x7_aVOd
+                x8_aVOe
+                x9_aVOf
+                x10_aVOg
+                x11_aVOh
+                x12_aVOi
+                x13_aVOj
+                x14_aVOk
+                x15_aVOl
+                x16_aVOm
+                x17_aVOn
+                x18_aVOo
+                x19_aVOp)
   = fmap
-      (\ y1_aWbX
+      (\ y1_aVOq
          -> ButtonConfig
-              x1_aWbE
-              x2_aWbF
-              x3_aWbG
-              x4_aWbH
-              x5_aWbI
-              x6_aWbJ
-              x7_aWbK
-              x8_aWbL
-              x9_aWbM
-              x10_aWbN
-              x11_aWbO
-              x12_aWbP
-              y1_aWbX
-              x14_aWbR
-              x15_aWbS
-              x16_aWbT
-              x17_aWbU
-              x18_aWbV
-              x19_aWbW)
-      (f_aWbD x13_aWbQ)
+              x1_aVO7
+              x2_aVO8
+              x3_aVO9
+              x4_aVOa
+              x5_aVOb
+              x6_aVOc
+              x7_aVOd
+              x8_aVOe
+              x9_aVOf
+              x10_aVOg
+              x11_aVOh
+              x12_aVOi
+              y1_aVOq
+              x14_aVOk
+              x15_aVOl
+              x16_aVOm
+              x17_aVOn
+              x18_aVOo
+              x19_aVOp)
+      (f_aVO5 x13_aVOj)
 {-# INLINE buttonConfig_social #-}
 buttonConfig_type ::
-  forall t_aVDl m_aVDm. Lens' (ButtonConfig t_aVDl m_aVDm) ButtonType
+  forall t_aVus m_aVut. Lens' (ButtonConfig t_aVus m_aVut) ButtonType
 buttonConfig_type
-  f_aWbY
-  (ButtonConfig x1_aWbZ
-                x2_aWc0
-                x3_aWc1
-                x4_aWc2
-                x5_aWc3
-                x6_aWc4
-                x7_aWc5
-                x8_aWc6
-                x9_aWc7
-                x10_aWc8
-                x11_aWc9
-                x12_aWca
-                x13_aWcb
-                x14_aWcc
-                x15_aWcd
-                x16_aWce
-                x17_aWcf
-                x18_aWcg
-                x19_aWch)
+  f_aVOt
+  (ButtonConfig x1_aVOu
+                x2_aVOv
+                x3_aVOw
+                x4_aVOx
+                x5_aVOy
+                x6_aVOz
+                x7_aVOA
+                x8_aVOB
+                x9_aVOC
+                x10_aVOD
+                x11_aVOE
+                x12_aVOF
+                x13_aVOG
+                x14_aVOH
+                x15_aVOI
+                x16_aVOJ
+                x17_aVOK
+                x18_aVOL
+                x19_aVOM)
   = fmap
-      (\ y1_aWci
+      (\ y1_aVON
          -> ButtonConfig
-              x1_aWbZ
-              x2_aWc0
-              x3_aWc1
-              x4_aWc2
-              x5_aWc3
-              x6_aWc4
-              x7_aWc5
-              x8_aWc6
-              x9_aWc7
-              x10_aWc8
-              x11_aWc9
-              x12_aWca
-              x13_aWcb
-              x14_aWcc
-              x15_aWcd
-              x16_aWce
-              x17_aWcf
-              y1_aWci
-              x19_aWch)
-      (f_aWbY x18_aWcg)
+              x1_aVOu
+              x2_aVOv
+              x3_aVOw
+              x4_aVOx
+              x5_aVOy
+              x6_aVOz
+              x7_aVOA
+              x8_aVOB
+              x9_aVOC
+              x10_aVOD
+              x11_aVOE
+              x12_aVOF
+              x13_aVOG
+              x14_aVOH
+              x15_aVOI
+              x16_aVOJ
+              x17_aVOK
+              y1_aVON
+              x19_aVOM)
+      (f_aVOt x18_aVOL)
 {-# INLINE buttonConfig_type #-}

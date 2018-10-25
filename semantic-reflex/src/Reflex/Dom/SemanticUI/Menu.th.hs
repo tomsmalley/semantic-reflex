@@ -1,440 +1,439 @@
 -- src/Reflex/Dom/SemanticUI/Menu.hs:36:1-23: Splicing declarations
 menuConfig_color ::
-  forall t_a2lvR.
-  Lens' (MenuConfig t_a2lvR) (Active t_a2lvR (Maybe Color))
+  forall t_aT74.
+  Lens' (MenuConfig t_aT74) (Active t_aT74 (Maybe Color))
 menuConfig_color
-  f_a2lCP
-  (MenuConfig x1_a2lCQ
-              x2_a2lCR
-              x3_a2lCS
-              x4_a2lCT
-              x5_a2lCV
-              x6_a2lCW
-              x7_a2lCX
-              x8_a2lCY
-              x9_a2lCZ
-              x10_a2lD0
-              x11_a2lD1
-              x12_a2lD2)
+  f_aTdb
+  (MenuConfig x1_aTdc
+              x2_aTdd
+              x3_aTde
+              x4_aTdf
+              x5_aTdg
+              x6_aTdh
+              x7_aTdi
+              x8_aTdj
+              x9_aTdk
+              x10_aTdl
+              x11_aTdm
+              x12_aTdn)
   = fmap
-      (\ y1_a2lD3
+      (\ y1_aTdo
          -> MenuConfig
-              y1_a2lD3
-              x2_a2lCR
-              x3_a2lCS
-              x4_a2lCT
-              x5_a2lCV
-              x6_a2lCW
-              x7_a2lCX
-              x8_a2lCY
-              x9_a2lCZ
-              x10_a2lD0
-              x11_a2lD1
-              x12_a2lD2)
-      (f_a2lCP x1_a2lCQ)
+              y1_aTdo
+              x2_aTdd
+              x3_aTde
+              x4_aTdf
+              x5_aTdg
+              x6_aTdh
+              x7_aTdi
+              x8_aTdj
+              x9_aTdk
+              x10_aTdl
+              x11_aTdm
+              x12_aTdn)
+      (f_aTdb x1_aTdc)
 {-# INLINE menuConfig_color #-}
 menuConfig_compact ::
-  forall t_a2lvR. Lens' (MenuConfig t_a2lvR) (Active t_a2lvR Bool)
+  forall t_aT74. Lens' (MenuConfig t_aT74) (Active t_aT74 Bool)
 menuConfig_compact
-  f_a2lD5
-  (MenuConfig x1_a2lD6
-              x2_a2lD7
-              x3_a2lD8
-              x4_a2lD9
-              x5_a2lDa
-              x6_a2lDb
-              x7_a2lDc
-              x8_a2lDd
-              x9_a2lDe
-              x10_a2lDf
-              x11_a2lDg
-              x12_a2lDh)
+  f_aTdp
+  (MenuConfig x1_aTdq
+              x2_aTdr
+              x3_aTds
+              x4_aTdt
+              x5_aTdu
+              x6_aTdv
+              x7_aTdw
+              x8_aTdx
+              x9_aTdy
+              x10_aTdz
+              x11_aTdA
+              x12_aTdB)
   = fmap
-      (\ y1_a2lDi
+      (\ y1_aTdC
          -> MenuConfig
-              x1_a2lD6
-              x2_a2lD7
-              x3_a2lD8
-              x4_a2lD9
-              x5_a2lDa
-              x6_a2lDb
-              x7_a2lDc
-              x8_a2lDd
-              x9_a2lDe
-              y1_a2lDi
-              x11_a2lDg
-              x12_a2lDh)
-      (f_a2lD5 x10_a2lDf)
+              x1_aTdq
+              x2_aTdr
+              x3_aTds
+              x4_aTdt
+              x5_aTdu
+              x6_aTdv
+              x7_aTdw
+              x8_aTdx
+              x9_aTdy
+              y1_aTdC
+              x11_aTdA
+              x12_aTdB)
+      (f_aTdp x10_aTdz)
 {-# INLINE menuConfig_compact #-}
 menuConfig_elConfig ::
-  forall t_a2lvR. Lens' (MenuConfig t_a2lvR) (ActiveElConfig t_a2lvR)
+  forall t_aT74. Lens' (MenuConfig t_aT74) (ActiveElConfig t_aT74)
 menuConfig_elConfig
-  f_a2lDk
-  (MenuConfig x1_a2lDl
-              x2_a2lDm
-              x3_a2lDn
-              x4_a2lDo
-              x5_a2lDp
-              x6_a2lDq
-              x7_a2lDr
-              x8_a2lDs
-              x9_a2lDt
-              x10_a2lDu
-              x11_a2lDv
-              x12_a2lDw)
+  f_aTdD
+  (MenuConfig x1_aTdE
+              x2_aTdF
+              x3_aTdG
+              x4_aTdH
+              x5_aTdI
+              x6_aTdJ
+              x7_aTdK
+              x8_aTdL
+              x9_aTdM
+              x10_aTdN
+              x11_aTdO
+              x12_aTdP)
   = fmap
-      (\ y1_a2lDx
+      (\ y1_aTdQ
          -> MenuConfig
-              x1_a2lDl
-              x2_a2lDm
-              x3_a2lDn
-              x4_a2lDo
-              x5_a2lDp
-              x6_a2lDq
-              x7_a2lDr
-              x8_a2lDs
-              x9_a2lDt
-              x10_a2lDu
-              x11_a2lDv
-              y1_a2lDx)
-      (f_a2lDk x12_a2lDw)
+              x1_aTdE
+              x2_aTdF
+              x3_aTdG
+              x4_aTdH
+              x5_aTdI
+              x6_aTdJ
+              x7_aTdK
+              x8_aTdL
+              x9_aTdM
+              x10_aTdN
+              x11_aTdO
+              y1_aTdQ)
+      (f_aTdD x12_aTdP)
 {-# INLINE menuConfig_elConfig #-}
 menuConfig_floated ::
-  forall t_a2lvR.
-  Lens' (MenuConfig t_a2lvR) (Active t_a2lvR (Maybe Floated))
+  forall t_aT74.
+  Lens' (MenuConfig t_aT74) (Active t_aT74 (Maybe Floated))
 menuConfig_floated
-  f_a2lDz
-  (MenuConfig x1_a2lDA
-              x2_a2lDB
-              x3_a2lDC
-              x4_a2lDD
-              x5_a2lDE
-              x6_a2lDF
-              x7_a2lDG
-              x8_a2lDH
-              x9_a2lDI
-              x10_a2lDJ
-              x11_a2lDL
-              x12_a2lDM)
+  f_aTdR
+  (MenuConfig x1_aTdS
+              x2_aTdT
+              x3_aTdU
+              x4_aTdV
+              x5_aTdW
+              x6_aTdX
+              x7_aTdY
+              x8_aTdZ
+              x9_aTe0
+              x10_aTe1
+              x11_aTe2
+              x12_aTe3)
   = fmap
-      (\ y1_a2lDN
+      (\ y1_aTe4
          -> MenuConfig
-              x1_a2lDA
-              x2_a2lDB
-              x3_a2lDC
-              x4_a2lDD
-              x5_a2lDE
-              x6_a2lDF
-              x7_a2lDG
-              x8_a2lDH
-              x9_a2lDI
-              x10_a2lDJ
-              y1_a2lDN
-              x12_a2lDM)
-      (f_a2lDz x11_a2lDL)
+              x1_aTdS
+              x2_aTdT
+              x3_aTdU
+              x4_aTdV
+              x5_aTdW
+              x6_aTdX
+              x7_aTdY
+              x8_aTdZ
+              x9_aTe0
+              x10_aTe1
+              y1_aTe4
+              x12_aTe3)
+      (f_aTdR x11_aTe2)
 {-# INLINE menuConfig_floated #-}
 menuConfig_fluid ::
-  forall t_a2lvR. Lens' (MenuConfig t_a2lvR) (Active t_a2lvR Bool)
+  forall t_aT74. Lens' (MenuConfig t_aT74) (Active t_aT74 Bool)
 menuConfig_fluid
-  f_a2lDO
-  (MenuConfig x1_a2lDP
-              x2_a2lDQ
-              x3_a2lDR
-              x4_a2lDS
-              x5_a2lDT
-              x6_a2lDU
-              x7_a2lDV
-              x8_a2lDX
-              x9_a2lDY
-              x10_a2lDZ
-              x11_a2lE0
-              x12_a2lE1)
+  f_aTe5
+  (MenuConfig x1_aTe6
+              x2_aTe7
+              x3_aTe8
+              x4_aTe9
+              x5_aTea
+              x6_aTeb
+              x7_aTec
+              x8_aTed
+              x9_aTee
+              x10_aTef
+              x11_aTeg
+              x12_aTeh)
   = fmap
-      (\ y1_a2lE2
+      (\ y1_aTei
          -> MenuConfig
-              x1_a2lDP
-              x2_a2lDQ
-              x3_a2lDR
-              x4_a2lDS
-              x5_a2lDT
-              x6_a2lDU
-              x7_a2lDV
-              y1_a2lE2
-              x9_a2lDY
-              x10_a2lDZ
-              x11_a2lE0
-              x12_a2lE1)
-      (f_a2lDO x8_a2lDX)
+              x1_aTe6
+              x2_aTe7
+              x3_aTe8
+              x4_aTe9
+              x5_aTea
+              x6_aTeb
+              x7_aTec
+              y1_aTei
+              x9_aTee
+              x10_aTef
+              x11_aTeg
+              x12_aTeh)
+      (f_aTe5 x8_aTed)
 {-# INLINE menuConfig_fluid #-}
 menuConfig_inverted ::
-  forall t_a2lvR. Lens' (MenuConfig t_a2lvR) (Active t_a2lvR Bool)
+  forall t_aT74. Lens' (MenuConfig t_aT74) (Active t_aT74 Bool)
 menuConfig_inverted
-  f_a2lE4
-  (MenuConfig x1_a2lE5
-              x2_a2lE6
-              x3_a2lE7
-              x4_a2lE8
-              x5_a2lE9
-              x6_a2lEa
-              x7_a2lEb
-              x8_a2lEc
-              x9_a2lEd
-              x10_a2lEe
-              x11_a2lEf
-              x12_a2lEg)
+  f_aTej
+  (MenuConfig x1_aTek
+              x2_aTel
+              x3_aTem
+              x4_aTen
+              x5_aTeo
+              x6_aTep
+              x7_aTeq
+              x8_aTer
+              x9_aTes
+              x10_aTet
+              x11_aTeu
+              x12_aTev)
   = fmap
-      (\ y1_a2lEh
+      (\ y1_aTew
          -> MenuConfig
-              x1_a2lE5
-              y1_a2lEh
-              x3_a2lE7
-              x4_a2lE8
-              x5_a2lE9
-              x6_a2lEa
-              x7_a2lEb
-              x8_a2lEc
-              x9_a2lEd
-              x10_a2lEe
-              x11_a2lEf
-              x12_a2lEg)
-      (f_a2lE4 x2_a2lE6)
+              x1_aTek
+              y1_aTew
+              x3_aTem
+              x4_aTen
+              x5_aTeo
+              x6_aTep
+              x7_aTeq
+              x8_aTer
+              x9_aTes
+              x10_aTet
+              x11_aTeu
+              x12_aTev)
+      (f_aTej x2_aTel)
 {-# INLINE menuConfig_inverted #-}
 menuConfig_pointing ::
-  forall t_a2lvR. Lens' (MenuConfig t_a2lvR) (Active t_a2lvR Bool)
+  forall t_aT74. Lens' (MenuConfig t_aT74) (Active t_aT74 Bool)
 menuConfig_pointing
-  f_a2lEi
-  (MenuConfig x1_a2lEj
-              x2_a2lEk
-              x3_a2lEl
-              x4_a2lEm
-              x5_a2lEn
-              x6_a2lEo
-              x7_a2lEp
-              x8_a2lEq
-              x9_a2lEr
-              x10_a2lEs
-              x11_a2lEt
-              x12_a2lEu)
+  f_aTex
+  (MenuConfig x1_aTey
+              x2_aTez
+              x3_aTeA
+              x4_aTeB
+              x5_aTeC
+              x6_aTeD
+              x7_aTeE
+              x8_aTeF
+              x9_aTeG
+              x10_aTeH
+              x11_aTeI
+              x12_aTeJ)
   = fmap
-      (\ y1_a2lEv
+      (\ y1_aTeK
          -> MenuConfig
-              x1_a2lEj
-              x2_a2lEk
-              x3_a2lEl
-              x4_a2lEm
-              x5_a2lEn
-              x6_a2lEo
-              y1_a2lEv
-              x8_a2lEq
-              x9_a2lEr
-              x10_a2lEs
-              x11_a2lEt
-              x12_a2lEu)
-      (f_a2lEi x7_a2lEp)
+              x1_aTey
+              x2_aTez
+              x3_aTeA
+              x4_aTeB
+              x5_aTeC
+              x6_aTeD
+              y1_aTeK
+              x8_aTeF
+              x9_aTeG
+              x10_aTeH
+              x11_aTeI
+              x12_aTeJ)
+      (f_aTex x7_aTeE)
 {-# INLINE menuConfig_pointing #-}
 menuConfig_right ::
-  forall t_a2lvR. Lens' (MenuConfig t_a2lvR) (Active t_a2lvR Bool)
+  forall t_aT74. Lens' (MenuConfig t_aT74) (Active t_aT74 Bool)
 menuConfig_right
-  f_a2lEw
-  (MenuConfig x1_a2lEx
-              x2_a2lEy
-              x3_a2lEz
-              x4_a2lEA
-              x5_a2lEB
-              x6_a2lEC
-              x7_a2lED
-              x8_a2lEE
-              x9_a2lEF
-              x10_a2lEG
-              x11_a2lEH
-              x12_a2lEI)
+  f_aTeL
+  (MenuConfig x1_aTeM
+              x2_aTeN
+              x3_aTeO
+              x4_aTeP
+              x5_aTeQ
+              x6_aTeR
+              x7_aTeS
+              x8_aTeT
+              x9_aTeU
+              x10_aTeV
+              x11_aTeW
+              x12_aTeX)
   = fmap
-      (\ y1_a2lEJ
+      (\ y1_aTeY
          -> MenuConfig
-              x1_a2lEx
-              x2_a2lEy
-              x3_a2lEz
-              x4_a2lEA
-              x5_a2lEB
-              y1_a2lEJ
-              x7_a2lED
-              x8_a2lEE
-              x9_a2lEF
-              x10_a2lEG
-              x11_a2lEH
-              x12_a2lEI)
-      (f_a2lEw x6_a2lEC)
+              x1_aTeM
+              x2_aTeN
+              x3_aTeO
+              x4_aTeP
+              x5_aTeQ
+              y1_aTeY
+              x7_aTeS
+              x8_aTeT
+              x9_aTeU
+              x10_aTeV
+              x11_aTeW
+              x12_aTeX)
+      (f_aTeL x6_aTeR)
 {-# INLINE menuConfig_right #-}
 menuConfig_secondary ::
-  forall t_a2lvR. Lens' (MenuConfig t_a2lvR) (Active t_a2lvR Bool)
+  forall t_aT74. Lens' (MenuConfig t_aT74) (Active t_aT74 Bool)
 menuConfig_secondary
-  f_a2lEK
-  (MenuConfig x1_a2lEL
-              x2_a2lEM
-              x3_a2lEN
-              x4_a2lEO
-              x5_a2lEP
-              x6_a2lEQ
-              x7_a2lER
-              x8_a2lES
-              x9_a2lET
-              x10_a2lEU
-              x11_a2lEV
-              x12_a2lEW)
+  f_aTeZ
+  (MenuConfig x1_aTf0
+              x2_aTf1
+              x3_aTf2
+              x4_aTf3
+              x5_aTf4
+              x6_aTf5
+              x7_aTf6
+              x8_aTf7
+              x9_aTf8
+              x10_aTf9
+              x11_aTfa
+              x12_aTfb)
   = fmap
-      (\ y1_a2lEX
+      (\ y1_aTfc
          -> MenuConfig
-              x1_a2lEL
-              x2_a2lEM
-              x3_a2lEN
-              x4_a2lEO
-              y1_a2lEX
-              x6_a2lEQ
-              x7_a2lER
-              x8_a2lES
-              x9_a2lET
-              x10_a2lEU
-              x11_a2lEV
-              x12_a2lEW)
-      (f_a2lEK x5_a2lEP)
+              x1_aTf0
+              x2_aTf1
+              x3_aTf2
+              x4_aTf3
+              y1_aTfc
+              x6_aTf5
+              x7_aTf6
+              x8_aTf7
+              x9_aTf8
+              x10_aTf9
+              x11_aTfa
+              x12_aTfb)
+      (f_aTeZ x5_aTf4)
 {-# INLINE menuConfig_secondary #-}
 menuConfig_size ::
-  forall t_a2lvR.
-  Lens' (MenuConfig t_a2lvR) (Active t_a2lvR (Maybe Size))
+  forall t_aT74.
+  Lens' (MenuConfig t_aT74) (Active t_aT74 (Maybe Size))
 menuConfig_size
-  f_a2lEY
-  (MenuConfig x1_a2lEZ
-              x2_a2lF0
-              x3_a2lF1
-              x4_a2lF2
-              x5_a2lF3
-              x6_a2lF4
-              x7_a2lF5
-              x8_a2lF6
-              x9_a2lF7
-              x10_a2lF9
-              x11_a2lFa
-              x12_a2lFb)
+  f_aTfd
+  (MenuConfig x1_aTfe
+              x2_aTff
+              x3_aTfg
+              x4_aTfh
+              x5_aTfi
+              x6_aTfj
+              x7_aTfk
+              x8_aTfl
+              x9_aTfm
+              x10_aTfn
+              x11_aTfo
+              x12_aTfp)
   = fmap
-      (\ y1_a2lFc
+      (\ y1_aTfq
          -> MenuConfig
-              x1_a2lEZ
-              x2_a2lF0
-              y1_a2lFc
-              x4_a2lF2
-              x5_a2lF3
-              x6_a2lF4
-              x7_a2lF5
-              x8_a2lF6
-              x9_a2lF7
-              x10_a2lF9
-              x11_a2lFa
-              x12_a2lFb)
-      (f_a2lEY x3_a2lF1)
+              x1_aTfe
+              x2_aTff
+              y1_aTfq
+              x4_aTfh
+              x5_aTfi
+              x6_aTfj
+              x7_aTfk
+              x8_aTfl
+              x9_aTfm
+              x10_aTfn
+              x11_aTfo
+              x12_aTfp)
+      (f_aTfd x3_aTfg)
 {-# INLINE menuConfig_size #-}
 menuConfig_text ::
-  forall t_a2lvR. Lens' (MenuConfig t_a2lvR) (Active t_a2lvR Bool)
+  forall t_aT74. Lens' (MenuConfig t_aT74) (Active t_aT74 Bool)
 menuConfig_text
-  f_a2lFd
-  (MenuConfig x1_a2lFe
-              x2_a2lFf
-              x3_a2lFg
-              x4_a2lFh
-              x5_a2lFi
-              x6_a2lFj
-              x7_a2lFk
-              x8_a2lFl
-              x9_a2lFm
-              x10_a2lFn
-              x11_a2lFo
-              x12_a2lFp)
+  f_aTfr
+  (MenuConfig x1_aTfs
+              x2_aTft
+              x3_aTfu
+              x4_aTfv
+              x5_aTfw
+              x6_aTfx
+              x7_aTfy
+              x8_aTfz
+              x9_aTfA
+              x10_aTfB
+              x11_aTfC
+              x12_aTfD)
   = fmap
-      (\ y1_a2lFq
+      (\ y1_aTfE
          -> MenuConfig
-              x1_a2lFe
-              x2_a2lFf
-              x3_a2lFg
-              x4_a2lFh
-              x5_a2lFi
-              x6_a2lFj
-              x7_a2lFk
-              x8_a2lFl
-              y1_a2lFq
-              x10_a2lFn
-              x11_a2lFo
-              x12_a2lFp)
-      (f_a2lFd x9_a2lFm)
+              x1_aTfs
+              x2_aTft
+              x3_aTfu
+              x4_aTfv
+              x5_aTfw
+              x6_aTfx
+              x7_aTfy
+              x8_aTfz
+              y1_aTfE
+              x10_aTfB
+              x11_aTfC
+              x12_aTfD)
+      (f_aTfr x9_aTfA)
 {-# INLINE menuConfig_text #-}
 menuConfig_vertical ::
-  forall t_a2lvR. Lens' (MenuConfig t_a2lvR) (Active t_a2lvR Bool)
+  forall t_aT74. Lens' (MenuConfig t_aT74) (Active t_aT74 Bool)
 menuConfig_vertical
-  f_a2lFs
-  (MenuConfig x1_a2lFt
-              x2_a2lFu
-              x3_a2lFv
-              x4_a2lFw
-              x5_a2lFx
-              x6_a2lFy
-              x7_a2lFz
-              x8_a2lFA
-              x9_a2lFB
-              x10_a2lFC
-              x11_a2lFD
-              x12_a2lFE)
+  f_aTfF
+  (MenuConfig x1_aTfG
+              x2_aTfH
+              x3_aTfI
+              x4_aTfJ
+              x5_aTfK
+              x6_aTfL
+              x7_aTfM
+              x8_aTfN
+              x9_aTfO
+              x10_aTfP
+              x11_aTfQ
+              x12_aTfR)
   = fmap
-      (\ y1_a2lFF
+      (\ y1_aTfS
          -> MenuConfig
-              x1_a2lFt
-              x2_a2lFu
-              x3_a2lFv
-              y1_a2lFF
-              x5_a2lFx
-              x6_a2lFy
-              x7_a2lFz
-              x8_a2lFA
-              x9_a2lFB
-              x10_a2lFC
-              x11_a2lFD
-              x12_a2lFE)
-      (f_a2lFs x4_a2lFw)
+              x1_aTfG
+              x2_aTfH
+              x3_aTfI
+              y1_aTfS
+              x5_aTfK
+              x6_aTfL
+              x7_aTfM
+              x8_aTfN
+              x9_aTfO
+              x10_aTfP
+              x11_aTfQ
+              x12_aTfR)
+      (f_aTfF x4_aTfJ)
 {-# INLINE menuConfig_vertical #-}
 -- src/Reflex/Dom/SemanticUI/Menu.hs:101:1-27: Splicing declarations
 menuItemConfig_color ::
-  forall t_a2lMd.
-  Lens' (MenuItemConfig t_a2lMd) (Active t_a2lMd (Maybe Color))
+  forall t_aTlW.
+  Lens' (MenuItemConfig t_aTlW) (Active t_aTlW (Maybe Color))
 menuItemConfig_color
-  f_a2mJC
-  (MenuItemConfig x1_a2mJD x2_a2mJE x3_a2mJF x4_a2mJG)
+  f_aUvW
+  (MenuItemConfig x1_aUvX x2_aUvY x3_aUvZ x4_aUw0)
   = fmap
-      (\ y1_a2mJH -> MenuItemConfig y1_a2mJH x2_a2mJE x3_a2mJF x4_a2mJG)
-      (f_a2mJC x1_a2mJD)
+      (\ y1_aUw1 -> MenuItemConfig y1_aUw1 x2_aUvY x3_aUvZ x4_aUw0)
+      (f_aUvW x1_aUvX)
 {-# INLINE menuItemConfig_color #-}
 menuItemConfig_disabled ::
-  forall t_a2lMd.
-  Lens' (MenuItemConfig t_a2lMd) (Active t_a2lMd Bool)
+  forall t_aTlW. Lens' (MenuItemConfig t_aTlW) (Active t_aTlW Bool)
 menuItemConfig_disabled
-  f_a2mJJ
-  (MenuItemConfig x1_a2mJK x2_a2mJL x3_a2mJM x4_a2mJN)
+  f_aUw2
+  (MenuItemConfig x1_aUw3 x2_aUw4 x3_aUw5 x4_aUw6)
   = fmap
-      (\ y1_a2mJO -> MenuItemConfig x1_a2mJK y1_a2mJO x3_a2mJM x4_a2mJN)
-      (f_a2mJJ x2_a2mJL)
+      (\ y1_aUw7 -> MenuItemConfig x1_aUw3 y1_aUw7 x3_aUw5 x4_aUw6)
+      (f_aUw2 x2_aUw4)
 {-# INLINE menuItemConfig_disabled #-}
 menuItemConfig_elConfig ::
-  forall t_a2lMd.
-  Lens' (MenuItemConfig t_a2lMd) (ActiveElConfig t_a2lMd)
+  forall t_aTlW.
+  Lens' (MenuItemConfig t_aTlW) (ActiveElConfig t_aTlW)
 menuItemConfig_elConfig
-  f_a2mJQ
-  (MenuItemConfig x1_a2mJR x2_a2mJS x3_a2mJT x4_a2mJU)
+  f_aUw8
+  (MenuItemConfig x1_aUw9 x2_aUwa x3_aUwb x4_aUwc)
   = fmap
-      (\ y1_a2mJV -> MenuItemConfig x1_a2mJR x2_a2mJS x3_a2mJT y1_a2mJV)
-      (f_a2mJQ x4_a2mJU)
+      (\ y1_aUwd -> MenuItemConfig x1_aUw9 x2_aUwa x3_aUwb y1_aUwd)
+      (f_aUw8 x4_aUwc)
 {-# INLINE menuItemConfig_elConfig #-}
 menuItemConfig_link ::
-  forall t_a2lMd. Lens' (MenuItemConfig t_a2lMd) MenuLink
+  forall t_aTlW. Lens' (MenuItemConfig t_aTlW) MenuLink
 menuItemConfig_link
-  f_a2mJX
-  (MenuItemConfig x1_a2mJY x2_a2mJZ x3_a2mK0 x4_a2mK1)
+  f_aUwe
+  (MenuItemConfig x1_aUwf x2_aUwg x3_aUwh x4_aUwi)
   = fmap
-      (\ y1_a2mK2 -> MenuItemConfig x1_a2mJY x2_a2mJZ y1_a2mK2 x4_a2mK1)
-      (f_a2mJX x3_a2mK0)
+      (\ y1_aUwj -> MenuItemConfig x1_aUwf x2_aUwg y1_aUwj x4_aUwi)
+      (f_aUwe x3_aUwh)
 {-# INLINE menuItemConfig_link #-}

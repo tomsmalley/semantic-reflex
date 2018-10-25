@@ -2,475 +2,475 @@
 labelAttached_horizontally ::
   Lens' LabelAttached (Maybe HorizontalAttached)
 labelAttached_horizontally
-  f_a1XGa
-  (LabelAttached x1_a1XGb x2_a1XGc)
+  f_a1UeQ
+  (LabelAttached x1_a1UeS x2_a1UeT)
   = fmap
-      (\ y1_a1XGd -> LabelAttached x1_a1XGb y1_a1XGd) (f_a1XGa x2_a1XGc)
+      (\ y1_a1UeU -> LabelAttached x1_a1UeS y1_a1UeU) (f_a1UeQ x2_a1UeT)
 {-# INLINE labelAttached_horizontally #-}
 labelAttached_vertically :: Lens' LabelAttached VerticalAttached
-labelAttached_vertically f_a1XGe (LabelAttached x1_a1XGf x2_a1XGg)
+labelAttached_vertically f_a1Uf1 (LabelAttached x1_a1Uf3 x2_a1Uf4)
   = fmap
-      (\ y1_a1XGh -> LabelAttached y1_a1XGh x2_a1XGg) (f_a1XGe x1_a1XGf)
+      (\ y1_a1Uf5 -> LabelAttached y1_a1Uf5 x2_a1Uf4) (f_a1Uf1 x1_a1Uf3)
 {-# INLINE labelAttached_vertically #-}
 -- src/Reflex/Dom/SemanticUI/Label.hs:119:1-63: Splicing declarations
 labelConfig_attached ::
-  forall t_a1XHd.
-  Lens' (LabelConfig t_a1XHd) (Active t_a1XHd (Maybe LabelAttached))
+  forall t_a1Uk0.
+  Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 (Maybe LabelAttached))
 labelConfig_attached
-  f_a1XXK
-  (LabelConfig x1_a1XXP
-               x2_a1XXQ
-               x3_a1XXR
-               x4_a1XXS
-               x5_a1XXT
-               x6_a1XXU
-               x7_a1XXV
-               x8_a1XXW
-               x9_a1XXX
-               x10_a1XXY
-               x11_a1XXZ
-               x12_a1XY0
-               x13_a1XY1)
+  f_a1UQT
+  (LabelConfig x1_a1UQW
+               x2_a1UQX
+               x3_a1UQY
+               x4_a1UQZ
+               x5_a1UR0
+               x6_a1UR1
+               x7_a1UR2
+               x8_a1UR3
+               x9_a1UR4
+               x10_a1UR5
+               x11_a1UR7
+               x12_a1UR8
+               x13_a1UR9)
   = fmap
-      (\ y1_a1XY2
+      (\ y1_a1URb
          -> LabelConfig
-              x1_a1XXP
-              x2_a1XXQ
-              x3_a1XXR
-              x4_a1XXS
-              x5_a1XXT
-              x6_a1XXU
-              y1_a1XY2
-              x8_a1XXW
-              x9_a1XXX
-              x10_a1XXY
-              x11_a1XXZ
-              x12_a1XY0
-              x13_a1XY1)
-      (f_a1XXK x7_a1XXV)
+              x1_a1UQW
+              x2_a1UQX
+              x3_a1UQY
+              x4_a1UQZ
+              x5_a1UR0
+              x6_a1UR1
+              y1_a1URb
+              x8_a1UR3
+              x9_a1UR4
+              x10_a1UR5
+              x11_a1UR7
+              x12_a1UR8
+              x13_a1UR9)
+      (f_a1UQT x7_a1UR2)
 {-# INLINE labelConfig_attached #-}
 labelConfig_basic ::
-  forall t_a1XHd. Lens' (LabelConfig t_a1XHd) (Active t_a1XHd Bool)
+  forall t_a1Uk0. Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 Bool)
 labelConfig_basic
-  f_a1XY9
-  (LabelConfig x1_a1XYa
-               x2_a1XYb
-               x3_a1XYc
-               x4_a1XYd
-               x5_a1XYe
-               x6_a1XYf
-               x7_a1XYg
-               x8_a1XYh
-               x9_a1XYi
-               x10_a1XYj
-               x11_a1XYk
-               x12_a1XYl
-               x13_a1XYm)
+  f_a1URi
+  (LabelConfig x1_a1URk
+               x2_a1URm
+               x3_a1URn
+               x4_a1URo
+               x5_a1URp
+               x6_a1URq
+               x7_a1URr
+               x8_a1URs
+               x9_a1URt
+               x10_a1URv
+               x11_a1URw
+               x12_a1URx
+               x13_a1URy)
   = fmap
-      (\ y1_a1XYn
+      (\ y1_a1URz
          -> LabelConfig
-              x1_a1XYa
-              x2_a1XYb
-              y1_a1XYn
-              x4_a1XYd
-              x5_a1XYe
-              x6_a1XYf
-              x7_a1XYg
-              x8_a1XYh
-              x9_a1XYi
-              x10_a1XYj
-              x11_a1XYk
-              x12_a1XYl
-              x13_a1XYm)
-      (f_a1XY9 x3_a1XYc)
+              x1_a1URk
+              x2_a1URm
+              y1_a1URz
+              x4_a1URo
+              x5_a1URp
+              x6_a1URq
+              x7_a1URr
+              x8_a1URs
+              x9_a1URt
+              x10_a1URv
+              x11_a1URw
+              x12_a1URx
+              x13_a1URy)
+      (f_a1URi x3_a1URn)
 {-# INLINE labelConfig_basic #-}
 labelConfig_color ::
-  forall t_a1XHd.
-  Lens' (LabelConfig t_a1XHd) (Active t_a1XHd (Maybe Color))
+  forall t_a1Uk0.
+  Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 (Maybe Color))
 labelConfig_color
-  f_a1XYs
-  (LabelConfig x1_a1XYt
-               x2_a1XYu
-               x3_a1XYv
-               x4_a1XYw
-               x5_a1XYx
-               x6_a1XYy
-               x7_a1XYz
-               x8_a1XYA
-               x9_a1XYB
-               x10_a1XYC
-               x11_a1XYD
-               x12_a1XYE
-               x13_a1XYF)
+  f_a1URF
+  (LabelConfig x1_a1URG
+               x2_a1URH
+               x3_a1URJ
+               x4_a1URK
+               x5_a1URM
+               x6_a1URN
+               x7_a1URO
+               x8_a1URP
+               x9_a1URQ
+               x10_a1URR
+               x11_a1URS
+               x12_a1URT
+               x13_a1URU)
   = fmap
-      (\ y1_a1XYH
+      (\ y1_a1URW
          -> LabelConfig
-              x1_a1XYt
-              x2_a1XYu
-              x3_a1XYv
-              x4_a1XYw
-              x5_a1XYx
-              x6_a1XYy
-              x7_a1XYz
-              y1_a1XYH
-              x9_a1XYB
-              x10_a1XYC
-              x11_a1XYD
-              x12_a1XYE
-              x13_a1XYF)
-      (f_a1XYs x8_a1XYA)
+              x1_a1URG
+              x2_a1URH
+              x3_a1URJ
+              x4_a1URK
+              x5_a1URM
+              x6_a1URN
+              x7_a1URO
+              y1_a1URW
+              x9_a1URQ
+              x10_a1URR
+              x11_a1URS
+              x12_a1URT
+              x13_a1URU)
+      (f_a1URF x8_a1URP)
 {-# INLINE labelConfig_color #-}
 labelConfig_corner ::
-  forall t_a1XHd.
-  Lens' (LabelConfig t_a1XHd) (Active t_a1XHd (Maybe TopCorner))
+  forall t_a1Uk0.
+  Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 (Maybe TopCorner))
 labelConfig_corner
-  f_a1XYJ
-  (LabelConfig x1_a1XYK
-               x2_a1XYL
-               x3_a1XYO
-               x4_a1XYR
-               x5_a1XYS
-               x6_a1XYT
-               x7_a1XYU
-               x8_a1XYW
-               x9_a1XZ2
-               x10_a1XZ5
-               x11_a1XZ6
-               x12_a1XZ7
-               x13_a1XZ8)
+  f_a1US1
+  (LabelConfig x1_a1US2
+               x2_a1US3
+               x3_a1US5
+               x4_a1US6
+               x5_a1US7
+               x6_a1US9
+               x7_a1USa
+               x8_a1USb
+               x9_a1USc
+               x10_a1USd
+               x11_a1USf
+               x12_a1USg
+               x13_a1USh)
   = fmap
-      (\ y1_a1XZ9
+      (\ y1_a1USi
          -> LabelConfig
-              x1_a1XYK
-              x2_a1XYL
-              x3_a1XYO
-              x4_a1XYR
-              x5_a1XYS
-              x6_a1XYT
-              x7_a1XYU
-              x8_a1XYW
-              x9_a1XZ2
-              x10_a1XZ5
-              y1_a1XZ9
-              x12_a1XZ7
-              x13_a1XZ8)
-      (f_a1XYJ x11_a1XZ6)
+              x1_a1US2
+              x2_a1US3
+              x3_a1US5
+              x4_a1US6
+              x5_a1US7
+              x6_a1US9
+              x7_a1USa
+              x8_a1USb
+              x9_a1USc
+              x10_a1USd
+              y1_a1USi
+              x12_a1USg
+              x13_a1USh)
+      (f_a1US1 x11_a1USf)
 {-# INLINE labelConfig_corner #-}
 labelConfig_elConfig ::
-  forall t_a1XHd.
-  Lens' (LabelConfig t_a1XHd) (ActiveElConfig t_a1XHd)
+  forall t_a1Uk0.
+  Lens' (LabelConfig t_a1Uk0) (ActiveElConfig t_a1Uk0)
 labelConfig_elConfig
-  f_a1XZa
-  (LabelConfig x1_a1XZb
-               x2_a1XZc
-               x3_a1XZf
-               x4_a1XZg
-               x5_a1XZh
-               x6_a1XZi
-               x7_a1XZj
-               x8_a1XZk
-               x9_a1XZl
-               x10_a1XZm
-               x11_a1XZn
-               x12_a1XZo
-               x13_a1XZp)
+  f_a1USo
+  (LabelConfig x1_a1USp
+               x2_a1USq
+               x3_a1USr
+               x4_a1USs
+               x5_a1USt
+               x6_a1USu
+               x7_a1USv
+               x8_a1USx
+               x9_a1USz
+               x10_a1USA
+               x11_a1USB
+               x12_a1USC
+               x13_a1USD)
   = fmap
-      (\ y1_a1XZt
+      (\ y1_a1USE
          -> LabelConfig
-              x1_a1XZb
-              x2_a1XZc
-              x3_a1XZf
-              x4_a1XZg
-              x5_a1XZh
-              x6_a1XZi
-              x7_a1XZj
-              x8_a1XZk
-              x9_a1XZl
-              x10_a1XZm
-              x11_a1XZn
-              x12_a1XZo
-              y1_a1XZt)
-      (f_a1XZa x13_a1XZp)
+              x1_a1USp
+              x2_a1USq
+              x3_a1USr
+              x4_a1USs
+              x5_a1USt
+              x6_a1USu
+              x7_a1USv
+              x8_a1USx
+              x9_a1USz
+              x10_a1USA
+              x11_a1USB
+              x12_a1USC
+              y1_a1USE)
+      (f_a1USo x13_a1USD)
 {-# INLINE labelConfig_elConfig #-}
 labelConfig_floating ::
-  forall t_a1XHd. Lens' (LabelConfig t_a1XHd) (Active t_a1XHd Bool)
+  forall t_a1Uk0. Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 Bool)
 labelConfig_floating
-  f_a1XZv
-  (LabelConfig x1_a1XZw
-               x2_a1XZx
-               x3_a1XZy
-               x4_a1XZz
-               x5_a1XZA
-               x6_a1XZB
-               x7_a1XZC
-               x8_a1XZD
-               x9_a1XZE
-               x10_a1XZF
-               x11_a1XZG
-               x12_a1XZI
-               x13_a1XZK)
+  f_a1USK
+  (LabelConfig x1_a1USL
+               x2_a1USM
+               x3_a1USN
+               x4_a1USO
+               x5_a1USP
+               x6_a1USQ
+               x7_a1USR
+               x8_a1UST
+               x9_a1USU
+               x10_a1USV
+               x11_a1USW
+               x12_a1USY
+               x13_a1USZ)
   = fmap
-      (\ y1_a1XZN
+      (\ y1_a1UT0
          -> LabelConfig
-              x1_a1XZw
-              x2_a1XZx
-              x3_a1XZy
-              x4_a1XZz
-              y1_a1XZN
-              x6_a1XZB
-              x7_a1XZC
-              x8_a1XZD
-              x9_a1XZE
-              x10_a1XZF
-              x11_a1XZG
-              x12_a1XZI
-              x13_a1XZK)
-      (f_a1XZv x5_a1XZA)
+              x1_a1USL
+              x2_a1USM
+              x3_a1USN
+              x4_a1USO
+              y1_a1UT0
+              x6_a1USQ
+              x7_a1USR
+              x8_a1UST
+              x9_a1USU
+              x10_a1USV
+              x11_a1USW
+              x12_a1USY
+              x13_a1USZ)
+      (f_a1USK x5_a1USP)
 {-# INLINE labelConfig_floating #-}
 labelConfig_hidden ::
-  forall t_a1XHd. Lens' (LabelConfig t_a1XHd) (Active t_a1XHd Bool)
+  forall t_a1Uk0. Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 Bool)
 labelConfig_hidden
-  f_a1XZO
-  (LabelConfig x1_a1XZP
-               x2_a1XZQ
-               x3_a1XZR
-               x4_a1XZS
-               x5_a1XZT
-               x6_a1XZU
-               x7_a1XZV
-               x8_a1XZW
-               x9_a1XZX
-               x10_a1XZY
-               x11_a1XZZ
-               x12_a1Y00
-               x13_a1Y01)
+  f_a1UT5
+  (LabelConfig x1_a1UT7
+               x2_a1UT8
+               x3_a1UTa
+               x4_a1UTb
+               x5_a1UTc
+               x6_a1UTd
+               x7_a1UTe
+               x8_a1UTf
+               x9_a1UTg
+               x10_a1UTh
+               x11_a1UTi
+               x12_a1UTj
+               x13_a1UTl)
   = fmap
-      (\ y1_a1Y02
+      (\ y1_a1UTn
          -> LabelConfig
-              x1_a1XZP
-              y1_a1Y02
-              x3_a1XZR
-              x4_a1XZS
-              x5_a1XZT
-              x6_a1XZU
-              x7_a1XZV
-              x8_a1XZW
-              x9_a1XZX
-              x10_a1XZY
-              x11_a1XZZ
-              x12_a1Y00
-              x13_a1Y01)
-      (f_a1XZO x2_a1XZQ)
+              x1_a1UT7
+              y1_a1UTn
+              x3_a1UTa
+              x4_a1UTb
+              x5_a1UTc
+              x6_a1UTd
+              x7_a1UTe
+              x8_a1UTf
+              x9_a1UTg
+              x10_a1UTh
+              x11_a1UTi
+              x12_a1UTj
+              x13_a1UTl)
+      (f_a1UT5 x2_a1UT8)
 {-# INLINE labelConfig_hidden #-}
 labelConfig_horizontal ::
-  forall t_a1XHd. Lens' (LabelConfig t_a1XHd) (Active t_a1XHd Bool)
+  forall t_a1Uk0. Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 Bool)
 labelConfig_horizontal
-  f_a1Y03
-  (LabelConfig x1_a1Y04
-               x2_a1Y05
-               x3_a1Y06
-               x4_a1Y07
-               x5_a1Y08
-               x6_a1Y09
-               x7_a1Y0a
-               x8_a1Y0b
-               x9_a1Y0c
-               x10_a1Y0d
-               x11_a1Y0e
-               x12_a1Y0f
-               x13_a1Y0g)
+  f_a1UTr
+  (LabelConfig x1_a1UTt
+               x2_a1UTv
+               x3_a1UTw
+               x4_a1UTx
+               x5_a1UTy
+               x6_a1UTz
+               x7_a1UTA
+               x8_a1UTB
+               x9_a1UTC
+               x10_a1UTE
+               x11_a1UTF
+               x12_a1UTG
+               x13_a1UTH)
   = fmap
-      (\ y1_a1Y0h
+      (\ y1_a1UTI
          -> LabelConfig
-              x1_a1Y04
-              x2_a1Y05
-              x3_a1Y06
-              x4_a1Y07
-              x5_a1Y08
-              y1_a1Y0h
-              x7_a1Y0a
-              x8_a1Y0b
-              x9_a1Y0c
-              x10_a1Y0d
-              x11_a1Y0e
-              x12_a1Y0f
-              x13_a1Y0g)
-      (f_a1Y03 x6_a1Y09)
+              x1_a1UTt
+              x2_a1UTv
+              x3_a1UTw
+              x4_a1UTx
+              x5_a1UTy
+              y1_a1UTI
+              x7_a1UTA
+              x8_a1UTB
+              x9_a1UTC
+              x10_a1UTE
+              x11_a1UTF
+              x12_a1UTG
+              x13_a1UTH)
+      (f_a1UTr x6_a1UTz)
 {-# INLINE labelConfig_horizontal #-}
 labelConfig_image ::
-  forall t_a1XHd. Lens' (LabelConfig t_a1XHd) (Active t_a1XHd Bool)
+  forall t_a1Uk0. Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 Bool)
 labelConfig_image
-  f_a1Y0j
-  (LabelConfig x1_a1Y0k
-               x2_a1Y0l
-               x3_a1Y0m
-               x4_a1Y0n
-               x5_a1Y0o
-               x6_a1Y0p
-               x7_a1Y0q
-               x8_a1Y0r
-               x9_a1Y0s
-               x10_a1Y0t
-               x11_a1Y0u
-               x12_a1Y0v
-               x13_a1Y0w)
+  f_a1UTO
+  (LabelConfig x1_a1UTP
+               x2_a1UTQ
+               x3_a1UTR
+               x4_a1UTT
+               x5_a1UTU
+               x6_a1UTW
+               x7_a1UTX
+               x8_a1UTY
+               x9_a1UTZ
+               x10_a1UU0
+               x11_a1UU1
+               x12_a1UU2
+               x13_a1UU3)
   = fmap
-      (\ y1_a1Y0x
+      (\ y1_a1UU5
          -> LabelConfig
-              y1_a1Y0x
-              x2_a1Y0l
-              x3_a1Y0m
-              x4_a1Y0n
-              x5_a1Y0o
-              x6_a1Y0p
-              x7_a1Y0q
-              x8_a1Y0r
-              x9_a1Y0s
-              x10_a1Y0t
-              x11_a1Y0u
-              x12_a1Y0v
-              x13_a1Y0w)
-      (f_a1Y0j x1_a1Y0k)
+              y1_a1UU5
+              x2_a1UTQ
+              x3_a1UTR
+              x4_a1UTT
+              x5_a1UTU
+              x6_a1UTW
+              x7_a1UTX
+              x8_a1UTY
+              x9_a1UTZ
+              x10_a1UU0
+              x11_a1UU1
+              x12_a1UU2
+              x13_a1UU3)
+      (f_a1UTO x1_a1UTP)
 {-# INLINE labelConfig_image #-}
 labelConfig_link ::
-  forall t_a1XHd. Lens' (LabelConfig t_a1XHd) Bool
+  forall t_a1Uk0. Lens' (LabelConfig t_a1Uk0) Bool
 labelConfig_link
-  f_a1Y0z
-  (LabelConfig x1_a1Y0A
-               x2_a1Y0B
-               x3_a1Y0C
-               x4_a1Y0D
-               x5_a1Y0E
-               x6_a1Y0F
-               x7_a1Y0G
-               x8_a1Y0H
-               x9_a1Y0I
-               x10_a1Y0J
-               x11_a1Y0K
-               x12_a1Y0L
-               x13_a1Y0M)
+  f_a1UUa
+  (LabelConfig x1_a1UUb
+               x2_a1UUc
+               x3_a1UUe
+               x4_a1UUf
+               x5_a1UUg
+               x6_a1UUi
+               x7_a1UUj
+               x8_a1UUk
+               x9_a1UUl
+               x10_a1UUm
+               x11_a1UUn
+               x12_a1UUp
+               x13_a1UUq)
   = fmap
-      (\ y1_a1Y0N
+      (\ y1_a1UUr
          -> LabelConfig
-              x1_a1Y0A
-              x2_a1Y0B
-              x3_a1Y0C
-              x4_a1Y0D
-              x5_a1Y0E
-              x6_a1Y0F
-              x7_a1Y0G
-              x8_a1Y0H
-              x9_a1Y0I
-              x10_a1Y0J
-              x11_a1Y0K
-              y1_a1Y0N
-              x13_a1Y0M)
-      (f_a1Y0z x12_a1Y0L)
+              x1_a1UUb
+              x2_a1UUc
+              x3_a1UUe
+              x4_a1UUf
+              x5_a1UUg
+              x6_a1UUi
+              x7_a1UUj
+              x8_a1UUk
+              x9_a1UUl
+              x10_a1UUm
+              x11_a1UUn
+              y1_a1UUr
+              x13_a1UUq)
+      (f_a1UUa x12_a1UUp)
 {-# INLINE labelConfig_link #-}
 labelConfig_pointing ::
-  forall t_a1XHd.
-  Lens' (LabelConfig t_a1XHd) (Active t_a1XHd (Maybe Pointing))
+  forall t_a1Uk0.
+  Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 (Maybe Pointing))
 labelConfig_pointing
-  f_a1Y0O
-  (LabelConfig x1_a1Y0P
-               x2_a1Y0Q
-               x3_a1Y0R
-               x4_a1Y0S
-               x5_a1Y0T
-               x6_a1Y0U
-               x7_a1Y0V
-               x8_a1Y0W
-               x9_a1Y0X
-               x10_a1Y0Y
-               x11_a1Y0Z
-               x12_a1Y10
-               x13_a1Y11)
+  f_a1UUw
+  (LabelConfig x1_a1UUy
+               x2_a1UUz
+               x3_a1UUA
+               x4_a1UUB
+               x5_a1UUC
+               x6_a1UUD
+               x7_a1UUE
+               x8_a1UUG
+               x9_a1UUH
+               x10_a1UUJ
+               x11_a1UUK
+               x12_a1UUL
+               x13_a1UUM)
   = fmap
-      (\ y1_a1Y12
+      (\ y1_a1UUN
          -> LabelConfig
-              x1_a1Y0P
-              x2_a1Y0Q
-              x3_a1Y0R
-              x4_a1Y0S
-              x5_a1Y0T
-              x6_a1Y0U
-              x7_a1Y0V
-              x8_a1Y0W
-              y1_a1Y12
-              x10_a1Y0Y
-              x11_a1Y0Z
-              x12_a1Y10
-              x13_a1Y11)
-      (f_a1Y0O x9_a1Y0X)
+              x1_a1UUy
+              x2_a1UUz
+              x3_a1UUA
+              x4_a1UUB
+              x5_a1UUC
+              x6_a1UUD
+              x7_a1UUE
+              x8_a1UUG
+              y1_a1UUN
+              x10_a1UUJ
+              x11_a1UUK
+              x12_a1UUL
+              x13_a1UUM)
+      (f_a1UUw x9_a1UUH)
 {-# INLINE labelConfig_pointing #-}
 labelConfig_ribbon ::
-  forall t_a1XHd.
-  Lens' (LabelConfig t_a1XHd) (Active t_a1XHd (Maybe Ribbon))
+  forall t_a1Uk0.
+  Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 (Maybe Ribbon))
 labelConfig_ribbon
-  f_a1Y14
-  (LabelConfig x1_a1Y15
-               x2_a1Y16
-               x3_a1Y17
-               x4_a1Y18
-               x5_a1Y19
-               x6_a1Y1a
-               x7_a1Y1b
-               x8_a1Y1c
-               x9_a1Y1d
-               x10_a1Y1e
-               x11_a1Y1f
-               x12_a1Y1g
-               x13_a1Y1h)
+  f_a1UUT
+  (LabelConfig x1_a1UUU
+               x2_a1UUV
+               x3_a1UUW
+               x4_a1UUX
+               x5_a1UUY
+               x6_a1UUZ
+               x7_a1UV0
+               x8_a1UV2
+               x9_a1UV3
+               x10_a1UV5
+               x11_a1UV6
+               x12_a1UV7
+               x13_a1UV8)
   = fmap
-      (\ y1_a1Y1i
+      (\ y1_a1UV9
          -> LabelConfig
-              x1_a1Y15
-              x2_a1Y16
-              x3_a1Y17
-              x4_a1Y18
-              x5_a1Y19
-              x6_a1Y1a
-              x7_a1Y1b
-              x8_a1Y1c
-              x9_a1Y1d
-              y1_a1Y1i
-              x11_a1Y1f
-              x12_a1Y1g
-              x13_a1Y1h)
-      (f_a1Y14 x10_a1Y1e)
+              x1_a1UUU
+              x2_a1UUV
+              x3_a1UUW
+              x4_a1UUX
+              x5_a1UUY
+              x6_a1UUZ
+              x7_a1UV0
+              x8_a1UV2
+              x9_a1UV3
+              y1_a1UV9
+              x11_a1UV6
+              x12_a1UV7
+              x13_a1UV8)
+      (f_a1UUT x10_a1UV5)
 {-# INLINE labelConfig_ribbon #-}
 labelConfig_tag ::
-  forall t_a1XHd. Lens' (LabelConfig t_a1XHd) (Active t_a1XHd Bool)
+  forall t_a1Uk0. Lens' (LabelConfig t_a1Uk0) (Active t_a1Uk0 Bool)
 labelConfig_tag
-  f_a1Y1B
-  (LabelConfig x1_a1Y1C
-               x2_a1Y1D
-               x3_a1Y1E
-               x4_a1Y1F
-               x5_a1Y1G
-               x6_a1Y1H
-               x7_a1Y1I
-               x8_a1Y1K
-               x9_a1Y1L
-               x10_a1Y1M
-               x11_a1Y1N
-               x12_a1Y1P
-               x13_a1Y1R)
+  f_a1UVf
+  (LabelConfig x1_a1UVg
+               x2_a1UVh
+               x3_a1UVi
+               x4_a1UVk
+               x5_a1UVl
+               x6_a1UVm
+               x7_a1UVn
+               x8_a1UVo
+               x9_a1UVp
+               x10_a1UVq
+               x11_a1UVs
+               x12_a1UVt
+               x13_a1UVv)
   = fmap
-      (\ y1_a1Y1S
+      (\ y1_a1UVw
          -> LabelConfig
-              x1_a1Y1C
-              x2_a1Y1D
-              x3_a1Y1E
-              y1_a1Y1S
-              x5_a1Y1G
-              x6_a1Y1H
-              x7_a1Y1I
-              x8_a1Y1K
-              x9_a1Y1L
-              x10_a1Y1M
-              x11_a1Y1N
-              x12_a1Y1P
-              x13_a1Y1R)
-      (f_a1Y1B x4_a1Y1F)
+              x1_a1UVg
+              x2_a1UVh
+              x3_a1UVi
+              y1_a1UVw
+              x5_a1UVl
+              x6_a1UVm
+              x7_a1UVn
+              x8_a1UVo
+              x9_a1UVp
+              x10_a1UVq
+              x11_a1UVs
+              x12_a1UVt
+              x13_a1UVv)
+      (f_a1UVf x4_a1UVk)
 {-# INLINE labelConfig_tag #-}

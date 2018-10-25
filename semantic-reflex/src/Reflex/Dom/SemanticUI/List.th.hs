@@ -1,492 +1,492 @@
 -- src/Reflex/Dom/SemanticUI/List.hs:57:1-62: Splicing declarations
 listConfig_aligned ::
-  forall t_a2jgs.
-  Lens' (ListConfig t_a2jgs) (Active t_a2jgs (Maybe ListAligned))
+  forall t_a13Xt.
+  Lens' (ListConfig t_a13Xt) (Active t_a13Xt (Maybe ListAligned))
 listConfig_aligned
-  f_a2jVN
-  (ListConfig x1_a2jVO
-              x2_a2jVP
-              x3_a2jVQ
-              x4_a2jVR
-              x5_a2jVS
-              x6_a2jVT
-              x7_a2jVU
-              x8_a2jVV
-              x9_a2jVW
-              x10_a2jVX
-              x11_a2jVZ
-              x12_a2jW0
-              x13_a2jW1)
+  f_a14Ab
+  (ListConfig x1_a14Ac
+              x2_a14Ad
+              x3_a14Ae
+              x4_a14Af
+              x5_a14Ag
+              x6_a14Ah
+              x7_a14Ai
+              x8_a14Aj
+              x9_a14Ak
+              x10_a14Al
+              x11_a14Am
+              x12_a14An
+              x13_a14Ao)
   = fmap
-      (\ y1_a2jW3
+      (\ y1_a14Ap
          -> ListConfig
-              x1_a2jVO
-              x2_a2jVP
-              x3_a2jVQ
-              x4_a2jVR
-              x5_a2jVS
-              x6_a2jVT
-              x7_a2jVU
-              x8_a2jVV
-              x9_a2jVW
-              x10_a2jVX
-              x11_a2jVZ
-              y1_a2jW3
-              x13_a2jW1)
-      (f_a2jVN x12_a2jW0)
+              x1_a14Ac
+              x2_a14Ad
+              x3_a14Ae
+              x4_a14Af
+              x5_a14Ag
+              x6_a14Ah
+              x7_a14Ai
+              x8_a14Aj
+              x9_a14Ak
+              x10_a14Al
+              x11_a14Am
+              y1_a14Ap
+              x13_a14Ao)
+      (f_a14Ab x12_a14An)
 {-# INLINE listConfig_aligned #-}
 listConfig_animated ::
-  forall t_a2jgs. Lens' (ListConfig t_a2jgs) (Active t_a2jgs Bool)
+  forall t_a13Xt. Lens' (ListConfig t_a13Xt) (Active t_a13Xt Bool)
 listConfig_animated
-  f_a2jW8
-  (ListConfig x1_a2jWa
-              x2_a2jWb
-              x3_a2jWc
-              x4_a2jWd
-              x5_a2jWe
-              x6_a2jWg
-              x7_a2jWh
-              x8_a2jWi
-              x9_a2jWj
-              x10_a2jWl
-              x11_a2jWm
-              x12_a2jWn
-              x13_a2jWp)
+  f_a14Aq
+  (ListConfig x1_a14Ar
+              x2_a14As
+              x3_a14At
+              x4_a14Au
+              x5_a14Av
+              x6_a14Aw
+              x7_a14Ax
+              x8_a14Ay
+              x9_a14Az
+              x10_a14AA
+              x11_a14AB
+              x12_a14AC
+              x13_a14AD)
   = fmap
-      (\ y1_a2jWq
+      (\ y1_a14AE
          -> ListConfig
-              x1_a2jWa
-              x2_a2jWb
-              x3_a2jWc
-              x4_a2jWd
-              x5_a2jWe
-              y1_a2jWq
-              x7_a2jWh
-              x8_a2jWi
-              x9_a2jWj
-              x10_a2jWl
-              x11_a2jWm
-              x12_a2jWn
-              x13_a2jWp)
-      (f_a2jW8 x6_a2jWg)
+              x1_a14Ar
+              x2_a14As
+              x3_a14At
+              x4_a14Au
+              x5_a14Av
+              y1_a14AE
+              x7_a14Ax
+              x8_a14Ay
+              x9_a14Az
+              x10_a14AA
+              x11_a14AB
+              x12_a14AC
+              x13_a14AD)
+      (f_a14Aq x6_a14Aw)
 {-# INLINE listConfig_animated #-}
 listConfig_celled ::
-  forall t_a2jgs. Lens' (ListConfig t_a2jgs) (Active t_a2jgs Bool)
+  forall t_a13Xt. Lens' (ListConfig t_a13Xt) (Active t_a13Xt Bool)
 listConfig_celled
-  f_a2jWw
-  (ListConfig x1_a2jWx
-              x2_a2jWy
-              x3_a2jWz
-              x4_a2jWA
-              x5_a2jWB
-              x6_a2jWC
-              x7_a2jWD
-              x8_a2jWE
-              x9_a2jWH
-              x10_a2jWI
-              x11_a2jWJ
-              x12_a2jWK
-              x13_a2jWL)
+  f_a14AG
+  (ListConfig x1_a14AH
+              x2_a14AI
+              x3_a14AJ
+              x4_a14AK
+              x5_a14AL
+              x6_a14AM
+              x7_a14AN
+              x8_a14AO
+              x9_a14AP
+              x10_a14AQ
+              x11_a14AR
+              x12_a14AS
+              x13_a14AT)
   = fmap
-      (\ y1_a2jWM
+      (\ y1_a14AU
          -> ListConfig
-              x1_a2jWx
-              x2_a2jWy
-              x3_a2jWz
-              x4_a2jWA
-              x5_a2jWB
-              x6_a2jWC
-              x7_a2jWD
-              x8_a2jWE
-              y1_a2jWM
-              x10_a2jWI
-              x11_a2jWJ
-              x12_a2jWK
-              x13_a2jWL)
-      (f_a2jWw x9_a2jWH)
+              x1_a14AH
+              x2_a14AI
+              x3_a14AJ
+              x4_a14AK
+              x5_a14AL
+              x6_a14AM
+              x7_a14AN
+              x8_a14AO
+              y1_a14AU
+              x10_a14AQ
+              x11_a14AR
+              x12_a14AS
+              x13_a14AT)
+      (f_a14AG x9_a14AP)
 {-# INLINE listConfig_celled #-}
 listConfig_divided ::
-  forall t_a2jgs. Lens' (ListConfig t_a2jgs) (Active t_a2jgs Bool)
+  forall t_a13Xt. Lens' (ListConfig t_a13Xt) (Active t_a13Xt Bool)
 listConfig_divided
-  f_a2jWV
-  (ListConfig x1_a2jWW
-              x2_a2jWX
-              x3_a2jWY
-              x4_a2jWZ
-              x5_a2jX0
-              x6_a2jX1
-              x7_a2jX2
-              x8_a2jX3
-              x9_a2jX4
-              x10_a2jX5
-              x11_a2jX6
-              x12_a2jX8
-              x13_a2jX9)
+  f_a14AV
+  (ListConfig x1_a14AW
+              x2_a14AX
+              x3_a14AY
+              x4_a14AZ
+              x5_a14B0
+              x6_a14B1
+              x7_a14B2
+              x8_a14B3
+              x9_a14B4
+              x10_a14B5
+              x11_a14B6
+              x12_a14B7
+              x13_a14B8)
   = fmap
-      (\ y1_a2jXa
+      (\ y1_a14B9
          -> ListConfig
-              x1_a2jWW
-              x2_a2jWX
-              x3_a2jWY
-              x4_a2jWZ
-              x5_a2jX0
-              x6_a2jX1
-              x7_a2jX2
-              y1_a2jXa
-              x9_a2jX4
-              x10_a2jX5
-              x11_a2jX6
-              x12_a2jX8
-              x13_a2jX9)
-      (f_a2jWV x8_a2jX3)
+              x1_a14AW
+              x2_a14AX
+              x3_a14AY
+              x4_a14AZ
+              x5_a14B0
+              x6_a14B1
+              x7_a14B2
+              y1_a14B9
+              x9_a14B4
+              x10_a14B5
+              x11_a14B6
+              x12_a14B7
+              x13_a14B8)
+      (f_a14AV x8_a14B3)
 {-# INLINE listConfig_divided #-}
 listConfig_elConfig ::
-  forall t_a2jgs. Lens' (ListConfig t_a2jgs) (ActiveElConfig t_a2jgs)
+  forall t_a13Xt. Lens' (ListConfig t_a13Xt) (ActiveElConfig t_a13Xt)
 listConfig_elConfig
-  f_a2jXf
-  (ListConfig x1_a2jXg
-              x2_a2jXh
-              x3_a2jXi
-              x4_a2jXj
-              x5_a2jXk
-              x6_a2jXl
-              x7_a2jXm
-              x8_a2jXn
-              x9_a2jXp
-              x10_a2jXq
-              x11_a2jXr
-              x12_a2jXs
-              x13_a2jXt)
+  f_a14Ba
+  (ListConfig x1_a14Bb
+              x2_a14Bc
+              x3_a14Bd
+              x4_a14Be
+              x5_a14Bf
+              x6_a14Bg
+              x7_a14Bh
+              x8_a14Bi
+              x9_a14Bj
+              x10_a14Bk
+              x11_a14Bl
+              x12_a14Bm
+              x13_a14Bn)
   = fmap
-      (\ y1_a2jXu
+      (\ y1_a14Bo
          -> ListConfig
-              x1_a2jXg
-              x2_a2jXh
-              x3_a2jXi
-              x4_a2jXj
-              x5_a2jXk
-              x6_a2jXl
-              x7_a2jXm
-              x8_a2jXn
-              x9_a2jXp
-              x10_a2jXq
-              x11_a2jXr
-              x12_a2jXs
-              y1_a2jXu)
-      (f_a2jXf x13_a2jXt)
+              x1_a14Bb
+              x2_a14Bc
+              x3_a14Bd
+              x4_a14Be
+              x5_a14Bf
+              x6_a14Bg
+              x7_a14Bh
+              x8_a14Bi
+              x9_a14Bj
+              x10_a14Bk
+              x11_a14Bl
+              x12_a14Bm
+              y1_a14Bo)
+      (f_a14Ba x13_a14Bn)
 {-# INLINE listConfig_elConfig #-}
 listConfig_floated ::
-  forall t_a2jgs.
-  Lens' (ListConfig t_a2jgs) (Active t_a2jgs (Maybe Floated))
+  forall t_a13Xt.
+  Lens' (ListConfig t_a13Xt) (Active t_a13Xt (Maybe Floated))
 listConfig_floated
-  f_a2jXA
-  (ListConfig x1_a2jXC
-              x2_a2jXD
-              x3_a2jXF
-              x4_a2jXG
-              x5_a2jXH
-              x6_a2jXI
-              x7_a2jXJ
-              x8_a2jXK
-              x9_a2jXM
-              x10_a2jXN
-              x11_a2jXO
-              x12_a2jXP
-              x13_a2jXQ)
+  f_a14Bq
+  (ListConfig x1_a14Br
+              x2_a14Bs
+              x3_a14Bt
+              x4_a14Bu
+              x5_a14Bv
+              x6_a14Bw
+              x7_a14Bx
+              x8_a14By
+              x9_a14Bz
+              x10_a14BA
+              x11_a14BB
+              x12_a14BC
+              x13_a14BD)
   = fmap
-      (\ y1_a2jXR
+      (\ y1_a14BE
          -> ListConfig
-              x1_a2jXC
-              x2_a2jXD
-              x3_a2jXF
-              x4_a2jXG
-              x5_a2jXH
-              x6_a2jXI
-              x7_a2jXJ
-              x8_a2jXK
-              x9_a2jXM
-              x10_a2jXN
-              y1_a2jXR
-              x12_a2jXP
-              x13_a2jXQ)
-      (f_a2jXA x11_a2jXO)
+              x1_a14Br
+              x2_a14Bs
+              x3_a14Bt
+              x4_a14Bu
+              x5_a14Bv
+              x6_a14Bw
+              x7_a14Bx
+              x8_a14By
+              x9_a14Bz
+              x10_a14BA
+              y1_a14BE
+              x12_a14BC
+              x13_a14BD)
+      (f_a14Bq x11_a14BB)
 {-# INLINE listConfig_floated #-}
 listConfig_horizontal ::
-  forall t_a2jgs. Lens' (ListConfig t_a2jgs) (Active t_a2jgs Bool)
+  forall t_a13Xt. Lens' (ListConfig t_a13Xt) (Active t_a13Xt Bool)
 listConfig_horizontal
-  f_a2jXV
-  (ListConfig x1_a2jXW
-              x2_a2jXX
-              x3_a2jXY
-              x4_a2jXZ
-              x5_a2jY1
-              x6_a2jY2
-              x7_a2jY3
-              x8_a2jY4
-              x9_a2jY5
-              x10_a2jY6
-              x11_a2jY7
-              x12_a2jY8
-              x13_a2jYa)
+  f_a14BJ
+  (ListConfig x1_a14BK
+              x2_a14BL
+              x3_a14BM
+              x4_a14BN
+              x5_a14BO
+              x6_a14BP
+              x7_a14BQ
+              x8_a14BR
+              x9_a14BS
+              x10_a14BT
+              x11_a14BU
+              x12_a14BV
+              x13_a14BW)
   = fmap
-      (\ y1_a2jYb
+      (\ y1_a14BX
          -> ListConfig
-              x1_a2jXW
-              x2_a2jXX
-              y1_a2jYb
-              x4_a2jXZ
-              x5_a2jY1
-              x6_a2jY2
-              x7_a2jY3
-              x8_a2jY4
-              x9_a2jY5
-              x10_a2jY6
-              x11_a2jY7
-              x12_a2jY8
-              x13_a2jYa)
-      (f_a2jXV x3_a2jXY)
+              x1_a14BK
+              x2_a14BL
+              y1_a14BX
+              x4_a14BN
+              x5_a14BO
+              x6_a14BP
+              x7_a14BQ
+              x8_a14BR
+              x9_a14BS
+              x10_a14BT
+              x11_a14BU
+              x12_a14BV
+              x13_a14BW)
+      (f_a14BJ x3_a14BM)
 {-# INLINE listConfig_horizontal #-}
 listConfig_inverted ::
-  forall t_a2jgs. Lens' (ListConfig t_a2jgs) (Active t_a2jgs Bool)
+  forall t_a13Xt. Lens' (ListConfig t_a13Xt) (Active t_a13Xt Bool)
 listConfig_inverted
-  f_a2jYf
-  (ListConfig x1_a2jYh
-              x2_a2jYi
-              x3_a2jYj
-              x4_a2jYk
-              x5_a2jYl
-              x6_a2jYn
-              x7_a2jYo
-              x8_a2jYp
-              x9_a2jYq
-              x10_a2jYr
-              x11_a2jYs
-              x12_a2jYt
-              x13_a2jYu)
+  f_a14C1
+  (ListConfig x1_a14C2
+              x2_a14C3
+              x3_a14C4
+              x4_a14C5
+              x5_a14C6
+              x6_a14C7
+              x7_a14C8
+              x8_a14C9
+              x9_a14Ca
+              x10_a14Cb
+              x11_a14Cc
+              x12_a14Cd
+              x13_a14Ce)
   = fmap
-      (\ y1_a2jYw
+      (\ y1_a14Cf
          -> ListConfig
-              x1_a2jYh
-              x2_a2jYi
-              x3_a2jYj
-              y1_a2jYw
-              x5_a2jYl
-              x6_a2jYn
-              x7_a2jYo
-              x8_a2jYp
-              x9_a2jYq
-              x10_a2jYr
-              x11_a2jYs
-              x12_a2jYt
-              x13_a2jYu)
-      (f_a2jYf x4_a2jYk)
+              x1_a14C2
+              x2_a14C3
+              x3_a14C4
+              y1_a14Cf
+              x5_a14C6
+              x6_a14C7
+              x7_a14C8
+              x8_a14C9
+              x9_a14Ca
+              x10_a14Cb
+              x11_a14Cc
+              x12_a14Cd
+              x13_a14Ce)
+      (f_a14C1 x4_a14C5)
 {-# INLINE listConfig_inverted #-}
 listConfig_link ::
-  forall t_a2jgs. Lens' (ListConfig t_a2jgs) (Active t_a2jgs Bool)
+  forall t_a13Xt. Lens' (ListConfig t_a13Xt) (Active t_a13Xt Bool)
 listConfig_link
-  f_a2jYz
-  (ListConfig x1_a2jYA
-              x2_a2jYB
-              x3_a2jYC
-              x4_a2jYD
-              x5_a2jYE
-              x6_a2jYF
-              x7_a2jYG
-              x8_a2jYH
-              x9_a2jYI
-              x10_a2jYJ
-              x11_a2jYK
-              x12_a2jYL
-              x13_a2jYN)
+  f_a14Ch
+  (ListConfig x1_a14Ci
+              x2_a14Ck
+              x3_a14Cl
+              x4_a14Cm
+              x5_a14Cn
+              x6_a14Co
+              x7_a14Cp
+              x8_a14Cq
+              x9_a14Cr
+              x10_a14Cs
+              x11_a14Ct
+              x12_a14Cu
+              x13_a14Cv)
   = fmap
-      (\ y1_a2jYO
+      (\ y1_a14Cw
          -> ListConfig
-              x1_a2jYA
-              y1_a2jYO
-              x3_a2jYC
-              x4_a2jYD
-              x5_a2jYE
-              x6_a2jYF
-              x7_a2jYG
-              x8_a2jYH
-              x9_a2jYI
-              x10_a2jYJ
-              x11_a2jYK
-              x12_a2jYL
-              x13_a2jYN)
-      (f_a2jYz x2_a2jYB)
+              x1_a14Ci
+              y1_a14Cw
+              x3_a14Cl
+              x4_a14Cm
+              x5_a14Cn
+              x6_a14Co
+              x7_a14Cp
+              x8_a14Cq
+              x9_a14Cr
+              x10_a14Cs
+              x11_a14Ct
+              x12_a14Cu
+              x13_a14Cv)
+      (f_a14Ch x2_a14Ck)
 {-# INLINE listConfig_link #-}
 listConfig_relaxed ::
-  forall t_a2jgs.
-  Lens' (ListConfig t_a2jgs) (Active t_a2jgs (Maybe Relaxed))
+  forall t_a13Xt.
+  Lens' (ListConfig t_a13Xt) (Active t_a13Xt (Maybe Relaxed))
 listConfig_relaxed
-  f_a2jYR
-  (ListConfig x1_a2jYS
-              x2_a2jYT
-              x3_a2jYU
-              x4_a2jYV
-              x5_a2jYW
-              x6_a2jYX
-              x7_a2jYY
-              x8_a2jYZ
-              x9_a2jZ0
-              x10_a2jZ1
-              x11_a2jZ2
-              x12_a2jZ3
-              x13_a2jZ4)
+  f_a14Cx
+  (ListConfig x1_a14Cy
+              x2_a14Cz
+              x3_a14CA
+              x4_a14CB
+              x5_a14CC
+              x6_a14CD
+              x7_a14CE
+              x8_a14CG
+              x9_a14CH
+              x10_a14CI
+              x11_a14CJ
+              x12_a14CL
+              x13_a14CM)
   = fmap
-      (\ y1_a2jZ5
+      (\ y1_a14CN
          -> ListConfig
-              x1_a2jYS
-              x2_a2jYT
-              x3_a2jYU
-              x4_a2jYV
-              x5_a2jYW
-              x6_a2jYX
-              y1_a2jZ5
-              x8_a2jYZ
-              x9_a2jZ0
-              x10_a2jZ1
-              x11_a2jZ2
-              x12_a2jZ3
-              x13_a2jZ4)
-      (f_a2jYR x7_a2jYY)
+              x1_a14Cy
+              x2_a14Cz
+              x3_a14CA
+              x4_a14CB
+              x5_a14CC
+              x6_a14CD
+              y1_a14CN
+              x8_a14CG
+              x9_a14CH
+              x10_a14CI
+              x11_a14CJ
+              x12_a14CL
+              x13_a14CM)
+      (f_a14Cx x7_a14CE)
 {-# INLINE listConfig_relaxed #-}
 listConfig_selection ::
-  forall t_a2jgs. Lens' (ListConfig t_a2jgs) (Active t_a2jgs Bool)
+  forall t_a13Xt. Lens' (ListConfig t_a13Xt) (Active t_a13Xt Bool)
 listConfig_selection
-  f_a2jZb
-  (ListConfig x1_a2jZd
-              x2_a2jZe
-              x3_a2jZf
-              x4_a2jZg
-              x5_a2jZh
-              x6_a2jZj
-              x7_a2jZk
-              x8_a2jZl
-              x9_a2jZm
-              x10_a2jZn
-              x11_a2jZo
-              x12_a2jZq
-              x13_a2jZr)
+  f_a14CP
+  (ListConfig x1_a14CQ
+              x2_a14CR
+              x3_a14CS
+              x4_a14CT
+              x5_a14CU
+              x6_a14CV
+              x7_a14CW
+              x8_a14CX
+              x9_a14CY
+              x10_a14CZ
+              x11_a14D0
+              x12_a14D1
+              x13_a14D2)
   = fmap
-      (\ y1_a2jZt
+      (\ y1_a14D3
          -> ListConfig
-              x1_a2jZd
-              x2_a2jZe
-              x3_a2jZf
-              x4_a2jZg
-              y1_a2jZt
-              x6_a2jZj
-              x7_a2jZk
-              x8_a2jZl
-              x9_a2jZm
-              x10_a2jZn
-              x11_a2jZo
-              x12_a2jZq
-              x13_a2jZr)
-      (f_a2jZb x5_a2jZh)
+              x1_a14CQ
+              x2_a14CR
+              x3_a14CS
+              x4_a14CT
+              y1_a14D3
+              x6_a14CV
+              x7_a14CW
+              x8_a14CX
+              x9_a14CY
+              x10_a14CZ
+              x11_a14D0
+              x12_a14D1
+              x13_a14D2)
+      (f_a14CP x5_a14CU)
 {-# INLINE listConfig_selection #-}
 listConfig_size ::
-  forall t_a2jgs.
-  Lens' (ListConfig t_a2jgs) (Active t_a2jgs (Maybe Size))
+  forall t_a13Xt.
+  Lens' (ListConfig t_a13Xt) (Active t_a13Xt (Maybe Size))
 listConfig_size
-  f_a2jZx
-  (ListConfig x1_a2jZy
-              x2_a2jZz
-              x3_a2jZA
-              x4_a2jZB
-              x5_a2jZC
-              x6_a2jZD
-              x7_a2jZE
-              x8_a2jZF
-              x9_a2jZG
-              x10_a2jZH
-              x11_a2jZI
-              x12_a2jZJ
-              x13_a2jZK)
+  f_a14D7
+  (ListConfig x1_a14D8
+              x2_a14D9
+              x3_a14Da
+              x4_a14Db
+              x5_a14Dc
+              x6_a14Dd
+              x7_a14De
+              x8_a14Df
+              x9_a14Dg
+              x10_a14Dh
+              x11_a14Di
+              x12_a14Dj
+              x13_a14Dk)
   = fmap
-      (\ y1_a2jZL
+      (\ y1_a14Dl
          -> ListConfig
-              x1_a2jZy
-              x2_a2jZz
-              x3_a2jZA
-              x4_a2jZB
-              x5_a2jZC
-              x6_a2jZD
-              x7_a2jZE
-              x8_a2jZF
-              x9_a2jZG
-              y1_a2jZL
-              x11_a2jZI
-              x12_a2jZJ
-              x13_a2jZK)
-      (f_a2jZx x10_a2jZH)
+              x1_a14D8
+              x2_a14D9
+              x3_a14Da
+              x4_a14Db
+              x5_a14Dc
+              x6_a14Dd
+              x7_a14De
+              x8_a14Df
+              x9_a14Dg
+              y1_a14Dl
+              x11_a14Di
+              x12_a14Dj
+              x13_a14Dk)
+      (f_a14D7 x10_a14Dh)
 {-# INLINE listConfig_size #-}
 listConfig_type ::
-  forall t_a2jgs.
-  Lens' (ListConfig t_a2jgs) (Active t_a2jgs (Maybe ListType))
+  forall t_a13Xt.
+  Lens' (ListConfig t_a13Xt) (Active t_a13Xt (Maybe ListType))
 listConfig_type
-  f_a2jZO
-  (ListConfig x1_a2jZP
-              x2_a2jZQ
-              x3_a2jZR
-              x4_a2jZT
-              x5_a2jZU
-              x6_a2jZV
-              x7_a2jZW
-              x8_a2jZX
-              x9_a2jZY
-              x10_a2jZZ
-              x11_a2k00
-              x12_a2k02
-              x13_a2k03)
+  f_a14Dp
+  (ListConfig x1_a14Dq
+              x2_a14Dr
+              x3_a14Ds
+              x4_a14Dt
+              x5_a14Du
+              x6_a14Dv
+              x7_a14Dw
+              x8_a14Dx
+              x9_a14Dy
+              x10_a14Dz
+              x11_a14DA
+              x12_a14DB
+              x13_a14DC)
   = fmap
-      (\ y1_a2k04
+      (\ y1_a14DE
          -> ListConfig
-              y1_a2k04
-              x2_a2jZQ
-              x3_a2jZR
-              x4_a2jZT
-              x5_a2jZU
-              x6_a2jZV
-              x7_a2jZW
-              x8_a2jZX
-              x9_a2jZY
-              x10_a2jZZ
-              x11_a2k00
-              x12_a2k02
-              x13_a2k03)
-      (f_a2jZO x1_a2jZP)
+              y1_a14DE
+              x2_a14Dr
+              x3_a14Ds
+              x4_a14Dt
+              x5_a14Du
+              x6_a14Dv
+              x7_a14Dw
+              x8_a14Dx
+              x9_a14Dy
+              x10_a14Dz
+              x11_a14DA
+              x12_a14DB
+              x13_a14DC)
+      (f_a14Dp x1_a14Dq)
 {-# INLINE listConfig_type #-}
 -- src/Reflex/Dom/SemanticUI/List.hs:109:1-66: Splicing declarations
 listItemConfig_elConfig ::
-  forall t_a2k8T m_a2k8U.
-  Lens' (ListItemConfig t_a2k8T m_a2k8U) (ActiveElConfig t_a2k8T)
+  forall t_a14KC m_a14KD.
+  Lens' (ListItemConfig t_a14KC m_a14KD) (ActiveElConfig t_a14KC)
 listItemConfig_elConfig
-  f_a2kDb
-  (ListItemConfig x1_a2kDc x2_a2kDd x3_a2kDe)
+  f_a15k9
+  (ListItemConfig x1_a15ka x2_a15kb x3_a15kc)
   = fmap
-      (\ y1_a2kDf -> ListItemConfig x1_a2kDc x2_a2kDd y1_a2kDf)
-      (f_a2kDb x3_a2kDe)
+      (\ y1_a15ke -> ListItemConfig x1_a15ka x2_a15kb y1_a15ke)
+      (f_a15k9 x3_a15kc)
 {-# INLINE listItemConfig_elConfig #-}
 listItemConfig_element ::
-  forall t_a2k8T m_a2k8U.
-  Lens' (ListItemConfig t_a2k8T m_a2k8U) ListItemElement
+  forall t_a14KC m_a14KD.
+  Lens' (ListItemConfig t_a14KC m_a14KD) ListItemElement
 listItemConfig_element
-  f_a2kDh
-  (ListItemConfig x1_a2kDi x2_a2kDj x3_a2kDk)
+  f_a15kf
+  (ListItemConfig x1_a15kg x2_a15kh x3_a15ki)
   = fmap
-      (\ y1_a2kDl -> ListItemConfig x1_a2kDi y1_a2kDl x3_a2kDk)
-      (f_a2kDh x2_a2kDj)
+      (\ y1_a15kj -> ListItemConfig x1_a15kg y1_a15kj x3_a15ki)
+      (f_a15kf x2_a15kh)
 {-# INLINE listItemConfig_element #-}
 listItemConfig_preContent ::
-  forall t_a2k8T m_a2k8U.
-  Lens' (ListItemConfig t_a2k8T m_a2k8U) (Maybe (m_a2k8U ()))
+  forall t_a14KC m_a14KD.
+  Lens' (ListItemConfig t_a14KC m_a14KD) (Maybe (m_a14KD ()))
 listItemConfig_preContent
-  f_a2kDn
-  (ListItemConfig x1_a2kDo x2_a2kDp x3_a2kDq)
+  f_a15kk
+  (ListItemConfig x1_a15kl x2_a15km x3_a15kn)
   = fmap
-      (\ y1_a2kDr -> ListItemConfig y1_a2kDr x2_a2kDp x3_a2kDq)
-      (f_a2kDn x1_a2kDo)
+      (\ y1_a15ko -> ListItemConfig y1_a15ko x2_a15km x3_a15kn)
+      (f_a15kk x1_a15kl)
 {-# INLINE listItemConfig_preContent #-}

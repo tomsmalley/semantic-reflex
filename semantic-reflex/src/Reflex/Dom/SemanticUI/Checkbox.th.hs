@@ -1,164 +1,164 @@
 -- src/Reflex/Dom/SemanticUI/Checkbox.hs:71:1-66: Splicing declarations
 checkboxConfig_disabled ::
-  forall t_a1CjM.
-  Lens' (CheckboxConfig t_a1CjM) (Active t_a1CjM Bool)
+  forall t_a2kJJ.
+  Lens' (CheckboxConfig t_a2kJJ) (Active t_a2kJJ Bool)
 checkboxConfig_disabled
-  f_a1CGK
-  (CheckboxConfig x1_a1CGL
-                  x2_a1CGM
-                  x3_a1CGN
-                  x4_a1CGO
-                  x5_a1CGP
-                  x6_a1CGQ)
+  f_a2kY4
+  (CheckboxConfig x1_a2kY6
+                  x2_a2kY7
+                  x3_a2kY8
+                  x4_a2kYa
+                  x5_a2kYb
+                  x6_a2kYc)
   = fmap
-      (\ y1_a1CGR
+      (\ y1_a2kYd
          -> CheckboxConfig
-              x1_a1CGL x2_a1CGM x3_a1CGN x4_a1CGO y1_a1CGR x6_a1CGQ)
-      (f_a1CGK x5_a1CGP)
+              x1_a2kY6 x2_a2kY7 x3_a2kY8 x4_a2kYa y1_a2kYd x6_a2kYc)
+      (f_a2kY4 x5_a2kYb)
 {-# INLINE checkboxConfig_disabled #-}
 checkboxConfig_elConfig ::
-  forall t_a1CjM.
-  Lens' (CheckboxConfig t_a1CjM) (ActiveElConfig t_a1CjM)
+  forall t_a2kJJ.
+  Lens' (CheckboxConfig t_a2kJJ) (ActiveElConfig t_a2kJJ)
 checkboxConfig_elConfig
-  f_a1CGS
-  (CheckboxConfig x1_a1CGT
-                  x2_a1CGU
-                  x3_a1CGV
-                  x4_a1CGW
-                  x5_a1CGX
-                  x6_a1CGY)
+  f_a2kYj
+  (CheckboxConfig x1_a2kYk
+                  x2_a2kYl
+                  x3_a2kYn
+                  x4_a2kYo
+                  x5_a2kYp
+                  x6_a2kYq)
   = fmap
-      (\ y1_a1CGZ
+      (\ y1_a2kYr
          -> CheckboxConfig
-              x1_a1CGT x2_a1CGU x3_a1CGV x4_a1CGW x5_a1CGX y1_a1CGZ)
-      (f_a1CGS x6_a1CGY)
+              x1_a2kYk x2_a2kYl x3_a2kYn x4_a2kYo x5_a2kYp y1_a2kYr)
+      (f_a2kYj x6_a2kYq)
 {-# INLINE checkboxConfig_elConfig #-}
 checkboxConfig_fitted ::
-  forall t_a1CjM.
-  Lens' (CheckboxConfig t_a1CjM) (Active t_a1CjM Bool)
+  forall t_a2kJJ.
+  Lens' (CheckboxConfig t_a2kJJ) (Active t_a2kJJ Bool)
 checkboxConfig_fitted
-  f_a1CH0
-  (CheckboxConfig x1_a1CH1
-                  x2_a1CH2
-                  x3_a1CH3
-                  x4_a1CH4
-                  x5_a1CH5
-                  x6_a1CH6)
+  f_a2kYv
+  (CheckboxConfig x1_a2kYw
+                  x2_a2kYy
+                  x3_a2kYz
+                  x4_a2kYA
+                  x5_a2kYB
+                  x6_a2kYC)
   = fmap
-      (\ y1_a1CH7
+      (\ y1_a2kYE
          -> CheckboxConfig
-              x1_a1CH1 x2_a1CH2 x3_a1CH3 y1_a1CH7 x5_a1CH5 x6_a1CH6)
-      (f_a1CH0 x4_a1CH4)
+              x1_a2kYw x2_a2kYy x3_a2kYz y1_a2kYE x5_a2kYB x6_a2kYC)
+      (f_a2kYv x4_a2kYA)
 {-# INLINE checkboxConfig_fitted #-}
 checkboxConfig_setIndeterminate ::
-  forall t_a1CjM.
-  Lens' (CheckboxConfig t_a1CjM) (SetValue t_a1CjM Bool)
+  forall t_a2kJJ.
+  Lens' (CheckboxConfig t_a2kJJ) (SetValue t_a2kJJ Bool)
 checkboxConfig_setIndeterminate
-  f_a1CH8
-  (CheckboxConfig x1_a1CH9
-                  x2_a1CHa
-                  x3_a1CHb
-                  x4_a1CHc
-                  x5_a1CHd
-                  x6_a1CHe)
+  f_a2kYH
+  (CheckboxConfig x1_a2kYJ
+                  x2_a2kYK
+                  x3_a2kYL
+                  x4_a2kYM
+                  x5_a2kYN
+                  x6_a2kYO)
   = fmap
-      (\ y1_a1CHf
+      (\ y1_a2kYP
          -> CheckboxConfig
-              x1_a1CH9 y1_a1CHf x3_a1CHb x4_a1CHc x5_a1CHd x6_a1CHe)
-      (f_a1CH8 x2_a1CHa)
+              x1_a2kYJ y1_a2kYP x3_a2kYL x4_a2kYM x5_a2kYN x6_a2kYO)
+      (f_a2kYH x2_a2kYK)
 {-# INLINE checkboxConfig_setIndeterminate #-}
 checkboxConfig_setValue ::
-  forall t_a1CjM.
-  Lens' (CheckboxConfig t_a1CjM) (SetValue t_a1CjM Bool)
+  forall t_a2kJJ.
+  Lens' (CheckboxConfig t_a2kJJ) (SetValue t_a2kJJ Bool)
 checkboxConfig_setValue
-  f_a1CHg
-  (CheckboxConfig x1_a1CHh
-                  x2_a1CHi
-                  x3_a1CHj
-                  x4_a1CHk
-                  x5_a1CHl
-                  x6_a1CHm)
+  f_a2kYT
+  (CheckboxConfig x1_a2kYU
+                  x2_a2kYV
+                  x3_a2kYX
+                  x4_a2kYY
+                  x5_a2kYZ
+                  x6_a2kZ0)
   = fmap
-      (\ y1_a1CHn
+      (\ y1_a2kZ1
          -> CheckboxConfig
-              y1_a1CHn x2_a1CHi x3_a1CHj x4_a1CHk x5_a1CHl x6_a1CHm)
-      (f_a1CHg x1_a1CHh)
+              y1_a2kZ1 x2_a2kYV x3_a2kYX x4_a2kYY x5_a2kYZ x6_a2kZ0)
+      (f_a2kYT x1_a2kYU)
 {-# INLINE checkboxConfig_setValue #-}
 checkboxConfig_type ::
-  forall t_a1CjM.
-  Lens' (CheckboxConfig t_a1CjM) (Active t_a1CjM (Maybe CheckboxType))
+  forall t_a2kJJ.
+  Lens' (CheckboxConfig t_a2kJJ) (Active t_a2kJJ (Maybe CheckboxType))
 checkboxConfig_type
-  f_a1CHo
-  (CheckboxConfig x1_a1CHp
-                  x2_a1CHq
-                  x3_a1CHr
-                  x4_a1CHs
-                  x5_a1CHt
-                  x6_a1CHu)
+  f_a2kZ5
+  (CheckboxConfig x1_a2kZ6
+                  x2_a2kZ7
+                  x3_a2kZ8
+                  x4_a2kZa
+                  x5_a2kZb
+                  x6_a2kZc)
   = fmap
-      (\ y1_a1CHv
+      (\ y1_a2kZd
          -> CheckboxConfig
-              x1_a1CHp x2_a1CHq y1_a1CHv x4_a1CHs x5_a1CHt x6_a1CHu)
-      (f_a1CHo x3_a1CHr)
+              x1_a2kZ6 x2_a2kZ7 y1_a2kZd x4_a2kZa x5_a2kZb x6_a2kZc)
+      (f_a2kZ5 x3_a2kZ8)
 {-# INLINE checkboxConfig_type #-}
 -- src/Reflex/Dom/SemanticUI/Checkbox.hs:116:1-60: Splicing declarations
 checkbox_change ::
-  forall t_a1CLK. Lens' (Checkbox t_a1CLK) (Event t_a1CLK Bool)
+  forall t_a2lpR. Lens' (Checkbox t_a2lpR) (Event t_a2lpR Bool)
 checkbox_change
-  f_a1DI0
-  (Checkbox x1_a1DI1 x2_a1DI2 x3_a1DI3 x4_a1DI4 x5_a1DI5 x6_a1DI6)
+  f_a2lJn
+  (Checkbox x1_a2lJp x2_a2lJq x3_a2lJr x4_a2lJt x5_a2lJu x6_a2lJv)
   = fmap
-      (\ y1_a1DI7
-         -> Checkbox x1_a1DI1 y1_a1DI7 x3_a1DI3 x4_a1DI4 x5_a1DI5 x6_a1DI6)
-      (f_a1DI0 x2_a1DI2)
+      (\ y1_a2lJw
+         -> Checkbox x1_a2lJp y1_a2lJw x3_a2lJr x4_a2lJt x5_a2lJu x6_a2lJv)
+      (f_a2lJn x2_a2lJq)
 {-# INLINE checkbox_change #-}
 checkbox_divElement ::
-  forall t_a1CLK. Lens' (Checkbox t_a1CLK) (El t_a1CLK)
+  forall t_a2lpR. Lens' (Checkbox t_a2lpR) (El t_a2lpR)
 checkbox_divElement
-  f_a1DIa
-  (Checkbox x1_a1DIb x2_a1DIc x3_a1DId x4_a1DIe x5_a1DIf x6_a1DIg)
+  f_a2lJC
+  (Checkbox x1_a2lJE x2_a2lJF x3_a2lJG x4_a2lJH x5_a2lJI x6_a2lJJ)
   = fmap
-      (\ y1_a1DIh
-         -> Checkbox x1_a1DIb x2_a1DIc x3_a1DId x4_a1DIe y1_a1DIh x6_a1DIg)
-      (f_a1DIa x5_a1DIf)
+      (\ y1_a2lJL
+         -> Checkbox x1_a2lJE x2_a2lJF x3_a2lJG x4_a2lJH y1_a2lJL x6_a2lJJ)
+      (f_a2lJC x5_a2lJI)
 {-# INLINE checkbox_divElement #-}
 checkbox_hasFocus ::
-  forall t_a1CLK. Lens' (Checkbox t_a1CLK) (Dynamic t_a1CLK Bool)
+  forall t_a2lpR. Lens' (Checkbox t_a2lpR) (Dynamic t_a2lpR Bool)
 checkbox_hasFocus
-  f_a1DIi
-  (Checkbox x1_a1DIj x2_a1DIk x3_a1DIl x4_a1DIm x5_a1DIn x6_a1DIo)
+  f_a2lJP
+  (Checkbox x1_a2lJQ x2_a2lJS x3_a2lJT x4_a2lJU x5_a2lJV x6_a2lJW)
   = fmap
-      (\ y1_a1DIp
-         -> Checkbox x1_a1DIj x2_a1DIk x3_a1DIl y1_a1DIp x5_a1DIn x6_a1DIo)
-      (f_a1DIi x4_a1DIm)
+      (\ y1_a2lJX
+         -> Checkbox x1_a2lJQ x2_a2lJS x3_a2lJT y1_a2lJX x5_a2lJV x6_a2lJW)
+      (f_a2lJP x4_a2lJU)
 {-# INLINE checkbox_hasFocus #-}
 checkbox_indeterminate ::
-  forall t_a1CLK. Lens' (Checkbox t_a1CLK) (Dynamic t_a1CLK Bool)
+  forall t_a2lpR. Lens' (Checkbox t_a2lpR) (Dynamic t_a2lpR Bool)
 checkbox_indeterminate
-  f_a1DIr
-  (Checkbox x1_a1DIs x2_a1DIt x3_a1DIu x4_a1DIv x5_a1DIw x6_a1DIx)
+  f_a2lK1
+  (Checkbox x1_a2lK3 x2_a2lK4 x3_a2lK5 x4_a2lK6 x5_a2lK7 x6_a2lK8)
   = fmap
-      (\ y1_a1DIy
-         -> Checkbox x1_a1DIs x2_a1DIt y1_a1DIy x4_a1DIv x5_a1DIw x6_a1DIx)
-      (f_a1DIr x3_a1DIu)
+      (\ y1_a2lKa
+         -> Checkbox x1_a2lK3 x2_a2lK4 y1_a2lKa x4_a2lK6 x5_a2lK7 x6_a2lK8)
+      (f_a2lK1 x3_a2lK5)
 {-# INLINE checkbox_indeterminate #-}
 checkbox_inputElement ::
-  forall t_a1CLK. Lens' (Checkbox t_a1CLK) (El t_a1CLK)
+  forall t_a2lpR. Lens' (Checkbox t_a2lpR) (El t_a2lpR)
 checkbox_inputElement
-  f_a1DIz
-  (Checkbox x1_a1DIA x2_a1DIB x3_a1DIC x4_a1DID x5_a1DIE x6_a1DIG)
+  f_a2lKe
+  (Checkbox x1_a2lKf x2_a2lKg x3_a2lKh x4_a2lKi x5_a2lKj x6_a2lKl)
   = fmap
-      (\ y1_a1DIN
-         -> Checkbox x1_a1DIA x2_a1DIB x3_a1DIC x4_a1DID x5_a1DIE y1_a1DIN)
-      (f_a1DIz x6_a1DIG)
+      (\ y1_a2lKm
+         -> Checkbox x1_a2lKf x2_a2lKg x3_a2lKh x4_a2lKi x5_a2lKj y1_a2lKm)
+      (f_a2lKe x6_a2lKl)
 {-# INLINE checkbox_inputElement #-}
 checkbox_value ::
-  forall t_a1CLK. Lens' (Checkbox t_a1CLK) (Dynamic t_a1CLK Bool)
+  forall t_a2lpR. Lens' (Checkbox t_a2lpR) (Dynamic t_a2lpR Bool)
 checkbox_value
-  f_a1DIP
-  (Checkbox x1_a1DIQ x2_a1DIR x3_a1DIS x4_a1DIT x5_a1DIU x6_a1DIV)
+  f_a2lKq
+  (Checkbox x1_a2lKr x2_a2lKs x3_a2lKt x4_a2lKu x5_a2lKv x6_a2lKw)
   = fmap
-      (\ y1_a1DIW
-         -> Checkbox y1_a1DIW x2_a1DIR x3_a1DIS x4_a1DIT x5_a1DIU x6_a1DIV)
-      (f_a1DIP x1_a1DIQ)
+      (\ y1_a2lKy
+         -> Checkbox y1_a2lKy x2_a2lKs x3_a2lKt x4_a2lKu x5_a2lKv x6_a2lKw)
+      (f_a2lKq x1_a2lKr)
 {-# INLINE checkbox_value #-}
