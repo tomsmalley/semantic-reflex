@@ -1,31 +1,29 @@
--- src/Reflex/Dom/SemanticUI/Sidebar.hs:80:1-65: Splicing declarations
+-- src/Reflex/Dom/SemanticUI/Sidebar.hs:77:1-65: Splicing declarations
 sidebarConfig_closeOnClick ::
-  forall t_a2EzL.
-  Lens' (SidebarConfig t_a2EzL) (Dynamic t_a2EzL Bool)
+  forall t_aUqg. Lens' (SidebarConfig t_aUqg) (Dynamic t_aUqg Bool)
 sidebarConfig_closeOnClick
-  f_a2F75
-  (SidebarConfig x1_a2F76 x2_a2F77 x3_a2F78)
+  f_aUXm
+  (SidebarConfig x1_aUXn x2_aUXo x3_aUXp)
   = fmap
-      (\ y1_a2F79 -> SidebarConfig x1_a2F76 y1_a2F79 x3_a2F78)
-      (f_a2F75 x2_a2F77)
+      (\ y1_aUXq -> SidebarConfig x1_aUXn y1_aUXq x3_aUXp)
+      (f_aUXm x2_aUXo)
 {-# INLINE sidebarConfig_closeOnClick #-}
 sidebarConfig_dimming ::
-  forall t_a2EzL.
-  Lens' (SidebarConfig t_a2EzL) (Dynamic t_a2EzL Bool)
+  forall t_aUqg. Lens' (SidebarConfig t_aUqg) (Dynamic t_aUqg Bool)
 sidebarConfig_dimming
-  f_a2F7b
-  (SidebarConfig x1_a2F7c x2_a2F7d x3_a2F7e)
+  f_aUXu
+  (SidebarConfig x1_aUXv x2_aUXw x3_aUXx)
   = fmap
-      (\ y1_a2F7f -> SidebarConfig y1_a2F7f x2_a2F7d x3_a2F7e)
-      (f_a2F7b x1_a2F7c)
+      (\ y1_aUXy -> SidebarConfig y1_aUXy x2_aUXw x3_aUXx)
+      (f_aUXu x1_aUXv)
 {-# INLINE sidebarConfig_dimming #-}
 sidebarConfig_transition ::
-  forall t_a2EzL.
-  Lens' (SidebarConfig t_a2EzL) (Dynamic t_a2EzL SidebarTransition)
+  forall t_aUqg.
+  Lens' (SidebarConfig t_aUqg) (Dynamic t_aUqg SidebarTransition)
 sidebarConfig_transition
-  f_a2F7g
-  (SidebarConfig x1_a2F7h x2_a2F7i x3_a2F7j)
+  f_aUXC
+  (SidebarConfig x1_aUXD x2_aUXE x3_aUXF)
   = fmap
-      (\ y1_a2F7k -> SidebarConfig x1_a2F7h x2_a2F7i y1_a2F7k)
-      (f_a2F7g x3_a2F7j)
+      (\ y1_aUXG -> SidebarConfig x1_aUXD x2_aUXE y1_aUXG)
+      (f_aUXC x3_aUXF)
 {-# INLINE sidebarConfig_transition #-}
