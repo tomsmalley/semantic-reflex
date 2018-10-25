@@ -37,6 +37,7 @@ library
     , Example.Section.Message
     , Example.Section.Progress
     , Example.Section.RadioGroup
+    , Example.Section.Sidebar
     , Example.Section.Transition
 
   build-depends:
