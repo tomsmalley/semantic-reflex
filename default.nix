@@ -6,6 +6,10 @@
 
   overrides = self: super: {
 
+    # Haddock is broken in GHC 8.4's version:
+    # https://github.com/haskell/haddock/issues/775
+    semantic-reflex = pkgs.haskell.lib.dontHaddock super.semantic-reflex;
+
     reflex-dom-contrib = self.callCabal2nix
       "reflex-dom-contrib"
       (pkgs.fetchFromGitHub {
