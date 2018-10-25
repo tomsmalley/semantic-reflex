@@ -176,15 +176,15 @@ mkExample name ExampleConf {..} (code, eitherWidget)
     Just f -> segment (flexConfig Attached "value") $ f widgetResult
 
   -- Code segment
-  let codeConfig evt = def
-        & action ?~ (def
-          & action_event ?~ fmap mkTransition evt
-          & action_initialDirection .~ Out)
+  let codeConfig open = def
+        & action ?~ def
+          { _action_initialDirection = Out
+          , _action_transition = ffor (updated open) $ \o ->
+            Transition Instant (Just $ if o then In else Out) def
+          }
         & segmentConfig_attached |?~ BottomAttached
-      mkTransition t = Transition Instant $ def
-        & transitionConfig_direction ?~ bool Out In t
 
-  segment (codeConfig $ updated codeIsOpen) $ hscode code
+  segment (codeConfig codeIsOpen) $ hscode code
 
   return widgetResult
 

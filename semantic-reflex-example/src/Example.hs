@@ -49,6 +49,7 @@ import Example.Section.Label (labels)
 import Example.Section.List (lists)
 import Example.Section.Message (messages)
 import Example.Section.Progress (progressSection)
+import Example.Section.Sidebar (sidebars)
 import Example.Section.RadioGroup (radioGroups)
 import Example.Section.Transition (transitions)
 
@@ -107,7 +108,7 @@ progressTable =
     , ("Rating", NotImplemented, Nothing)
     , ("Search", NotImplemented, Nothing)
     , ("Shape", NotImplemented, Nothing)
-    , ("Sidebar", NotImplemented, Nothing)
+    , ("Sidebar", PartiallyImplemented, Just sidebars)
     , ("Sticky", PartiallyImplemented, Nothing)
     , ("Tab", NotImplemented, Nothing)
     , ("Transition", Implemented, Just transitions)
@@ -152,20 +153,19 @@ intro = Section "Introduction" blank $ do
   void progressProgress
 
   -- Progress chart
-  segments def $ for_ (progressTable @t @m) $ \(Category name items) -> mdo
+  segments def $ for_ (progressTable @t @m) $ \(Category name items) -> do
 
-    open <- segment (def & segmentConfig_color |?~ Teal) $ do
+    tog <- segment (def & segmentConfig_color |?~ Teal) $ mdo
       (e, _) <- elAttr' "div" ("style" =: "cursor: pointer") $ do
         icon' (Dyn $ bool "caret right" "caret down" <$> open) def
         text name
-      toggle False $ domEvent Click e
+      open <- toggle False $ domEvent Click e
+      pure $ domEvent Click e
 
-    let mkTransition dir = Transition SlideDown $ def
-          & transitionConfig_direction ?~ dir
-          & transitionConfig_duration .~ 0.3
-        actionConfig = def
-          & action_event ?~ (mkTransition . bool Out In <$> updated open)
-          & action_initialDirection .~ Out
+    let actionConfig = def
+          { _action_initialDirection = Out
+          , _action_transition = Transition SlideDown Nothing def <$ tog
+          }
 
     table (def & tableConfig_attached |?~ Attached & action ?~ actionConfig) $ do
       thead $ tr $ do
@@ -224,9 +224,8 @@ runWithLoader = do
   return ()
 
 loadingDimmer :: MonadWidget t m => Event t () -> m ()
-loadingDimmer evt =
-  dimmer (def & dimmerConfig_page .~ True & action ?~
-    (def & action_event ?~ (Transition Fade def <$ evt))) $
+loadingDimmer evt = do
+  void $ dimmer (def & dimmerConfig_page .~ True & action ?~ def { _action_transition = Transition Fade (Just Out) def <$ evt }) $
     divClass "ui huge text loader" $ text "Loading semantic-reflex docs..."
 
 app :: forall t m. MonadWidget t m => m ()
@@ -257,11 +256,12 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
         & style |~ Style "cursor: pointer"
       categoryConfig isOpen = linkHeaderConfig
         & headerConfig_preContent ?~ icon (Dyn $ bool "right angle" "down angle" <$> isOpen) def
-      wrapper isOpen = def
+      wrapper e = def
         & style |~ Style "margin-top: 1em"
-        & action ?~ (def
-          & action_event ?~ (Transition Instant def <$ updated isOpen)
-          & action_initialDirection .~ Out)
+        & action ?~ def
+          { _action_initialDirection = Out
+          , _action_transition = Transition Instant Nothing def <$ e
+          }
 
   -- Main content
   ui "div" mainConfig $ do
@@ -274,7 +274,7 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
       for_ (progressTable @t @m) $ \Category {..} -> mdo
         (e, _) <- pageHeader' H4 (categoryConfig isOpen) $ text categoryName
         isOpen <- toggle False $ domEvent Click e
-        ui "div" (wrapper isOpen) $
+        ui "div" (wrapper $ domEvent Click e) $
           menu (def & menuConfig_vertical |~ True & menuConfig_secondary |~ True) $ do
             for_ categoryItems $ \(item, status, mWidget) -> do
               case mWidget of

@@ -231,10 +231,12 @@ labels = Section "Label" blank $ do
             conf = def
               & labelConfig_color |~ mColor
               & labelConfig_image |~ True
-              & transition ?~ (def & transConfigEvent ?~ (leftmost
-              [ Transition Instant (def & transitionConfig_direction ?~ In) <$ resetEvent
-              , Transition Scale (def & transitionConfig_direction ?~ Out) <$ eClose
-              ]))
+              & action ?~ def
+                { _action_transition = leftmost
+                  [ Transition Instant (Just In) def <$ resetEvent
+                  , Transition Scale (Just Out) def <$ eClose
+                  ]
+                }
           eClose <- label conf $ do
             image def $ Left $ Img (pure $ src animal) def
             text name
@@ -256,10 +258,12 @@ labels = Section "Label" blank $ do
             conf = def
               & labelConfig_color |~ mColor
               & labelConfig_image |~ True
-              & action ?~ (def & action_event ?~ (leftmost
-              [ Transition Instant (def & transitionConfig_direction ?~ In) <$ resetEvent
-              , Transition Scale (def & transitionConfig_direction ?~ Out) <$ eClose
-              ]))
+              & action ?~ def
+                { _action_transition = leftmost
+                  [ Transition Instant (Just In) def <$ resetEvent
+                  , Transition Scale (Just Out) def <$ eClose
+                  ]
+                }
           eClose <- label conf $ do
             image def $ Left $ Img (pure $ src animal) def
             text name

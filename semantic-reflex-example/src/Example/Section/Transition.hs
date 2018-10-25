@@ -5,6 +5,7 @@
 module Example.Section.Transition where
 
 import Control.Lens
+import Control.Monad ((<=<))
 import Data.Char (isUpper)
 import Data.Foldable (traverse_, for_)
 import Data.Semigroup ((<>))
@@ -26,22 +27,23 @@ animalUrl :: Reflex t => Text -> Active t Text
 animalUrl a = pure $ "images/animals/" <> a <> ".png"
 
 mkButton :: MonadWidget t m => TransitionType
-         -> m (Event t TransitionOrAnimation)
+         -> m (Event t TransitionType)
 mkButton t = do
   run <- button (def & buttonConfig_fluid |~ True) $ do
     text $ T.pack $ spaceBeforeUpper $ show t
-  return $ Transition t def <$ run
+  return $ t <$ run
 
-mkImages :: MonadWidget t m => Text -> Event t TransitionOrAnimation -> m ()
+mkImages :: MonadWidget t m => Text -> Event t TransitionType -> m ()
 mkImages animal evt = do
   divider $ def & dividerConfig_hidden |~ True
   let imgConfig =  def
         & imageConfig_size |?~ Small & imageConfig_shape |?~ Rounded & imageConfig_inline |~ True
   image (imgConfig & imageConfig_spaced |?~ RightSpaced
-                   & action ?~ (def & action_event ?~ evt)) $ Left $ Img (animalUrl animal) def
+                   & action ?~ def { _action_transition = ffor evt $ \t -> Transition t Nothing def }) $
+                     Left $ Img (animalUrl animal) def
   image (imgConfig & imageConfig_spaced |?~ LeftSpaced
-                   & action ?~ (def
-                   & action_event ?~ fmap (\(Transition t c) -> Transition t $ c & transitionConfig_cancelling .~ True) evt)) $ Left $ Img (animalUrl animal) def
+                   & action ?~ def { _action_transition = ffor evt $ \t -> Transition t Nothing (def { _transitionConfig_cancelling = True }) }) $
+                     Left $ Img (animalUrl animal) def
 
 mkButtons :: MonadWidget t m => Text -> [TransitionType] -> m ()
 mkButtons _ [] = return ()
@@ -64,11 +66,15 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
 
   paragraph $ text "Any of the components in this library are capable of Semantic UI transitions. The difference between animations and transitions is more clear cut, with different data constructors for each:"
 
-  hscode $(printDefinition oneline stripParens ''TransitionType)
-  hscode $(printDefinition oneline stripParens ''AnimationType)
+  hscode $(printDefinition id stripParens ''Action)
 
-  hscode $(printDefinition id stripParens ''TransitionOrAnimation)
+  hscode $(printDefinition oneline stripParens ''Transition)
+  hscode $(printDefinition oneline stripParens ''TransitionType)
   hscode $(printDefinition id stripParens ''TransitionConfig)
+
+  hscode $(printDefinition oneline stripParens ''Animation)
+  hscode $(printDefinition oneline stripParens ''AnimationType)
+  hscode $(printDefinition id stripParens ''AnimationConfig)
 
   paragraph $ text "If the direction of a transition event is not specified, the transition will flip the current state of the element. Animation events will cause hidden elements to be shown, and they will remain shown after the animation finishes."
 
@@ -85,7 +91,7 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
         run <- button (def & style |~ Style "margin-bottom: 1em") $
           text $ tshow anim
         image (def & imageConfig_size |?~ Small & imageConfig_shape |?~ Rounded
-                   & action ?~ (def & action_event ?~ (Animation anim def <$ run))) $
+                   & action ?~ def { _action_animation = Animation anim def <$ run }) $
           Left $ Img (animalUrl animal) def
   |]
 
@@ -98,30 +104,30 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
         run <- button (def & style |~ Style "margin-bottom: 1em") $
           text $ tshow anim
         image (def & imageConfig_size |?~ Small & imageConfig_shape |?~ Rounded
-                   & action ?~ (def
-                      & action_event ?~ (Animation anim (def
-                        & transitionConfig_cancelling .~ True) <$ run)))
-          $ Left $ Img (animalUrl animal) def
+                   & action ?~ def { _action_animation = Animation anim (def
+                      { _animationConfig_cancelling = True }) <$ run }) $
+          Left $ Img (animalUrl animal) def
   |]
 
   mkExample "Transitions" (def
     & subtitle ?~ text "An element can be hidden or shown using a transition")
     [example|
-  eTransition <- buttons def $ do
-    eToggle <- button def $ text "Toggle"
-    eShow <- button def $ text "Show"
-    eHide <- button def $ text "Hide"
-    return $ leftmost
-      [ Transition Instant def <$ eToggle
-      , Transition Instant (def & transitionConfig_direction ?~ In) <$ eShow
-      , Transition Instant (def & transitionConfig_direction ?~ Out) <$ eHide
+  evt <- buttons def $ do
+    tog <- button def $ text "Toggle"
+    show <- button def $ text "Show"
+    hide <- button def $ text "Hide"
+    pure $ leftmost
+      [ Nothing <$ tog
+      , Just In <$ show
+      , Just Out <$ hide
       ]
 
   divider $ def & dividerConfig_hidden |~ True
 
   image (def
     & imageConfig_size |?~ Small & imageConfig_shape |?~ Rounded
-    & action ?~ (def & action_event ?~ eTransition)) $ Left $ Img (animalUrl "crocodile") def
+    & action ?~ def { _action_transition = ffor evt $ \d -> Transition Instant d def }) $
+    Left $ Img (animalUrl "crocodile") def
   |]
 
   mkExample "Scale" (def
