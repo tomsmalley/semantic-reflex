@@ -6,7 +6,6 @@ module Reflex.Dom.SemanticUI.Menu where
 import Control.Lens.TH (makeLenses)
 
 import Data.Default (Default (def))
-import Data.Semigroup
 import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding (SetValue)

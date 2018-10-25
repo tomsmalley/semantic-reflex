@@ -7,7 +7,6 @@ import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 
 import Control.Monad
 import Data.Default
-import Data.Semigroup hiding (First)
 import Reflex
 import Reflex.Dom.Core
 

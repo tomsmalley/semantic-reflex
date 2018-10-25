@@ -7,10 +7,8 @@ module Reflex.Dom.SemanticUI.Flag where
 
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 
-import Control.Lens.Iso
 import Control.Monad (void)
 import Data.Default
-import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex.Dom.Core
 

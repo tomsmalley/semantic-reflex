@@ -11,7 +11,6 @@ import Control.Monad.Reader
 import Data.Bool (bool)
 import Data.Foldable (for_, traverse_)
 import Data.Maybe (fromMaybe)
-import Data.Semigroup
 import Data.Default
 import Data.Text (Text)
 import qualified Data.Text as T

@@ -66,7 +66,6 @@ import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 
 import Control.Monad (void)
 import Data.Default
-import Data.Semigroup hiding (First)
 import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding (Error, button)
