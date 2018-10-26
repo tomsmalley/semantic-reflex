@@ -1,4 +1,5 @@
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- | Semantic UI sidebars.
 -- https://semantic-ui.com/modules/sidebar.html
@@ -15,13 +16,8 @@ module Reflex.Dom.SemanticUI.Sidebar
 
   ) where
 
-#ifdef USE_TEMPLATE_HASKELL
-import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-#else
-import Control.Lens.Type
-#endif
-
 import Control.Lens ((?~), (%~))
+import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Data.Default
 import Data.Maybe (fromMaybe)
 import Data.Semigroup ((<>))
@@ -73,9 +69,7 @@ data SidebarConfig t = SidebarConfig
   , _sidebarConfig_transition :: Dynamic t SidebarTransition
   -- ^ The type of transition to use
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''SidebarConfig
-#endif
 
 instance Reflex t => Default (SidebarConfig t) where
   def = SidebarConfig
@@ -140,6 +134,3 @@ sidebar side ini change' config@SidebarConfig {..} wrapper sidebarContent pusher
     pusherContent
   pure (a, b)
 
-#ifndef USE_TEMPLATE_HASKELL
-#include "Sidebar.th.hs"
-#endif

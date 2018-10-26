@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
 -- | Semantic UI checkboxes. Pure reflex implementation is provided.
@@ -10,11 +11,7 @@
 -- - Toggle on enter key
 module Reflex.Dom.SemanticUI.Checkbox where
 
-#ifdef USE_TEMPLATE_HASKELL
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-#else
-import Control.Lens.Type
-#endif
 
 import Control.Lens hiding (element)
 import Control.Monad ((<=<), void, guard)
@@ -67,9 +64,7 @@ data CheckboxConfig t = CheckboxConfig
   , _checkboxConfig_elConfig :: ActiveElConfig t
   -- ^ Config
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''CheckboxConfig
-#endif
 
 instance HasElConfig t (CheckboxConfig t) where
   elConfig = checkboxConfig_elConfig
@@ -112,9 +107,7 @@ data Checkbox t = Checkbox
   , _checkbox_inputElement :: El t
   -- ^ The checkbox input element
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''Checkbox
-#endif
 
 instance HasValue (Checkbox t) where
   type Value (Checkbox t) = Dynamic t Bool
@@ -227,7 +220,3 @@ checkbox content config@CheckboxConfig {..} = do
     , _checkbox_divElement = divEl
     , _checkbox_inputElement = inputEl
     }
-
-#ifndef USE_TEMPLATE_HASKELL
-#include "Checkbox.th.hs"
-#endif

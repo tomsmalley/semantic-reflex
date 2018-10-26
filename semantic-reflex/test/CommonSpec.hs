@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -16,7 +17,9 @@ import Control.Concurrent.MVar
 import Data.Time.Clock
 
 import Reflex.Dom.SemanticUI
+#ifndef ghcjs_HOST_OS
 import Language.Javascript.JSaddle.Null
+#endif
 
 import qualified Data.Map as M
 import qualified Data.Sequence as Seq
@@ -68,6 +71,7 @@ spec = do
       c <- runSpiderHost $ sampleActive $ buttonConfigClasses $ def & buttonConfig_inverted |~ True
       c `shouldBe` Classes ["ui button", "inverted"]
 
+#ifndef ghcjs_HOST_OS
   describe "Time functions" $ do
     describe "echo" $ do
       it "produces the correct number of events in the correct order" $ do
@@ -136,5 +140,4 @@ collectEventsFor t m = do
     performEvent_ $ ffor e $ \a -> liftIO . modifyMVar_ mvar $ pure . (a :)
   threadDelay $ round $ t * 1000000
   takeMVar mvar
-
-
+#endif

@@ -1,20 +1,16 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Reflex.Dom.SemanticUI.Dropdown where
 
-#ifdef USE_TEMPLATE_HASKELL
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-#else
-import Control.Lens.Type
-#endif
 
 import Control.Lens ((<&>), (?~))
 import Control.Monad.Reader
 import Data.Bool (bool)
 import Data.Foldable (for_, traverse_)
 import Data.Maybe (fromMaybe)
-import Data.Semigroup
 import Data.Default
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -82,9 +78,7 @@ data DropdownConfig t = DropdownConfig
   -- insensitive 'T.isInfixOf'.
   , _dropdownConfig_elConfig :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''DropdownConfig
-#endif
 
 instance HasElConfig t (DropdownConfig t) where
   elConfig = dropdownConfig_elConfig
@@ -140,9 +134,7 @@ data Dropdown t a = Dropdown
   , _dropdown_blur :: Event t ()
   , _dropdown_element :: El t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''Dropdown
-#endif
 
 instance HasValue (Dropdown t a) where
   type Value (Dropdown t a) = Dynamic t a
@@ -353,7 +345,3 @@ searchDropdown config@DropdownConfig {..} ini items = mdo
     , _dropdown_blur = closeEvents
     , _dropdown_element = dropdownElement
     }
-
-#ifndef USE_TEMPLATE_HASKELL
-#include "Dropdown.th.hs"
-#endif

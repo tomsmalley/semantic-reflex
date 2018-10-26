@@ -22,10 +22,6 @@ data-files:
   data/static/themes/default/assets/images/flags.png
   data/static/index.html
 
-flag DumpSplices
-  description: enable template haskell (for dumping splices)
-  default: False
-
 library
   hs-source-dirs: src
 
@@ -97,14 +93,6 @@ library
 
   ghc-options: -Wall
   cpp-options: -D_GHCJS_ -DGHCJS_GC_INTERVAL=60000 -DGHCJS_BROWSER
-
-  -- Dump all TH splices as valid haskell (without module prefixes) directly
-  -- into this directory. For example, src/Reflex/Dom/SemanticUI/Button.hs splices
-  -- will be dumped to src/Reflex/Dom/SemanticUI/Button.th.hs
-  if flag(DumpSplices)
-    default-extensions: TemplateHaskell
-    ghc-options: -dth-dec-file -ddump-to-file -dsuppress-module-prefixes -no-link -O0 -j4 -dumpdir .
-    cpp-options: -DUSE_TEMPLATE_HASKELL
 
   default-language:    Haskell2010
 
