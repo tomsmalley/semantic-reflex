@@ -16,11 +16,10 @@ module Reflex.Dom.SemanticUI.Sidebar
 
   ) where
 
-import Control.Lens ((?~), (%~))
+import Control.Lens ((?~), (<>~))
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 import Data.Default
 import Data.Maybe (fromMaybe)
-import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core
@@ -113,11 +112,11 @@ sidebar
   -> m b
   -- ^ Content the sidebar is accompanying
   -> m (a, b)
-sidebar side ini change' config@SidebarConfig {..} wrapper sidebarContent pusherContent = wrapper (& classes %~ (<> "pushable")) $ mdo
+sidebar side ini change' config@SidebarConfig {..} wrapper sidebarContent pusherContent = wrapper (& classes <>~ "pushable") $ mdo
   direction <- foldDyn (\m d -> fromMaybe (flipDirection d) m) ini change
   let change = leftmost [change', Just Out <$ gate (current _sidebarConfig_closeOnClick) (domEvent Click e)]
   a <- sidebarContent $ \cfg -> cfg
-    & classes %~ (<> Dyn (sidebarConfigClasses side config))
+    & classes <>~ Dyn (sidebarConfigClasses side config)
     & action ?~ def
       { _action_initialDirection = ini
       , _action_transition =
