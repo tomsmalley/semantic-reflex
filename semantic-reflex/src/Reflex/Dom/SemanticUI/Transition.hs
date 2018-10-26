@@ -93,6 +93,7 @@ import Reflex.Dom.SemanticUI.Common
 data TransitionType
   = Instant
   | Scale
+  | Zoom
   | Fade | FadeUp | FadeDown | FadeLeft | FadeRight
   | HorizontalFlip | VerticalFlip
   | Drop
@@ -109,6 +110,7 @@ instance Default TransitionType where
 instance ToClassText TransitionType where
   toClassText Instant = ""
   toClassText Scale = "scale"
+  toClassText Zoom = "zoom"
   toClassText Fade = "fade"
   toClassText FadeUp = "fade up"
   toClassText FadeDown = "fade down"
@@ -135,7 +137,7 @@ instance ToClassText TransitionType where
 
 -- | Animation types as listed in
 -- https://semantic-ui.com/modules/transition.html#static-animations
-data AnimationType = Jiggle | Flash | Shake | Pulse | Tada | Bounce
+data AnimationType = Jiggle | Flash | Shake | Pulse | Tada | Bounce | Glow
   deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
 instance ToClassText AnimationType where
@@ -145,6 +147,7 @@ instance ToClassText AnimationType where
   toClassText Pulse = "pulse"
   toClassText Tada = "tada"
   toClassText Bounce = "bounce"
+  toClassText Glow = "glow"
 
 data Direction = In | Out
   deriving (Eq, Ord, Read, Show, Enum, Bounded)
