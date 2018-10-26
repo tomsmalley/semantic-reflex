@@ -237,7 +237,7 @@ transitionStateClasses isAnimation lastClasses direction = \case
 forceVisible :: Bool -> Text -> Direction -> TransitionState -> Maybe Classes
 forceVisible isAnimation lastClass direction = \case
   TransitionState_Animating -> Just $ Classes $
-    "animating" : "transition" : lastClass : if isAnimation then [] else [toClassText direction]
+    "animating" : "transition" : "visible" : lastClass : if isAnimation then [] else [toClassText direction]
   TransitionState_Final -> case direction of
     Out -> Just $ Classes ["transition", "hidden"]
     In -> Just $ Classes ["transition", "visible"]
