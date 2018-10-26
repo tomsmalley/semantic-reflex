@@ -85,8 +85,8 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
   mkExample "Animations" (def
     & subtitle ?~ text "An element can be animated to draw attention to it")
     [example|
-  divClass "ui six column vertically padded grid" $
-    for_ (zip [Jiggle .. Bounce] ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]) $
+  divClass "ui seven column vertically padded grid" $
+    for_ (zip [Jiggle .. Glow] ["duck", "cat", "eagle", "koala", "tiger", "kangaroo", "lion"]) $
       \(anim, animal) -> divClass "center aligned column" $ do
         run <- button (def & style |~ Style "margin-bottom: 1em") $
           text $ tshow anim
@@ -98,8 +98,8 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
   mkExample "Cancelling Animations" (def
     & subtitle ?~ text "Transitions can cancel override queued transitions")
     [example|
-  divClass "ui six column vertically padded grid" $
-    for_ (zip [Jiggle .. Bounce] ["duck", "cat", "eagle", "koala", "tiger", "kangaroo"]) $
+  divClass "ui seven column vertically padded grid" $
+    for_ (zip [Jiggle .. Glow] ["duck", "cat", "eagle", "koala", "tiger", "kangaroo", "lion"]) $
       \(anim, animal) -> divClass "center aligned column" $ do
         run <- button (def & style |~ Style "margin-bottom: 1em") $
           text $ tshow anim
@@ -176,6 +176,12 @@ transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/
     & subtitle ?~ text "An element can slide in or out")
     [example|
   mkButtons "wolf" [SlideDown, SlideUp, SlideLeft, SlideRight]
+  |]
+
+  mkExample "Zoom" (def
+    & subtitle ?~ text "An element can zoom into view from far away")
+    [example|
+  mkButtons "bat" [Zoom]
   |]
 
   return ()
