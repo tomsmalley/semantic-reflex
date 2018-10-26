@@ -7,3 +7,4 @@ cabal.project.local
 *.swo
 result*
 .ghc.environment*
+docs/js/all.js
