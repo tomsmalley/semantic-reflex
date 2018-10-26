@@ -20,7 +20,7 @@ module Reflex.Dom.SemanticUI.Dimmer
 
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 
-import Control.Lens ((^.), (?~))
+import Control.Lens ((^.))
 import Control.Monad ((<=<))
 import Data.Default
 import Data.Maybe (fromMaybe)
@@ -78,18 +78,17 @@ dimmerConfigClasses DimmerConfig {..} = dynClasses'
 dimmer'
   :: forall t m a. UI t m => DimmerConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
-dimmer' config@DimmerConfig {..} content = do
-  rec
+dimmer' config@DimmerConfig {..} content = mdo
 
-    let click = ffilter id $ tag (current _dimmerConfig_closeOnClick) $ domEvent Click e
-        f Nothing d = flipDirection d
-        f (Just d) _ = d
+  let click = gate (current _dimmerConfig_closeOnClick) $ domEvent Click e
+      f Nothing d = flipDirection d
+      f (Just d) _ = d
 
-    dDir <- holdUniqDyn <=< foldDyn f (_dimmerConfig_dimmed ^. initial) $ leftmost
-          [ fromMaybe never $ _dimmerConfig_dimmed ^. event
-          , Just Out <$ click ]
+  dDir <- holdUniqDyn <=< foldDyn f (_dimmerConfig_dimmed ^. initial) $ leftmost
+        [ fromMaybe never $ _dimmerConfig_dimmed ^. event
+        , Just Out <$ click ]
 
-    (e, a) <- ui' "div" (mkElConfig $ updated dDir) content
+  (e, a) <- ui' "div" (mkElConfig $ updated dDir) content
 
   pure (e, a)
 
@@ -97,18 +96,17 @@ dimmer' config@DimmerConfig {..} content = do
 
     mkElConfig eDir = _dimmerConfig_elConfig <> def
       { _classes = Dyn $ dimmerConfigClasses config
-      , _action = Just $ mkAction eDir
+      , _action = Just $ def
+        { _action_initialDirection = _dimmerConfig_dimmed ^. initial
+        , _action_transition =
+          let f dur dir = Transition Fade (Just dir) $ def
+                { _transitionConfig_cancelling = True
+                , _transitionConfig_duration = dur
+                }
+          in attachWith f (current _dimmerConfig_duration) eDir
+        }
       }
 
-    mkAction eDir = def
-      & action_initialDirection .~ _dimmerConfig_dimmed ^. initial
-      & action_event ?~
-        (uncurry mkTransition <$> attachPromptlyDyn _dimmerConfig_duration eDir)
-
-    mkTransition dur dir = Transition Fade $ def
-      & transitionConfig_cancelling .~ True
-      & transitionConfig_direction ?~ dir
-      & transitionConfig_duration .~ dur
-
+-- | Dimmer UI Element.
 dimmer :: UI t m => DimmerConfig t -> m a -> m a
 dimmer c = fmap snd . dimmer' c

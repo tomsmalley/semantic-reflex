@@ -13,20 +13,22 @@
 module Reflex.Dom.SemanticUI.Transition
   (
   -- * Transition
-    TransitionOrAnimation (..)
-
-  , Action (..)
-  , action_event
-  , action_initialDirection
-  , action_forceVisible
-
+    Transition (..)
   , TransitionType (..)
-  , AnimationType (..)
-
   , TransitionConfig (..)
   , transitionConfig_duration
-  , transitionConfig_direction
   , transitionConfig_cancelling
+
+  -- * Animation
+  , Animation (..)
+  , AnimationType (..)
+  , AnimationConfig (..)
+
+  -- * Action
+  , Action (..)
+  , forceVisible
+  , transitionStateClasses
+  , TransitionState (..)
 
   , Direction (..)
   , flipDirection
@@ -67,6 +69,7 @@ import Control.Monad.Trans (liftIO, MonadIO)
 
 import Data.Align
 import Data.Default (Default(..))
+import Data.Either (isRight)
 import Data.IntMap (IntMap)
 import Data.Map (Map)
 import Data.Maybe (fromMaybe)
@@ -97,7 +100,8 @@ data TransitionType
   | SwingLeft | SwingRight | SwingUp | SwingDown
   | Browse | BrowseRight
   | SlideDown | SlideUp | SlideLeft | SlideRight
-  deriving (Eq, Ord, Read, Show, Enum, Bounded)
+  | CustomTransition Text
+  deriving (Eq, Show)
 
 instance Default TransitionType where
   def = Fade
@@ -127,6 +131,7 @@ instance ToClassText TransitionType where
   toClassText SlideUp = "slide up"
   toClassText SlideLeft = "slide left"
   toClassText SlideRight = "slide right"
+  toClassText (CustomTransition classes) = classes
 
 -- | Animation types as listed in
 -- https://semantic-ui.com/modules/transition.html#static-animations
@@ -155,74 +160,98 @@ data AnimationAttrs t = AnimationAttrs
   , _animationAttrs_style :: Active t (Maybe Style)
   }
 
--- | Individual transition events
-data TransitionOrAnimation
-  = Transition TransitionType TransitionConfig
-  | Animation AnimationType TransitionConfig
-  deriving Show
+data Animation = Animation AnimationType AnimationConfig
+data Transition = Transition TransitionType (Maybe Direction) TransitionConfig
 
-getDirection :: TransitionOrAnimation -> Maybe Direction
-getDirection (Transition _ TransitionConfig{..}) = _transitionConfig_direction
-getDirection (Animation _ TransitionConfig{..}) = _transitionConfig_direction
+data AnimationConfig = AnimationConfig
+  { _animationConfig_duration :: NominalDiffTime
+  -- ^ Duration of the animation
+  , _animationConfig_cancelling :: Bool
+  -- ^ Whether this animation should override any animations that are queued or still occuring
+  }
 
-getDuration :: TransitionOrAnimation -> NominalDiffTime
-getDuration (Transition Instant _) = 0
-getDuration (Transition _ TransitionConfig{..}) = _transitionConfig_duration
-getDuration (Animation _ TransitionConfig{..}) = _transitionConfig_duration
-
-isCancelling :: TransitionOrAnimation -> Bool
-isCancelling (Transition _ TransitionConfig{..}) = _transitionConfig_cancelling
-isCancelling (Animation _ TransitionConfig{..}) = _transitionConfig_cancelling
+instance Default AnimationConfig where
+  def = AnimationConfig 0.75 False
 
 -- | Transition event configuration
 data TransitionConfig = TransitionConfig
   { _transitionConfig_duration :: NominalDiffTime
-  -- How long the css animation lasts for, ignored for 'Instant'
-  , _transitionConfig_direction :: Maybe Direction
-  -- The final state of the element after an animation, and the direction of a
-  -- transition. 'Nothing' toggles the current state for 'Transition' and leaves
-  -- the current state for 'Animation'.
+  -- ^ How long the animation lasts for, ignored for 'Instant'
   , _transitionConfig_cancelling :: Bool
-  -- Whether this transition event will override any that are queued or still
+  -- ^ Whether this transition event will override any animations that are queued or still
   -- occuring
   } deriving Show
 makeLenses ''TransitionConfig
 
 instance Default TransitionConfig where
   def = TransitionConfig
-    { _transitionConfig_duration = 0.5 -- TODO: this is valid for transitions, but animations need a 0.75 default
-    , _transitionConfig_direction = Nothing
+    { _transitionConfig_duration = 0.5
     , _transitionConfig_cancelling = False
     }
 
+getDirection :: Either Transition Animation -> Maybe Direction
+getDirection (Left (Transition _ md _)) = md
+getDirection (Right _) = Nothing
+
+getDuration :: Either Transition Animation -> NominalDiffTime
+getDuration (Left (Transition Instant _ _)) = 0
+getDuration (Left (Transition _ _ TransitionConfig{..})) = _transitionConfig_duration
+getDuration (Right (Animation _ AnimationConfig{..})) = _animationConfig_duration
+
+isCancelling :: Either Transition Animation -> Bool
+isCancelling (Left (Transition _ _ TransitionConfig{..})) = _transitionConfig_cancelling
+isCancelling (Right (Animation _ AnimationConfig{..})) = _animationConfig_cancelling
+
+getTransType :: Either Transition Animation -> Either TransitionType AnimationType
+getTransType (Left (Transition t _ _)) = Left t
+getTransType (Right (Animation t _)) = Right t
+
+
 -- | Transition configuration for elements
 data Action t = Action
-  { _action_event :: Maybe (Event t TransitionOrAnimation)
-  , _action_initialDirection :: Direction
-  , _action_forceVisible :: Bool
+  { _action_initialDirection :: Direction
+  -- ^ Initial direction of the element
+  , _action_transition :: Event t Transition
+  -- ^ Transition events
+  , _action_animation :: Event t Animation
+  -- ^ Animation events
+  , _action_transitionStateClasses :: Bool -> Text -> Direction -> TransitionState -> Maybe Classes
+  -- ^ A function to control the classes at various stages of
+  -- animation/transition state. The first argument is 'False' for transitions,
+  -- and 'True' for animations. The second contains the class text of the
+  -- current or last animation.
   }
 
+data TransitionState
+  = TransitionState_Animating
+  | TransitionState_Final
+
+transitionStateClasses :: Bool -> Text -> Direction -> TransitionState -> Maybe Classes
+transitionStateClasses isAnimation lastClasses direction = \case
+  TransitionState_Animating -> Just $ Classes $
+    "animating" : "transition" : lastClasses : if isAnimation then [] else [toClassText direction]
+  TransitionState_Final -> case direction of
+      Out -> Just $ Classes ["transition", "hidden"]
+      In -> Nothing
+
+forceVisible :: Bool -> Text -> Direction -> TransitionState -> Maybe Classes
+forceVisible isAnimation lastClass direction = \case
+  TransitionState_Animating -> Just $ Classes $
+    "animating" : "transition" : "visible" : lastClass : if isAnimation then [] else [toClassText direction]
+  TransitionState_Final -> case direction of
+    Out -> Just $ Classes ["transition", "hidden"]
+    In -> Just $ Classes ["transition", "visible"]
+
 instance Reflex t => Default (Action t) where
-  def = Action Nothing In False
+  def = Action In never never transitionStateClasses
 
 instance Reflex t => Semigroup (Action t) where
-  Action e1 i v <> Action e2 _ _ = Action (joinEvents e1 e2) i v
+  Action i t1 e1 f <> Action _i t2 e2 _ = Action i (leftmost [t1, t2]) (leftmost [e1, e2]) f
 
 joinEvents
   :: Reflex t => Maybe (Event t a) -> Maybe (Event t a) -> Maybe (Event t a)
 joinEvents (Just e1) (Just e2) = Just $ leftmost [e1, e2]
 joinEvents e1 e2 = e1 <|> e2
-
-action_event :: Lens' (Action t) (Maybe (Event t TransitionOrAnimation))
-action_event f (Action e d fv) = (\e' -> Action e' d fv) <$> f e
-
-action_initialDirection :: Lens' (Action t) Direction
-action_initialDirection f (Action e d fv)
-  = (\d' -> Action e d' fv) <$> f d
-
-action_forceVisible :: Lens' (Action t) Bool
-action_forceVisible f (Action e d fv)
-  = (\fv' -> Action e d fv') <$> f fv
 
 -- | Queue of transitions
 data Queue = Queue
@@ -235,11 +264,6 @@ data Queue = Queue
   , queue_items :: IntMap QueueItem
   -- ^ The actual queue
   } deriving Show
-
--- Get the transition / animation type
-getTransType :: TransitionOrAnimation -> Either TransitionType AnimationType
-getTransType (Transition t _) = Left t
-getTransType (Animation t _) = Right t
 
 -- | 'QueueItem' is similar to 'TransitionOrAnimation' but with a concrete start and end
 -- direction.
@@ -257,10 +281,10 @@ flipDirection Out = In
 
 -- | Given a transition and the current/old direction, determine the users
 -- intended final direction
-determineEndDirection :: TransitionOrAnimation -> Direction -> Direction
+determineEndDirection :: Either Transition Animation -> Direction -> Direction
 determineEndDirection t oldDirection
   | Just d <- getDirection t = d
-  | Animation _ _ <- t = oldDirection
+  | Right _ <- t = oldDirection
   | otherwise = flipDirection oldDirection
 
 -- | Initial queue given the starting direction
@@ -279,16 +303,15 @@ initialQueue d = Queue
 -- the way semantic-ui does it) seems to be the trick mentioned here:
 -- https://css-tricks.com/restart-css-animation/
 -- This cheap and cheerful delay seems to work though.
-data TransitionState = Init | Start | Finish deriving Show
+data State = Init | Start | Finish deriving Show
 
 -- | Run a transition, returning the classes and styles the element needs to use.
 runAction
   :: (MonadFix m, MonadHold t m, TriggerEvent t m, PerformEvent t m, MonadIO (Performable m))
   => Action t -> m (AnimationAttrs t)
-runAction (Action Nothing initDirection forceVisible) = do
-  let mClasses = finalClasses forceVisible initDirection
-  pure $ AnimationAttrs (pure mClasses) (pure Nothing)
-runAction (Action (Just request) initDirection forceVisible) = do
+runAction (Action initDirection transitionRequest animationRequest mkClasses) = do
+  let request = leftmost [Left <$> transitionRequest, Right <$> animationRequest]
+
   rec
     (_, transition) <- mapAccumMaybeB handle (initialQueue initDirection) $ align request delayed
     delayed <- performEventAsync $ fforMaybe transition $ \(s, tid, i) -> case s of
@@ -302,23 +325,28 @@ runAction (Action (Just request) initDirection forceVisible) = do
         cb (Finish, tid, i)
       Finish -> Nothing
 
-  mClasses <- holdDyn (finalClasses forceVisible initDirection) $ ffor transition $ \(s, _, t) -> case s of
-    Init -> finalClasses forceVisible $ queueItem_startDirection t
-    Start -> animatingClasses forceVisible t
-    Finish -> finalClasses forceVisible $ queueItem_endDirection t
+  st <- foldDyn ($) (False, "", initDirection, TransitionState_Final) $ ffor transition $ \(s, _, qi) -> case s of
+    Init -> \(isAnim, t, _, _) -> (isAnim, t, queueItem_startDirection qi, TransitionState_Final)
+    Start -> \_ ->
+      ( isRight $ queueItem_transType qi
+      , either toClassText toClassText $ queueItem_transType qi
+      , queueItem_endDirection qi
+      , TransitionState_Animating
+      )
+    Finish -> \(isAnim, t, _, _) ->  (isAnim, t, queueItem_endDirection qi, TransitionState_Final)
 
   mStyle <- holdDyn Nothing $ fforMaybe transition $ \(s, _, t) -> case s of
     Init -> Just $ animatingStyle t
     Start -> Nothing
     Finish -> Just Nothing
 
-  pure $ AnimationAttrs (Dyn mClasses) (Dyn mStyle)
+  pure $ AnimationAttrs (Dyn $ (\(a,b,c,d) -> mkClasses a b c d) <$> st) (Dyn mStyle)
 
   where
     handle
       :: Queue
-      -> These TransitionOrAnimation (TransitionState, Int, QueueItem)
-      -> (Maybe Queue, Maybe (TransitionState, Int, QueueItem))
+      -> These (Either Transition Animation) (State, Int, QueueItem)
+      -> (Maybe Queue, Maybe (State, Int, QueueItem))
     handle queue = \case
       This t -- Requests to start a transition
         -- When the queue is clear, or the transition is cancelling, we can run immediately
@@ -361,30 +389,12 @@ runAction (Action (Just request) initDirection forceVisible) = do
 lookupMin :: IntMap a -> Maybe (Int, a)
 lookupMin = fmap fst . IM.minViewWithKey
 
--- | Make the animating classes from a queue item
-animatingClasses :: Bool -> QueueItem -> Maybe Classes
-animatingClasses fv (QueueItem (Left t) _ _ d)
-  = Just $ Classes
-    [ "animating", "transition", toClassText t, toClassText d
-    , if fv then "visible" else mempty ]
-animatingClasses fv (QueueItem (Right t) _ _ _)
-  = Just $ Classes
-    [ "animating", "transition", toClassText t
-    , if fv then "visible" else mempty ]
-
--- | Make the final classes given the direction and whether visibility should be
--- forced
-finalClasses :: Bool -> Direction -> Maybe Classes
-finalClasses _ Out = Just $ Classes ["transition", "hidden"]
-finalClasses True In = Just $ Classes ["transition", "visible"]
-finalClasses False In = Nothing
-
 -- | Make the animating styles
 animatingStyle :: QueueItem -> Maybe Style
 animatingStyle (QueueItem _ d _ _)
   = Just $ Style $ "animation-duration: " <> tshow d
 
-
+-- | Configuration for semantic UI elements
 data ActiveElConfig t = ActiveElConfig
   { _classes :: Active t Classes
   , _style :: Active t Style
@@ -462,11 +472,11 @@ type UI t m =
   ( MonadHold t m, TriggerEvent t m, PerformEvent t m, DomBuilder t m
   , PostBuild t m, MonadIO (Performable m), MonadFix m, Reflex t )
 
-{-# INLINABLE ui #-}
+-- | Similar to 'el' but for animatable things from Semantic UI
 ui :: UI t m => Text -> ActiveElConfig t -> m a -> m a
 ui elTag conf = fmap snd . ui' elTag conf
+{-# INLINABLE ui #-}
 
-{-# INLINABLE ui' #-}
 ui'
   :: UI t m => Text -> ActiveElConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
@@ -481,6 +491,7 @@ ui' elTag ActiveElConfig {..} child = do
   case dynAttrs of
     Dyn a -> elDynAttr' elTag a child
     Static a -> elAttr' elTag a child
+{-# INLINABLE ui' #-}
 
 data SetValue' t a b = SetValue
   { _initial :: a

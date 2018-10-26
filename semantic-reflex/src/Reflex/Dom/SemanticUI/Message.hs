@@ -7,7 +7,6 @@ module Reflex.Dom.SemanticUI.Message
   (
 
     message, message'
-  , dismissableMessage, dismissableMessage'
   , MessageType (..)
   , MessageConfig (..)
   , messageConfig_floating
@@ -115,20 +114,3 @@ message' config@MessageConfig{..} content
     elConf = _messageConfig_elConfig <> def
       { _classes = messageConfigClasses config }
 
-dismissableMessage
-  :: UI t m => TransitionOrAnimation -> MessageConfig t -> m a -> m a
-dismissableMessage t c = fmap snd . dismissableMessage' t c
-
-dismissableMessage'
-  :: UI t m => TransitionOrAnimation -> MessageConfig t -> m a
-  -> m (Element EventResult (DomBuilderSpace m) t, a)
-dismissableMessage' t config@MessageConfig{..} content = do
-  rec
-    let config' = config & action %~ (\old -> old <> (Just $ def
-          & action_event ?~ closeEvent))
-
-    (divEl, (result, closeEvent)) <- message' config' $ do
-      e <- icon' "close" def
-      ffor content $ \a -> (a, t <$ domEvent Click e)
-
-  return (divEl, result)

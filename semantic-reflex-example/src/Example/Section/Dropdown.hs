@@ -49,7 +49,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
         TaggedStatic render
       False -> dropdown (def & dropdownConfig_placeholder |~ "Dynamic") Nothing $
         TaggedDynamic $ pure render
-    join <$> holdDyn (pure Nothing) (_dropdown_value <$> e)
+    join <$> holdDyn (pure Nothing) (value <$> e)
   |]
 
   mkExample "Dropdown" (def
@@ -58,7 +58,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     [resetExample|
   \resetEvent -> do
     d <- dropdown def (Just 1) $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
-    return $ d ^. dropdown_value
+    return $ value d
   |]
 
   mkExample "Dropdown" (def
@@ -67,7 +67,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     [resetExample|
   \resetEvent -> do
     d <- dropdown def (Identity 1) $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
-    return $ d ^. dropdown_value
+    return $ value d
   |]
 
   mkExample "Dropdown" (def
@@ -76,7 +76,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     [resetExample|
   \resetEvent -> do
     d <- dropdown def [2] $ TaggedStatic $ 1 =: (text "one") <> 2 =: (text "two")
-    return $ d ^. dropdown_value
+    return $ value d
   |]
 
 {-

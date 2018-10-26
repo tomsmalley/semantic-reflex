@@ -64,18 +64,6 @@ messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/me
     paragraph $ text "We're fetching that content for you."
   |]
 
-  mkExample "Dismissable Message" (def
-    & subtitle ?~ text "A message that the user can choose to hide")
-    [resetExample|
-  \resetEvent -> do
-    let trans = Transition Fade $ def & transitionConfig_duration .~ 0.2
-        config = def & action ?~ (def & action_event ?~ (Transition Instant
-              (def & transitionConfig_direction ?~ In) <$ resetEvent))
-    dismissableMessage trans config $ do
-      header def $ text "Welcome back!"
-      paragraph $ text "This is a special notification which you can dismiss if you're bored with it. It uses the given transition to hide the message when the user clicks on the close icon."
-  |]
-
   mkExample "Floating" (def
     & subtitle ?~ text "A message can float above the page")
     [example|

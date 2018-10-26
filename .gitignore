@@ -6,3 +6,4 @@ cabal.project.local
 *.swp
 *.swo
 result*
+.ghc.environment*
