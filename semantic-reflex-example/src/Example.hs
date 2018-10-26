@@ -108,7 +108,7 @@ progressTable =
     , ("Rating", NotImplemented, Nothing)
     , ("Search", NotImplemented, Nothing)
     , ("Shape", NotImplemented, Nothing)
-    , ("Sidebar", PartiallyImplemented, Just sidebars)
+    , ("Sidebar", Implemented, Just sidebars)
     , ("Sticky", PartiallyImplemented, Nothing)
     , ("Tab", NotImplemented, Nothing)
     , ("Transition", Implemented, Just transitions)
