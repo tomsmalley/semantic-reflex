@@ -1,0 +1,103 @@
+
+#masthead.segment {
+  padding: 3em 0;
+}
+#masthead > .container {
+  margin-right: 387px !important;
+  margin-left: 3em !important;
+}
+
+#main > div > p,
+#main > div > .intro > p {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+#main.container {
+  position: relative;
+  padding: 2em 0 6em;
+  margin-right: 387px !important;
+  margin-left: 3em !important;
+  width: auto !important;
+  max-width: 960px !important;
+}
+#main.container > .right.rail {
+  margin-left: 3em;
+}
+#main.container > .right.rail > .ui.sticky {
+  padding-top: 2.5em;
+}
+
+#main.container .intro {
+  position: relative;
+}
+
+@media only screen and (max-width: 1272px) {
+  #main.container {
+    margin-right: 318px !important;
+  }
+  #main.container > .right.rail {
+    padding-left: 1.5em;
+    width: 260px;
+  }
+}
+@media only screen and (max-width: 992px) {
+  #main.container > .right.rail {
+    position: relative;
+  }
+  #main.container , #masthead > .container {
+    margin-left: 1em !important;
+    margin-right: 1em !important;
+    max-width: none !important;
+  }
+}
+
+.example > .ui.segment.flex {
+  transition: padding 0.2s ease, margin 0.2s ease;
+}
+.example > .ui.segment.flex:not(.padded) {
+  margin-top: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.example > .ui.segment.flex.widget:not(.padded) {
+  padding-top: 0;
+}
+.example > .ui.segment.basic:not(:nth-last-child(2)) {
+  margin-bottom: 0;
+}
+.ui.segment.vertical.example {
+  margin-bottom: 2em;
+  max-width: 100%;
+}
+
+.haskell pre {
+  color: #bbbbbb;
+  font-family: "Monaco","Menlo","Ubuntu Mono","Consolas","source-code-pro",monospace;
+  font-size: 12px;
+  overflow: auto;
+  padding: 0;
+  margin: 0;
+}
+
+code.inline, code.inline pre {
+  margin: 0;
+  display: inline;
+  white-space: pre-wrap;
+}
+
+/* From hackage-css manni.css */
+.hs-chr  { color: #CC3300; font-weight: bold ;}
+.hs-comment  { color: #0099FF; font-style: italic ;}
+.hs-comment a  { color: #0099FF; font-style: italic ;}
+.hs-conid  { color: #007788; font-weight: bold ;}
+.hs-conop  { color: #555555 ;}
+.hs-cpp  { color: #006699; font-weight: bold ;}
+.hs-definition  { color: #773399 ;}
+.hs-keyglyph  { color: #000000; font-weight: bold ;}
+.hs-keyword  { color: #006699; font-weight: bold ;}
+.hs-layout { color: #000000;}
+.hs-num  { color: #FF6600 ;}
+.hs-str  { color: #CC3300 ;}
+.hs-varid { color: #000000;}
+.hs-varop  { color: #555555 ;}
