@@ -8,7 +8,7 @@ Semantic-UI CSS support:
 
  | Version | Supported | Notes                                   |
  | ------- | --------- | --------------------------------------- |
- | 2.2     | Yes       |                                         |
+ | 2.2     | Yes       | Zoom/Glow transitions will not work     |
  | 2.3     | Yes       | [Changes](https://semantic-ui.com/introduction/new.html#/twothree) |
 
 ## Building
