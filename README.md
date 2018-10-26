@@ -14,36 +14,18 @@ The library uses the `project` implementation of `reflex-platform`.
     [nix-shell]$ cabal new-configure --ghc
     [nix-shell]$ cabal new-build
 
-TH splices must be dumped into the source directory for CPP `include` (so
-that this library can be used on Android). This is handled by cabal as such:
-
-    [nix-shell]$ cabal new-build semantic-reflex --flags=DumpSplices
-
-You should also run without the `DumpSplices` flag afterwards to ensure the
-splices that are dumped are valid haskell:
-
-    [nix-shell]$ cabal new-build semantic-reflex
-
 ---
 
 ## Examples
 
-A compiled version of the code in the `example` folder is available in `docs/index.html` or online at https://tomsmalley.github.io/semantic-reflex/.
+A compiled version of the code in the `semantic-reflex-example` folder is available online at https://tomsmalley.github.io/semantic-reflex/.
 
 The example app can be run by GHC or GHCJS. For GHC it uses jsaddle-warp to run
 a warp server, this is useful for development:
 
     $ ./repl
 
-Provided everything compiles, you should be able to point your browser at `localhost:3911` and see the examples.
+This script will reload when either the library or examples change. Provided everything compiles, you should be able to point your browser at `localhost:3911` and see the examples.
 
-For compiling for GHCJS just run `make`, and the result will be copied into the
+For compiling for GHCJS just run `make`, and the resulting `all.js` will be copied into the
 `docs` folder.
-
----
-
-If you have changed the example and are submitting a pull request you should
-update the `docs` folder with the updated javascript. Run `make` before
-committing!
-
----
