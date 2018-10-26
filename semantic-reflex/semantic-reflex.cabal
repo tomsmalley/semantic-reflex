@@ -11,17 +11,6 @@ category:            Web
 build-type:          Simple
 cabal-version:       >=1.10
 
-data-files:
-  data/static/semantic.min.css
-  data/static/themes/default/assets/fonts/icons.eot
-  data/static/themes/default/assets/fonts/icons.otf
-  data/static/themes/default/assets/fonts/icons.svg
-  data/static/themes/default/assets/fonts/icons.ttf
-  data/static/themes/default/assets/fonts/icons.woff
-  data/static/themes/default/assets/fonts/icons.woff2
-  data/static/themes/default/assets/images/flags.png
-  data/static/index.html
-
 library
   hs-source-dirs: src
 
@@ -71,7 +60,6 @@ library
       base              >= 4.8 && < 4.12
     , bytestring
     , containers
-    -- >= 0.5.9
     , data-default
     , dependent-map
     , file-embed        >= 0.0.10 && < 0.1
@@ -92,8 +80,6 @@ library
     , unbounded-delays
 
   ghc-options: -Wall
-  cpp-options: -D_GHCJS_ -DGHCJS_GC_INTERVAL=60000 -DGHCJS_BROWSER
-
   default-language:    Haskell2010
 
 test-suite test
