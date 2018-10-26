@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Reflex.Dom.SemanticUI.Button
   (
 
@@ -60,15 +62,10 @@ module Reflex.Dom.SemanticUI.Button
 
   ) where
 
-#ifdef USE_TEMPLATE_HASKELL
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-#else
-import Control.Lens.Type
-#endif
 
 import Control.Monad (void)
 import Data.Default
-import Data.Semigroup hiding (First)
 import Data.Text (Text)
 import Reflex
 import Reflex.Dom.Core hiding (Error, button)
@@ -92,9 +89,7 @@ data ButtonsConfig t = ButtonsConfig
 
   , _buttonsConfig_elConfig :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''ButtonsConfig
-#endif
 
 instance HasElConfig t (ButtonsConfig t) where
   elConfig = buttonsConfig_elConfig
@@ -138,9 +133,7 @@ data LabeledButtonConfig t = LabeledButtonConfig
   { _labeledButtonConfig_side :: Active t Labeled
   , _labeledButtonConfig_elConfig :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''LabeledButtonConfig
-#endif
 
 instance HasElConfig t (LabeledButtonConfig t) where
   elConfig = labeledButtonConfig_elConfig
@@ -171,9 +164,7 @@ data AnimatedButton t m = AnimatedButton
   { _animatedButton_type :: Active t AnimatedButtonType
   , _animatedButton_hiddenContent :: m ()
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''AnimatedButton
-#endif
 
 
 instance (Reflex t, Applicative m)
@@ -222,9 +213,7 @@ data ButtonConfig t m = ButtonConfig
   , _buttonConfig_type         :: ButtonType
   , _buttonConfig_elConfig     :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''ButtonConfig
-#endif
 
 instance HasElConfig t (ButtonConfig t m) where
   elConfig = buttonConfig_elConfig
@@ -352,7 +341,3 @@ labeledButton' config@LabeledButtonConfig{..} content = do
 
 labeledButton :: UI t m => LabeledButtonConfig t -> m a -> m (Event t ())
 labeledButton c = fmap snd . labeledButton' c
-
-#ifndef USE_TEMPLATE_HASKELL
-#include "Button.th.hs"
-#endif

@@ -1,14 +1,11 @@
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- | Semantic-UI Image elements
 -- https://semantic-ui.com/elements/image.html
 module Reflex.Dom.SemanticUI.Image where
 
-#ifdef USE_TEMPLATE_HASKELL
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-#else
-import Control.Lens.Type
-#endif
 
 import Control.Monad (void)
 import Data.Default
@@ -55,9 +52,7 @@ data ImageConfig t = ImageConfig
   -- ^ (default: 'Nothing') Images can have horizontal spacing
   , _imageConfig_elConfig :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''ImageConfig
-#endif
 
 instance HasElConfig t (ImageConfig t) where
   elConfig = imageConfig_elConfig
@@ -158,9 +153,7 @@ data ImgConfig t = ImgConfig
   , _imgConfig_alt :: Active t (Maybe Text)
   , _imgConfig_elConfig :: ActiveElConfig t
   }
-#ifdef USE_TEMPLATE_HASKELL
 makeLensesWith (lensRules & simpleLenses .~ True) ''ImgConfig
-#endif
 
 instance HasElConfig t (ImgConfig t) where
   elConfig = imgConfig_elConfig
@@ -171,7 +164,3 @@ instance Reflex t => Default (ImgConfig t) where
     , _imgConfig_alt = pure Nothing
     , _imgConfig_elConfig = def
     }
-
-#ifndef USE_TEMPLATE_HASKELL
-#include "Image.th.hs"
-#endif
