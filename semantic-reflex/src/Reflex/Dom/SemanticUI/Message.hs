@@ -22,7 +22,6 @@ module Reflex.Dom.SemanticUI.Message
 
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 
-import Control.Lens ((%~), (?~))
 import Data.Default
 import Data.Semigroup ((<>))
 import Reflex
@@ -30,7 +29,7 @@ import Reflex.Dom.Core
 
 import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
-import Reflex.Dom.SemanticUI.Icon (Icon(Icon), icon, icon')
+import Reflex.Dom.SemanticUI.Icon (Icon(Icon), icon)
 import Reflex.Dom.SemanticUI.Transition
 
 data MessageType

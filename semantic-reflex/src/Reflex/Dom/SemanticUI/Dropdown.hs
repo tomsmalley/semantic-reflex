@@ -2,113 +2,151 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Reflex.Dom.SemanticUI.Dropdown where
+-- | Semantic-UI Dropdown widgets
+--
+-- <https://semantic-ui.com/modules/dropdown.html>
+module Reflex.Dom.SemanticUI.Dropdown
+  (
 
+  -- * Single select dropdowns
+    dropdown
+  , dropdownWithWrapper
+  , textDropdown
+  , Dropdown(..)
+  , DropdownConfig(..)
+
+  -- * Searchable dropdown configuration
+  , SearchDropdownConfig(..)
+  , searchByToText
+  , searchByShow
+  , allowAdditionsValue
+
+  -- * Lenses
+  , dropdown_value
+  , dropdown_search
+  , dropdown_change
+  , dropdown_open
+  , dropdown_element
+
+  , dropdownConfig_placeholder
+  , dropdownConfig_selection
+  , dropdownConfig_compact
+  , dropdownConfig_fluid
+  , dropdownConfig_inline
+  , dropdownConfig_unselectable
+  , dropdownConfig_pointing
+  , dropdownConfig_upward
+  , dropdownConfig_search
+
+  , searchDropdownConfig_function
+  , searchDropdownConfig_allowAdditions
+
+  ) where
+
+import Control.Lens
 import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
-
-import Control.Lens ((<&>), (?~))
 import Control.Monad.Reader
 import Data.Bool (bool)
-import Data.Foldable (for_, traverse_)
-import Data.Maybe (fromMaybe)
 import Data.Default
+import Data.Foldable (for_, traverse_)
+import Data.Map.Lazy (Map)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Traversable (for)
 import Language.Javascript.JSaddle (liftJSM)
 import Reflex hiding (list)
-import Data.Map.Lazy (Map)
+import Reflex.Dom.Builder.Class
+import Reflex.Dom.Class
+import Reflex.Dom.Core (El, GhcjsDomSpace, HasValue(..), keydown)
+import Reflex.Dom.Widget.Basic
+
+import qualified Data.Map.Lazy as M
+import qualified Data.Text as T
+import qualified GHCJS.DOM.Element as Element
+import qualified GHCJS.DOM.EventM as EventM
+import qualified GHCJS.DOM.GlobalEventHandlers as GlobalEventHandlers
+import qualified GHCJS.DOM.HTMLElement as HTMLElement
+import qualified GHCJS.DOM.Types as Types
 
 import Reflex.Active
 import Reflex.Dom.SemanticUI.Common
 import Reflex.Dom.SemanticUI.Transition
 import Reflex.Dom.SemanticUI.Icon
-import Reflex.Dom.SemanticUI.Input
 
-import Reflex.Dom.Core hiding (SetValue, Dropdown(..), DropdownConfig, list, textInput)
+-- | Configuration for searchable dropdowns. You can use 'searchByToText' or
+-- 'searchByShow' to construct this easily.
+data SearchDropdownConfig a = SearchDropdownConfig
+  { _searchDropdownConfig_function :: Text -> a -> Bool
+  -- ^ The function used for searching items. First argument is the text in the
+  -- search box, second value is some item from the list.
+  , _searchDropdownConfig_allowAdditions :: Bool
+  -- ^ By default, when a user exits a searchable dropdown without choosing an
+  -- item, the search text is cleared. When allowAdditions is set, the text is
+  -- not cleared. You should use 'allowAdditionsValue' to get the current value.
+  }
+makeLensesWith (lensRules & simpleLenses .~ True) ''SearchDropdownConfig
 
-import qualified GHCJS.DOM.EventM as EventM
-import qualified GHCJS.DOM.GlobalEventHandlers as GlobalEventHandlers
-import qualified GHCJS.DOM.HTMLElement as HTMLElement
-import qualified GHCJS.DOM.Element as Element
-import qualified GHCJS.DOM.Types as Types
+-- | Case insensitive search through the text given by a function
+searchByToText :: (a -> Text) -> SearchDropdownConfig a
+searchByToText toText = SearchDropdownConfig
+  { _searchDropdownConfig_function = \s a ->
+    T.toCaseFold s `T.isInfixOf` T.toCaseFold (toText a)
+  , _searchDropdownConfig_allowAdditions = False
+  }
 
-import qualified Data.Map.Lazy as M
-
-{-
-data DropdownAction
-  = Activate
-  | Combo
-  | Select
-  | Hide
-  deriving (Eq, Show)
-
-instance ToJSVal DropdownAction where
-  toJSVal action = valMakeString $ case action of
-    Activate -> "activate"
-    Combo -> "combo"
-    -- Select doesn't seem to work, so we use activate and prevent the text from
-    -- being set in the dropdown element by removing the wrapping "default text"
-    -- div around the placeholder.
-    Select -> "activate"
-    Hide -> "hide"
--}
-
-data DropdownStyle = DropdownButton | DropdownLabel
-  deriving (Eq, Ord, Read, Show, Enum, Bounded)
-
-instance ToClassText DropdownStyle where
-  toClassText DropdownButton = "button"
-  toClassText DropdownLabel = "label"
+-- | Case insensitive search through the text given by the 'Show' instance
+searchByShow :: Show a => SearchDropdownConfig a
+searchByShow = searchByToText $ T.pack . show
 
 -- | Config for new semantic dropdowns
-data DropdownConfig t = DropdownConfig
---  { _dropdownConfig_Value :: SetValue t a
+data DropdownConfig t a = DropdownConfig
   { _dropdownConfig_placeholder :: Dynamic t Text
+  -- ^ Placeholder text
   , _dropdownConfig_selection :: Dynamic t Bool
+  -- ^ Selection dropdowns appear like form inputs
   , _dropdownConfig_compact :: Dynamic t Bool
+  -- ^ A compact dropdown has no minimum width
   , _dropdownConfig_fluid :: Dynamic t Bool
-  , _dropdownConfig_item :: Dynamic t Bool
+  -- ^ Fluid dropdowns flow to fill their container
   , _dropdownConfig_inline :: Dynamic t Bool
-  , _dropdownConfig_as :: Dynamic t (Maybe DropdownStyle)
+  -- ^ A dropdown can be formatted to appear inline in other content
   , _dropdownConfig_unselectable :: Bool
-  , _dropdownConfig_closeOnClickSelection :: Bool
-  , _dropdownConfig_searchFunction :: Text -> Text -> Bool
-  -- ^ The function used for searching items. Should return 'True' when the
-  -- first argument is in the second argument. Default implementation is case
-  -- insensitive 'T.isInfixOf'.
-  , _dropdownConfig_elConfig :: ActiveElConfig t
+  -- ^ If this is true and an item is clicked when it is already the current
+  -- value, the value will be reset to the initial value
+  , _dropdownConfig_pointing :: Dynamic t Bool
+  -- ^ A dropdown menu can be pointing
+  , _dropdownConfig_upward :: Dynamic t Bool
+  -- ^ The menu can open upwards instead of downwards
+  , _dropdownConfig_search :: Maybe (SearchDropdownConfig a)
+  -- ^ A dropdown can have a search input for narrowing a list of results
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''DropdownConfig
 
-instance HasElConfig t (DropdownConfig t) where
-  elConfig = dropdownConfig_elConfig
-
-instance Reflex t => Default (DropdownConfig t) where
+instance Reflex t => Default (DropdownConfig t a) where
   def = DropdownConfig
     { _dropdownConfig_placeholder = pure mempty
-    , _dropdownConfig_selection = pure False
+    , _dropdownConfig_selection = pure True
     , _dropdownConfig_compact = pure False
     , _dropdownConfig_fluid = pure False
-    , _dropdownConfig_item = pure False
     , _dropdownConfig_inline = pure False
-    , _dropdownConfig_as = pure Nothing
+    , _dropdownConfig_pointing = pure False
+    , _dropdownConfig_upward = pure False
     , _dropdownConfig_unselectable = False
-    , _dropdownConfig_closeOnClickSelection = True
-    , _dropdownConfig_searchFunction = \s t -> T.toCaseFold s `T.isInfixOf` T.toCaseFold t
-    , _dropdownConfig_elConfig = def
+    , _dropdownConfig_search = Nothing
     }
 
 dropdownConfigClasses
-  :: Reflex t => DropdownConfig t -> Dynamic t Bool -> Dynamic t Classes
+  :: Reflex t => DropdownConfig t a -> Dynamic t Bool -> Dynamic t Classes
 dropdownConfigClasses DropdownConfig {..} isOpen = dynClasses'
-  [ pure $ Just "ui selection dropdown"
+  [ pure $ Just "ui dropdown"
   , boolClass "compact" _dropdownConfig_compact
   , boolClass "fluid" _dropdownConfig_fluid
   , boolClass "selection" _dropdownConfig_selection
-  , boolClass "item" _dropdownConfig_item
   , boolClass "inline" _dropdownConfig_inline
+  , boolClass "pointing" _dropdownConfig_pointing
+  , boolClass "upward" _dropdownConfig_upward
   , boolClass "active" isOpen
-  , fmap toClassText <$> _dropdownConfig_as
+  , pure $ "search" <$ _dropdownConfig_search
   ]
 
 lookupNextKey :: (Foldable f, Monad f, Ord k) => f k -> f k -> Map k a -> f k
@@ -129,10 +167,18 @@ lookupPrevKey ini mCurrent m
     Just i -> pure $ fst $ M.elemAt (max 0 $ pred i) m
     Nothing -> ini
 
+-- | Result of running a 'dropdown'
 data Dropdown t a = Dropdown
   { _dropdown_value :: Dynamic t a
-  , _dropdown_blur :: Event t ()
+  -- ^ Currently selected value
+  , _dropdown_search :: Dynamic t Text
+  -- ^ Current entry in the search box, if present
+  , _dropdown_change :: Event t a
+  -- ^ User driven change events
+  , _dropdown_open :: Dynamic t Bool
+  -- ^ Is the menu open?
   , _dropdown_element :: El t
+  -- ^ Wrapper element
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''Dropdown
 
@@ -140,36 +186,102 @@ instance HasValue (Dropdown t a) where
   type Value (Dropdown t a) = Dynamic t a
   value = _dropdown_value
 
+-- | Get a 'Dynamic' of 'Either' some user added 'Text' value or a real selection.
+-- Useful in conjunction with '_searchDropdownConfig_allowAdditions' = 'True'.
+allowAdditionsValue :: Reflex t => Dropdown t a -> Dynamic t (Either Text a)
+allowAdditionsValue d = f <$> _dropdown_search d <*> value d <*> _dropdown_open d
+  where f search a open
+          | open || T.null search = Right a
+          | otherwise = Left search
+
+-- | Single selection dropdown widget
 dropdown
   :: forall active t m k f.
     ( SingActive active, Monad f, Ord k, UI t m, Ord (f k), Foldable f
     , Types.MonadJSM (Performable m), Types.MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace )
-  => DropdownConfig t -> f k -> TaggedActive active t (Map k (m ()))
+  => DropdownConfig t k
+  -> f k
+  -> Event t (f k)
+  -> TaggedActive active t (Map k (m ()))
   -> m (Dropdown t (f k))
-dropdown config@DropdownConfig {..} ini items = mdo
+dropdown = dropdownWithWrapper $ \f -> ui' "div" (f def)
 
-  let elConf = _dropdownConfig_elConfig <> def
-        { _classes = Dyn $ dropdownConfigClasses config isOpen
-        , _attrs = pure ("tabindex" =: "0")
-        }
+-- | Single selection dropdown widget, with custom wrapper. This can, for
+-- example, be used to turn labels into dropdowns:
+--
+-- > dropdownWithWrapper (\f -> label' (f def)) def Nothing never items
+--
+-- You'll probably want to set _dropdownConfig_selection to 'False' when using
+-- this.
+--
+dropdownWithWrapper
+  :: forall active t m k f.
+    ( SingActive active, Monad f, Ord k, UI t m, Ord (f k), Foldable f
+    , Types.MonadJSM (Performable m), Types.MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace )
+  => (forall x. (forall cfg. HasElConfig t cfg => cfg -> cfg) -> m x -> m (El t, x))
+  -> DropdownConfig t k
+  -> f k
+  -> Event t (f k)
+  -> TaggedActive active t (Map k (m ()))
+  -> m (Dropdown t (f k))
+dropdownWithWrapper wrapper config@DropdownConfig {..} ini setVal items = mdo
 
-  (e, (selection, clickItem)) <- ui' "div" elConf $ mdo
-    icon "dropdown" def
+  let alterConfig :: forall cfg. HasElConfig t cfg => cfg -> cfg
+      alterConfig cfg = cfg
+        & classes <>~ Dyn (dropdownConfigClasses config isOpen)
+        & attrs <>~ pure (M.singleton "tabindex" "0")
+      search :: Maybe (Dynamic t Text)
+      search = value <$> searchInput
 
-    void $ dyn $ ffor dSelection $ \f ->
-      if null f
-      then divClass "default text" $ dynText _dropdownConfig_placeholder
-      else for_ f $ \k -> void $ divClass "text" $ taggedActive id (void . dyn)
-        $ fromMaybe blank . M.lookup k <$> items
+  -- Wrapper element
+  (dropdownElement, (searchInput, clickItem)) <- wrapper alterConfig $ mdo
 
-    (menuEl, (clickItem, dSelection)) <- ui' "div" (dropdownMenuConfig $ updated isOpen) $ do
-      (elemMap, eMaybeK) <- taggedActiveSelectViewListWithKey dSelection
-        (M.mapKeysMonotonic pure <$> items) $ \_k v dSelected -> do
-          let itemConf = def & classes .~ Dyn dClasses
-              dClasses = dSelected <&> \case
-                True -> "item active selected"
-                False -> "item"
-          (itemEl, _) <- ui' "div" itemConf $ taggedActive id (void . dyn) v
+    -- Add the search text input element when required
+    searchInput <- for _dropdownConfig_search $ \_ -> do
+      i <- inputElement $ def
+        & initialAttributes .~ M.singleton "class" "search"
+        & inputElementConfig_setValue .~ leftmost
+          [ "" <$ anyChoice
+          , case _dropdownConfig_search of
+            Just SearchDropdownConfig {..} | _searchDropdownConfig_allowAdditions -> never
+            _ -> "" <$ ffilter not (updated isOpen)
+          ]
+      -- Prevent the click events from propagating to the wrapper element
+      let htmlEl = Types.uncheckedCastTo Types.HTMLElement $ _inputElement_raw i
+      void $ liftJSM $ EventM.on htmlEl GlobalEventHandlers.click $ EventM.stopPropagation
+      pure i
+
+    -- Selected element / default text
+    let mkTextClasses sel mtxt = T.unwords $ fmapMaybe id
+          [ Just "text"
+          , "default" <$ guard (null sel)
+          , case mtxt of
+            Just t | not (T.null t) -> Just "filtered"
+            _ -> Nothing
+          ]
+    elDynClass "div" (mkTextClasses <$> selection <*> sequence search) $
+      dyn_ $ ffor selection $ \sel ->
+        if null sel
+        then dynText _dropdownConfig_placeholder
+        else for_ sel $ \k -> taggedActive id (void . dyn) $ fromMaybe blank . M.lookup k <$> items
+
+    -- Togglable menu with list of items
+    (menuEl, clickItem) <- ui' "div" (mkMenuConfig _dropdownConfig_upward $ updated isOpen) $ do
+
+      -- List the items
+      (elemMap, userClickItem :: Event t k) <-
+        taggedActiveSelectViewListWithKey' selection items $ \k v isSelected -> do
+          let mkClasses selected visible = mconcat
+                [ "item"
+                , if selected then "selected" else ""
+                , if Just False == visible then "filtered" else ""
+                ]
+              cs = mkClasses <$> isSelected <*> sequence isVisible
+              isVisible = do
+                SearchDropdownConfig {..} <- _dropdownConfig_search
+                ds <- search
+                pure $ flip _searchDropdownConfig_function k <$> ds
+          (itemEl, _) <- ui' "div" (def & classes .~ Dyn cs) $ taggedActive id (void . dyn) v
 
           -- Prevent the click events from propagating to the wrapper element
           -- These click events are used to close the menu, and click events on
@@ -177,37 +289,70 @@ dropdown config@DropdownConfig {..} ini items = mdo
           let itemHTML = Types.uncheckedCastTo Types.HTMLElement $ _element_raw itemEl
           void $ liftJSM $ EventM.on itemHTML GlobalEventHandlers.click $ EventM.stopPropagation
 
-          pure (itemEl, domEvent Click itemEl)
+          pure ((isVisible, itemEl), domEvent Click itemEl)
 
-      alterScroll menuEl dSelection elemMap
+      -- Display a message if all items have been filtered out
+      for_ _dropdownConfig_search $ \_ -> do
+        let visible = do
+              m <- taggedActive pure id elemMap
+              or <$> sequence (M.mapMaybe fst m)
+        dyn_ $ ffor visible $ \v -> unless v $
+          divClass "message" $ text "No results found."
 
-      fmap ((,) (void eMaybeK)) $ holdDyn ini $ leftmost
-        [ flip tag (keydown ArrowDown e) $ lookupNextKey ini
-            <$> current dSelection <*> taggedActive pure current items
-        , flip tag (keydown ArrowUp e) $ lookupPrevKey ini
-            <$> current dSelection <*> taggedActive pure current items
+      -- Adjust scroll position if the selected element is out of view
+      alterScroll menuEl selection $ M.map snd . M.mapKeysMonotonic pure <$> elemMap
+
+      pure userClickItem
+
+    icon "dropdown" $ def & iconConfig_flipped .~ Dyn
+      (bool Nothing (Just VerticallyFlipped) <$> _dropdownConfig_upward)
+    pure (searchInput, clickItem)
+
+      -- Changes caused by user interactions
+  let userChoice :: Event t (f k) = leftmost
+        [ flip tag (keydown ArrowDown dropdownElement) $ lookupNextKey ini
+            <$> current selection <*> taggedActive pure current items
+        , flip tag (keydown ArrowUp dropdownElement) $ lookupPrevKey ini
+            <$> current selection <*> taggedActive pure current items
         , case _dropdownConfig_unselectable of
-          True -> attachWith (\old new -> if old == new then ini else new)
-            (current dSelection) eMaybeK
-          False -> eMaybeK
+          True -> attachWith (\old new -> if old == pure new then ini else pure new)
+            (current selection) clickItem
+          False -> pure <$> clickItem
         ]
+      -- Changes caused by user or setVal
+      anyChoice = leftmost [userChoice, setVal]
 
-    pure (dSelection, clickItem)
+  -- Currently selected value
+  selection :: Dynamic t (f k) <- holdDyn ini anyChoice
 
-  -- Add event listeners
-  let htmlElement = Types.uncheckedCastTo Types.HTMLElement $ _element_raw e
+  -- Stop keyboard events from escaping the dropdown context
+  let htmlElement = Types.uncheckedCastTo Types.HTMLElement $ _element_raw dropdownElement
   void $ liftJSM $ EventM.on htmlElement GlobalEventHandlers.keyDown $ do
     EventM.uiKeyCode >>= \k -> case keyCodeLookup (fromIntegral k) of
-      Space -> EventM.preventDefault
       ArrowDown -> EventM.preventDefault
       ArrowUp -> EventM.preventDefault
       Escape -> HTMLElement.blur htmlElement
       _ -> pure ()
 
-  let toggleEvents = domEvent Click e <> keydown Space e <> keydown Enter e
-      closeEvents = domEvent Blur e <> if _dropdownConfig_closeOnClickSelection then clickItem else never
-      openEvents = keydown ArrowDown e <> keydown ArrowUp e
-
+  -- Determine when to open / close the menu
+  let searchFocusChange = maybe never (updated . _inputElement_hasFocus) searchInput
+      (searchFocus, searchBlur) = fanEither $ ffor searchFocusChange $ \case
+        True -> Left ()
+        False -> Right ()
+      toggleEvents = leftmost
+        [ domEvent Click dropdownElement
+        , keydown Enter dropdownElement
+        ]
+      closeEvents = leftmost
+        [ domEvent Blur dropdownElement
+        , void clickItem
+        , searchBlur
+        ]
+      openEvents = leftmost
+        [ keydown ArrowDown dropdownElement
+        , keydown ArrowUp dropdownElement
+        , searchFocus
+        ]
   isOpen <- holdUniqDyn <=< holdDyn False $ leftmost
     [ False <$ closeEvents, True <$ openEvents
     , not <$> tag (current isOpen) toggleEvents
@@ -215,21 +360,23 @@ dropdown config@DropdownConfig {..} ini items = mdo
 
   pure $ Dropdown
     { _dropdown_value = selection
-    , _dropdown_blur = closeEvents
-    , _dropdown_element = e
+    , _dropdown_search = fromMaybe "" search
+    , _dropdown_change = userChoice
+    , _dropdown_open = isOpen
+    , _dropdown_element = dropdownElement
     }
 
 -- | Dropdown menu element config, this hides/shows the menu according to the
 -- input event
-dropdownMenuConfig :: Reflex t => Event t Bool -> ActiveElConfig t
-dropdownMenuConfig transition = def
+mkMenuConfig :: Reflex t => Dynamic t Bool -> Event t Bool -> ActiveElConfig t
+mkMenuConfig upward transition = def
   & classes |~ "menu"
   & action ?~ def
     { _action_initialDirection = Out
-    , _action_transition = mkTransition <$> transition
+    , _action_transition = attachWith mkTransition (current upward) transition
     , _action_transitionStateClasses = forceVisible
     }
-  where mkTransition open = Transition SlideDown (Just $ if open then In else Out) $ def
+  where mkTransition up open = Transition (if up then SlideUp else SlideDown) (Just $ if open then In else Out) $ def
           & transitionConfig_duration .~ 0.2
           & transitionConfig_cancelling .~ True
 
@@ -257,91 +404,28 @@ alterScroll menuEl' val elMap = do
 
 -- | Searchable text dropdown. Behaves mostly like a text input, but with values
 -- that can also be selected from a dropdown box.
-searchDropdown
+textDropdown
   :: forall active t m.
-    ( SingActive active, UI t m, Types.MonadJSM (Performable m)
-    , Types.MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace )
-  => DropdownConfig t -> Text -> TaggedActive active t [Text]
+    ( SingActive active, UI t m
+    , Types.MonadJSM (Performable m), Types.MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace )
+  => DropdownConfig t Text -> Text -> Event t Text -> TaggedActive active t [Text]
   -> m (Dropdown t Text)
-searchDropdown config@DropdownConfig {..} ini items = mdo
-
-  let elConf = _dropdownConfig_elConfig <> def
-        { _classes = Dyn $ ("search" <>) <$>  dropdownConfigClasses config isOpen }
-      itemMap = M.fromList . zipWith (\i t -> (Just i, t)) [0..] <$> items
-
-  (dropdownElement, (selection, clickIndex, searchInput)) <- ui' "div" elConf $ mdo
-    icon "dropdown" def
-
-    searchInput <- textInput $ def
-      & textInputConfig_attrs |~ "class" =: "search"
-      & textInputConfig_placeholder .~ _dropdownConfig_placeholder
-      & textInputConfig_value .~ SetValue ini (Just $ fmapMaybe id $ case itemMap of
-        TaggedStatic m -> ffor choose $ (\i -> M.lookup (Just i) m)
-        TaggedDynamic dm -> attachWith (\m i -> M.lookup (Just i) m) (current dm) choose)
-
-    (menuEl, (elemMap, clickIndex)) <- ui' "div" (dropdownMenuConfig $ updated isOpen) $
-      taggedActiveSelectViewListWithKey hover itemMap $ \_ val selected -> do
-        let selectedClass = bool "" "active selected" <$> selected
-            filtered s t = if _dropdownConfig_searchFunction s t
-                           then "" else "filtered" :: Classes
-            c = zipDynWith (\s f -> mconcat ["item", s, f]) selectedClass $ case val of
-              TaggedStatic t -> ffor (_textInput_value searchInput) $ \s -> filtered s t
-              TaggedDynamic dt -> zipDynWith filtered (_textInput_value searchInput) dt
-        (itemEl, _) <- ui' "div" (def & classes .~ Dyn c) $ taggedActive text dynText val
-
-        -- Prevent the click events from propagating to the wrapper element
-        -- These click events are used to close the menu, and click events on
-        -- the wrapper are used to toggle it
-        let itemHTML = Types.uncheckedCastTo Types.HTMLElement $ _element_raw itemEl
-        void $ liftJSM $ EventM.on itemHTML GlobalEventHandlers.click $ EventM.stopPropagation
-
-        pure (itemEl, domEvent Click itemEl)
-
-    alterScroll menuEl hover elemMap
-
-    pure (selection, clickIndex, searchInput)
-
-  let nextIndex Nothing _ = 0
-      nextIndex (Just i) is = succ i `min` pred (length is)
-      prevIndex Nothing = 0
-      prevIndex (Just i) = 0 `max` pred i
-
-  -- Hover state is given when the arrow keys are used to move through items
-  hover <- holdDyn Nothing $ leftmost
-    [ fmap Just $ flip tag (keydown ArrowDown dropdownElement) $ nextIndex
-            <$> current hover <*> taggedActive pure current items
-    , fmap Just $ flip tag (keydown ArrowUp dropdownElement) $ prevIndex <$> current hover
-    , Nothing <$ taggedActive (const never) updated items
-    ]
-
-  -- The user chooses an option by clicking it or "hovering" with the
-  -- keyboard and pressing enter
-  let choose :: Event t Int = fmapMaybe id $ leftmost
-        [ clickIndex
-        , tag (current hover) $ keydown Enter dropdownElement
-        ]
-
-  -- Add event listeners
-  let htmlElement = Types.uncheckedCastTo Types.HTMLElement $ _element_raw dropdownElement
-  void $ liftJSM $ EventM.on htmlElement GlobalEventHandlers.keyDown $ do
-    EventM.uiKeyCode >>= \k -> case keyCodeLookup (fromIntegral k) of
-      ArrowDown -> EventM.preventDefault
-      ArrowUp -> EventM.preventDefault
-      Escape -> HTMLElement.blur htmlElement
-      Enter -> HTMLElement.blur $ _textInput_element searchInput
-      _ -> pure ()
-
-  -- This delay allows the item click events to pass before closing the dropdown box
-  searchInputFocus <- delay 0.1 $ updated $ _textInput_hasFocus searchInput
-  initFocus <- sample $ current $ _textInput_hasFocus searchInput
-  let closeEvents = if _dropdownConfig_closeOnClickSelection then void clickIndex else never
-  isOpen <- holdUniqDyn <=< holdDyn initFocus $ leftmost
-    [ False <$ closeEvents
-    , searchInputFocus
-    ]
-
+textDropdown conf ini evt items = do
+  let conf' = conf
+        { _dropdownConfig_search = Just (searchByToText id)
+          { _searchDropdownConfig_allowAdditions = True
+          }
+        }
+  d <- dropdown conf' (Identity ini) (fmapCheap Identity evt) $ ffor items $
+    M.fromList . fmap (\t -> (t, text t))
+  let v = ffor (allowAdditionsValue d) $ \case
+        Left t -> t
+        Right (Identity t) -> t
   pure $ Dropdown
-    { _dropdown_value = _textInput_value searchInput
-    , _dropdown_blur = closeEvents
-    , _dropdown_element = dropdownElement
+    { _dropdown_search = v
+    , _dropdown_value = v
+    , _dropdown_change = runIdentity <$> _dropdown_change d
+    , _dropdown_open = _dropdown_open d
+    , _dropdown_element = _dropdown_element d
     }
+

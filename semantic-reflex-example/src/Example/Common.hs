@@ -60,6 +60,18 @@ instance DynShow t (Checkbox t) where
       , pure "\n  }"
       ]
 
+instance Show a => DynShow t (Dropdown t a) where
+  dynShow Dropdown {..} = do
+    change <- countWithLast _dropdown_change
+    pure $ mconcat
+      [ pure "Dropdown"
+      , (("\n  { _dropdown_value = " <>) . show) <$> _dropdown_value
+      , (("\n  , _dropdown_search = " <>) . T.unpack) <$> _dropdown_search
+      , (("\n  , _dropdown_change = " <>) . show) <$> change
+      , (("\n  , _dropdown_open = " <>) . show) <$> _dropdown_open
+      , pure "\n  }"
+      ]
+
 instance DynShow t (Progress t m) where
   dynShow Progress {..} = do
     pure $ mconcat

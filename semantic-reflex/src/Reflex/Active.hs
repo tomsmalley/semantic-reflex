@@ -14,6 +14,7 @@ module Reflex.Active
 
   , taggedActiveListWithKey
   , taggedActiveSelectViewListWithKey
+  , taggedActiveSelectViewListWithKey'
 
   , SingActive (..)
   , SActive (..)
@@ -33,7 +34,6 @@ import Data.String (IsString(..))
 import qualified Data.Map as M
 
 import Reflex
-import Reflex.Dom.Core
 
 -- | Kind promoted tag with types 'StaticType' and 'DynamicType'.
 data ActiveType where
@@ -104,9 +104,8 @@ taggedActiveSelectViewListWithKey :: forall active t m k v a.
   (Adjustable t m, Ord k, PostBuild t m, MonadHold t m, MonadFix m)
   => Dynamic t k
   -> TaggedActive active t (Map k v)
-  -> (k -> TaggedActive active t v -> Dynamic t Bool
-        -> m (Element EventResult (DomBuilderSpace m) t, Event t a))
-  -> m (TaggedActive active t (Map k (Element EventResult (DomBuilderSpace m) t)), Event t k)
+  -> (k -> TaggedActive active t v -> Dynamic t Bool -> m (a, Event t ()))
+  -> m (TaggedActive active t (Map k a), Event t k)
 taggedActiveSelectViewListWithKey selection vals mkChild = do
   let selectionDemux = demux selection
   selectChild <- taggedActiveListWithKey vals $ \k v -> do
@@ -115,7 +114,27 @@ taggedActiveSelectViewListWithKey selection vals mkChild = do
     pure (e, k <$ selectSelf)
   pure
     ( fmap fst <$> selectChild
-    , taggedActive id switchPromptlyDyn $
+    , taggedActive id (switch . current) $
+        leftmost . fmap snd . M.elems <$> selectChild
+    )
+
+-- | Create a dynamically-changing set of widgets, one of which is selected at
+-- any time. Selected item is some applicative, this is used for dropdowns.
+taggedActiveSelectViewListWithKey' :: forall active f t m k v a.
+  (Adjustable t m, Ord (f k), Ord k, Applicative f, PostBuild t m, MonadHold t m, MonadFix m)
+  => Dynamic t (f k)
+  -> TaggedActive active t (Map k v)
+  -> (k -> TaggedActive active t v -> Dynamic t Bool -> m (a, Event t ()))
+  -> m (TaggedActive active t (Map k a), Event t k)
+taggedActiveSelectViewListWithKey' selection vals mkChild = do
+  let selectionDemux = demux selection
+  selectChild <- taggedActiveListWithKey vals $ \k v -> do
+    let selected = demuxed selectionDemux (pure k)
+    (e, selectSelf) <- mkChild k v selected
+    pure (e, k <$ selectSelf)
+  pure
+    ( fmap fst <$> selectChild
+    , taggedActive id (switch . current) $
         leftmost . fmap snd . M.elems <$> selectChild
     )
 
