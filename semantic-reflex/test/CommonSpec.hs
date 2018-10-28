@@ -1,28 +1,25 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module CommonSpec where
 
-import Data.Semigroup ((<>))
-
 import Data.Foldable (toList)
-import Control.Monad.IO.Class
-import Control.Concurrent
+import Data.Semigroup ((<>))
 import Test.Hspec
+import Test.Hspec.QuickCheck
 import Test.QuickCheck hiding (sample)
 import Test.QuickCheck.Instances
-import Test.Hspec.QuickCheck
-import Control.Concurrent.MVar
-import Data.Time.Clock
-
-import Reflex.Dom.SemanticUI
-#ifndef ghcjs_HOST_OS
-import Language.Javascript.JSaddle.Null
-#endif
 
 import qualified Data.Map as M
 import qualified Data.Sequence as Seq
+
+import Reflex.Dom.SemanticUI
+
+--import Control.Concurrent
+--import Control.Concurrent.MVar
+--import Control.Monad.IO.Class
+--import Data.Time.Clock
+--import Language.Javascript.JSaddle.Null
 
 instance Arbitrary Classes where
   arbitrary = Classes <$> arbitrary
@@ -71,7 +68,7 @@ spec = do
       c <- runSpiderHost $ sampleActive $ buttonConfigClasses $ def & buttonConfig_inverted |~ True
       c `shouldBe` Classes ["ui button", "inverted"]
 
-#ifndef ghcjs_HOST_OS
+{-
   describe "Time functions" $ do
     describe "echo" $ do
       it "produces the correct number of events in the correct order" $ do
@@ -140,4 +137,4 @@ collectEventsFor t m = do
     performEvent_ $ ffor e $ \a -> liftIO . modifyMVar_ mvar $ pure . (a :)
   threadDelay $ round $ t * 1000000
   takeMVar mvar
-#endif
+-}
