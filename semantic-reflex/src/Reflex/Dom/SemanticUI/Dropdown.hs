@@ -336,7 +336,7 @@ dropdownWithWrapper wrapper config@DropdownConfig {..} ini setVal items = mdo
 
   -- Determine when to open / close the menu
   let searchFocusChange = maybe never (updated . _inputElement_hasFocus) searchInput
-      (searchFocus, searchBlur) = fanEither $ ffor searchFocusChange $ \case
+      (searchFocus, _searchBlur) = fanEither $ ffor searchFocusChange $ \case
         True -> Left ()
         False -> Right ()
       toggleEvents = leftmost
@@ -346,7 +346,7 @@ dropdownWithWrapper wrapper config@DropdownConfig {..} ini setVal items = mdo
       closeEvents = leftmost
         [ domEvent Blur dropdownElement
         , void clickItem
-        , searchBlur
+--        , searchBlur -- TODO: this fires before the user can make a choice
         ]
       openEvents = leftmost
         [ keydown ArrowDown dropdownElement
