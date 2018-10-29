@@ -46,13 +46,12 @@ library
     , containers
     , data-default
     , file-embed      >= 0.0.10 && < 0.1
-    --, ghcjs-dom
     , jsaddle         >= 0.8.0.0 && < 0.10
     , lens            >= 4.15.2
     , mtl
     , reflex-dom
     , reflex-dom-core >= 0.4 && < 0.5
-    , reflex-dom-nested-routing
+    , obelisk-route
     , random
     , semantic-reflex
     , transformers
