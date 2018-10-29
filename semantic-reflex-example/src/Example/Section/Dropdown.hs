@@ -36,6 +36,9 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
 
   pageHeader H3 def $ text "Dropdown"
 
+  let states = [minBound .. maxBound]
+      countries = [minBound .. maxBound]
+
   mkExample "Dropdown" (def
     & dynamic ?~ dynShowCode
     & subtitle ?~ text "A standard dropdown")
@@ -43,7 +46,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
   \resetEvent -> do
     let conf = def { _dropdownConfig_placeholder = "State" }
     dropdown conf Nothing (Nothing <$ resetEvent) $ TaggedStatic $ M.fromList $
-      ffor [minBound .. maxBound] $ \x -> (x, text (stateText x))
+      ffor states $ \x -> (x, text (stateText x))
   |]
 
   mkExample "Unselectable Dropdown" (def
@@ -56,7 +59,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
           , _dropdownConfig_unselectable = True
           }
     dropdown conf Nothing (Nothing <$ resetEvent) $ TaggedStatic $ M.fromList $
-      ffor [minBound .. maxBound] $ \x -> (x, text (stateText x))
+      ffor states $ \x -> (x, text (stateText x))
   |]
 
   mkExample "Search Dropdown" (def
@@ -69,7 +72,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
           , _dropdownConfig_placeholder = "Country"
           }
     dropdown conf Nothing (Nothing <$ resetEvent) $ TaggedStatic $ M.fromList $
-      ffor [minBound .. maxBound] $
+      ffor countries $
         \x -> (x, flag (pure $ T.toLower $ tshow x) def >> text (countryText x))
   |]
 
@@ -79,13 +82,12 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     [resetExample|
   \resetEvent -> do
     let conf = def
-          { _dropdownConfig_search = Just $ searchByToText countryText
-          , _dropdownConfig_placeholder = "Country"
+          { _dropdownConfig_search = Just $ searchByToText stateText
+          , _dropdownConfig_placeholder = "State"
           , _dropdownConfig_selection = pure False
           }
     dropdownWithWrapper (\f -> label' (f def)) conf Nothing (Nothing <$ resetEvent) $
-      TaggedStatic $ M.fromList $ ffor [minBound .. maxBound] $
-        \x -> (x, flag (pure $ T.toLower $ tshow x) def >> text (countryText x))
+      TaggedStatic $ M.fromList $ ffor states $ \x -> (x, text (stateText x))
   |]
 
   mkExample "Search Dropdown (allow additions)" (def
@@ -94,17 +96,16 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     [resetExample|
   \resetEvent -> do
     let conf = def
-          { _dropdownConfig_search = Just $ (searchByToText countryText)
+          { _dropdownConfig_search = Just $ (searchByToText stateText)
             { _searchDropdownConfig_allowAdditions = True }
-          , _dropdownConfig_placeholder = "Country"
+          , _dropdownConfig_placeholder = "State"
           }
     d <- dropdown conf Nothing (Nothing <$ resetEvent) $ TaggedStatic $ M.fromList $
-      ffor [minBound .. maxBound] $
-        \x -> (x, flag (pure $ T.toLower $ tshow x) def >> text (countryText x))
+      ffor states $ \x -> (x, text (stateText x))
     pure $ ffor (allowAdditionsValue d) $ \x -> case x of
-      Left t -> "Some other place, " <> t
-      Right (Just a) -> "A known place, " <> countryText a
-      Right Nothing -> "Choose a place!"
+      Left t -> "Some other state, " <> t
+      Right (Just a) -> "A known state, " <> stateText a
+      Right Nothing -> "Choose a state!"
   |]
 
   mkExample "Identity Dropdown" (def
@@ -114,7 +115,7 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
   \resetEvent -> do
     let conf = def { _dropdownConfig_placeholder = "State" }
     dropdown conf (Identity NY) (Identity NY <$ resetEvent) $ TaggedStatic $ M.fromList $
-      ffor [minBound .. maxBound] $ \x -> (x, text (stateText x))
+      ffor states $ \x -> (x, text (stateText x))
   |]
 
   mkExample "Text Dropdown" (def
@@ -123,23 +124,5 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
     [resetExample|
   \resetEvent -> do
     textDropdown def "" ("" <$ resetEvent) $ TaggedStatic ["one", "two", "three"]
-  |]
-
-  mkExample "Static or Dynamic Dropdown" (def
-    & dynamic ?~ dynCode
-    & subtitle ?~ text "A dropdown with lots of items. Note that the dynamic list takes a few times longer to load than the static list.")
-    [resetExample|
-  \resetEvent -> do
-    on <- toggle True <=< button def $ text "Toggle"
-
-    let items = [1 .. 1000] :: [Int]
-        render = M.fromList [ (i, text $ tshow i) | i <- items ]
-
-    e <- dyn $ ffor on $ \o -> case o of
-      True -> dropdown (def & dropdownConfig_placeholder |~ "Static") Nothing never $
-        TaggedStatic render
-      False -> dropdown (def & dropdownConfig_placeholder |~ "Dynamic") Nothing never $
-        TaggedDynamic $ pure render
-    join <$> holdDyn (pure Nothing) (value <$> e)
   |]
 
