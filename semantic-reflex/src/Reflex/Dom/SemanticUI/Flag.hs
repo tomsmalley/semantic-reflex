@@ -9,6 +9,7 @@ import Control.Lens.TH (makeLensesWith, lensRules, simpleLenses)
 
 import Control.Monad (void)
 import Data.Default
+import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Reflex.Dom.Core
 
