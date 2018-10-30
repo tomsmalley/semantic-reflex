@@ -8,4 +8,4 @@ docs: ghcjs
 		-O ADVANCED -W QUIET'
 
 ghcjs: semantic-reflex semantic-reflex-example
-	nix-build --attr ghcjs.semantic-reflex-example --option extra-binary-caches https://nixcache.reflex-frp.org
+	nix-build --attr ghcjs.semantic-reflex-example

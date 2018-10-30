@@ -4,15 +4,37 @@ nix: 2.0.4
 
 sudo: yes
 
-script:
-  - echo "YES" | ./reflex-platform/scripts/setup
-  - make
+before_script:
+  - sudo mkdir -p /etc/nix
+  - echo "binary-caches = https://cache.nixos.org/ https://nixcache.reflex-frp.org" >> nix.conf
+  - echo "binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" >> nix.conf
+  - sudo cp nix.conf /etc/nix/nix.conf
 
-deploy:
-  provider: pages
-  skip-cleanup: true
-  github-token: $GITHUB_TOKEN
-  keep-history: true
-  local-dir: docs
-  on:
-    branch: master
+stages:
+  - build
+  - name: deploy
+    if: branch = master
+
+jobs:
+  include:
+    - stage: build
+      name: "GHC 8.0"
+      script: nix-build -A ghc8_0.semantic-reflex
+    - name: "GHC 8.2"
+      script: nix-build -A ghc8_2.semantic-reflex
+    - name: "GHC 8.4"
+      script: nix-build -A ghc8_4.semantic-reflex
+    - name: "GHCJS 8.0"
+      script: nix-build -A ghcjs8_0.semantic-reflex
+    - name: "GHCJS 8.4"
+      script: nix-build -A ghcjs8_4.semantic-reflex
+    - stage: deploy
+      script: make
+      deploy:
+        provider: pages
+        skip-cleanup: true
+        github-token: $GITHUB_TOKEN
+        keep-history: true
+        local-dir: docs
+        on:
+          branch: master
