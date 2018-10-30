@@ -30,8 +30,18 @@
 
   };
 
-  shells = {
-    ghc = ["semantic-reflex" "semantic-reflex-example"];
-    ghcjs = ["semantic-reflex" "semantic-reflex-example"];
-  };
+  shells =
+    let mkShell = c: { name = c; value = ["semantic-reflex" "semantic-reflex-example"]; };
+    in builtins.listToAttrs (map mkShell [
+      "ghc"
+      "ghc8_4"
+      "ghc8_2"
+      "ghc8_0"
+      "ghc7"
+
+      "ghcjs"
+      "ghcjs8_4"
+      "ghcjs8_2"
+      "ghcjs8_0"
+    ]);
 })
