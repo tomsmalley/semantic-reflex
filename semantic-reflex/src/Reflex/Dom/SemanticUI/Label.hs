@@ -72,7 +72,7 @@ instance ToClassText TopCorner where
 
 
 -- | If a label is attached, it *must* be vertically attached in some way. There
--- can't be a soley horizontally attached label.
+-- can't be a solely horizontally attached label.
 data LabelAttached = LabelAttached
   { _labelAttached_vertically :: VerticalAttached
   , _labelAttached_horizontally :: Maybe HorizontalAttached
