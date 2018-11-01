@@ -28,11 +28,14 @@ sidebars = Section "Sidebar" (text "A sidebar hides additional content beside a 
   hscode $ $(printDefinition id stripParens ''SidebarConfig)
 
   hscode $ $(printDefinition oneline stripParens ''SidebarTransition)
+  hscode $ $(printDefinition oneline stripParens ''SidebarWidth)
   hscode $ $(printDefinition oneline stripParens ''Side)
 
   mkExample "Sidebar" def [example|
   pageHeader H5 def $ text "Side"
   side <- buttonMenu Side_Left [minBound..maxBound]
+  pageHeader H5 def $ text "Width"
+  width <- buttonMenu SidebarWidth_Medium [minBound..maxBound]
   pageHeader H5 def $ text "Animations"
   transition <- buttonMenu SidebarTransition_Overlay [minBound..maxBound]
   pageHeader H5 def $ text "Other options"
@@ -48,7 +51,9 @@ sidebars = Section "Sidebar" (text "A sidebar hides additional content beside a 
     (def
       & sidebarConfig_transition .~ transition
       & sidebarConfig_dimming .~ dimming
-      & sidebarConfig_closeOnClick .~ closeOnClick)
+      & sidebarConfig_closeOnClick .~ closeOnClick
+      & sidebarConfig_width .~ width
+    )
     (\f -> segment (f def))
     (\f -> menu (f $ def & menuConfig_inverted |~ True & menuConfig_vertical |~ True) $ menuItem def $ text "Menu")
     $ segment (def & segmentConfig_basic |~ True) $ do
@@ -79,4 +84,3 @@ selectableButton selected = button $ def
     True -> Just Primary
     False -> Nothing
   }
-

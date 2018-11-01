@@ -11,8 +11,10 @@ module Reflex.Dom.SemanticUI.Sidebar
   , sidebarConfig_dimming
   , sidebarConfig_closeOnClick
   , sidebarConfig_transition
+  , sidebarConfig_width
   , Side (..)
   , SidebarTransition (..)
+  , SidebarWidth (..)
 
   ) where
 
@@ -42,6 +44,22 @@ instance ToClassText Side where
     Side_Left -> "left"
     Side_Right -> "right"
 
+data SidebarWidth
+  = SidebarWidth_VeryThin
+  | SidebarWidth_Thin
+  | SidebarWidth_Medium
+  | SidebarWidth_Wide
+  | SidebarWidth_VeryWide
+  deriving (Eq, Ord, Enum, Bounded, Read, Show)
+
+instance ToClassText SidebarWidth where
+  toClassText = \case
+    SidebarWidth_VeryThin -> "very thin"
+    SidebarWidth_Thin -> "thin"
+    SidebarWidth_Medium -> ""
+    SidebarWidth_Wide -> "wide"
+    SidebarWidth_VeryWide -> "very wide"
+
 data SidebarTransition
   = SidebarTransition_Overlay
   | SidebarTransition_Push
@@ -67,6 +85,8 @@ data SidebarConfig t = SidebarConfig
   -- ^ User can click out of a sidebar by clicking on the dimmable space
   , _sidebarConfig_transition :: Dynamic t SidebarTransition
   -- ^ The type of transition to use
+  , _sidebarConfig_width :: Dynamic t SidebarWidth
+  -- ^ (default: 'SideBarSize_Medium') Sidebars can specify a width
   }
 makeLensesWith (lensRules & simpleLenses .~ True) ''SidebarConfig
 
@@ -75,6 +95,7 @@ instance Reflex t => Default (SidebarConfig t) where
     { _sidebarConfig_transition = pure SidebarTransition_Overlay
     , _sidebarConfig_dimming = pure False
     , _sidebarConfig_closeOnClick = pure True
+    , _sidebarConfig_width = pure SidebarWidth_Medium
     }
 
 sidebarTransitionClasses :: Bool -> Text -> Direction -> TransitionState -> Maybe Classes
@@ -93,6 +114,7 @@ sidebarConfigClasses :: Reflex t => Dynamic t Side -> SidebarConfig t -> Dynamic
 sidebarConfigClasses side SidebarConfig {..} = dynClasses'
   [ pure $ Just "ui sidebar"
   , Just . toClassText <$> side
+  , Just . toClassText <$> _sidebarConfig_width
   ]
 
 -- | Sidebar controller. This function will orchestrate the necessary config
@@ -132,4 +154,3 @@ sidebar side ini change' config@SidebarConfig {..} wrapper sidebarContent pusher
   (e, b) <- ui' "div" (def & classes .~ Dyn (pusherClasses <$> _sidebarConfig_dimming <*> direction)) $ do
     pusherContent
   pure (a, b)
-
