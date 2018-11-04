@@ -14,6 +14,7 @@ module Reflex.Dom.SemanticUI.Label
   , labelConfig_horizontal
   , labelConfig_attached
   , labelConfig_color
+  , labelConfig_size
   , labelConfig_pointing
   , labelConfig_ribbon
   , labelConfig_corner
@@ -104,6 +105,7 @@ data LabelConfig t = LabelConfig
 
   , _labelConfig_attached :: Active t (Maybe LabelAttached)
   , _labelConfig_color :: Active t (Maybe Color)
+  , _labelConfig_size :: Active t (Maybe Size)
   , _labelConfig_pointing :: Active t (Maybe Pointing)
   , _labelConfig_ribbon :: Active t (Maybe Ribbon)
   , _labelConfig_corner :: Active t (Maybe TopCorner)
@@ -120,6 +122,7 @@ instance Reflex t => Default (LabelConfig t) where
   def = LabelConfig
     { _labelConfig_attached = pure Nothing
     , _labelConfig_color = pure Nothing
+    , _labelConfig_size = pure Nothing
     , _labelConfig_pointing = pure Nothing
     , _labelConfig_ribbon = pure Nothing
     , _labelConfig_corner = pure Nothing
@@ -138,6 +141,7 @@ labelConfigClasses LabelConfig {..} = dynClasses
   [ pure $ Just "ui label"
   , fmap toClassText <$> _labelConfig_attached
   , fmap toClassText <$> _labelConfig_color
+  , fmap toClassText <$> _labelConfig_size
   , fmap toClassText <$> _labelConfig_pointing
   , fmap toClassText <$> _labelConfig_ribbon
   , fmap toClassText <$> _labelConfig_corner
