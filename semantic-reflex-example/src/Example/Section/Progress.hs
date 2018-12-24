@@ -15,12 +15,10 @@
 
 module Example.Section.Progress where
 
-import Data.Proxy
 import Control.Lens
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad ((<=<), guard)
 import Data.Foldable (for_)
-import Data.Maybe (fromJust)
 import Data.Semigroup ((<>))
 import Reflex.Dom.SemanticUI
 import Reflex.Dom.Core (text)
@@ -313,4 +311,3 @@ progressSection = Section "Progress" blank $ do
   |]
 
   return ()
-

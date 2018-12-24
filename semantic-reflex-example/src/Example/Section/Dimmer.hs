@@ -10,7 +10,6 @@
 module Example.Section.Dimmer where
 
 import Control.Lens
-import Control.Monad ((<=<))
 import Reflex.Dom.SemanticUI
 import Reflex.Dom.Core (text)
 
@@ -157,4 +156,3 @@ dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attentio
     return ()
 
   return ()
-

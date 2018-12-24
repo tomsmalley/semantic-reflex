@@ -31,7 +31,6 @@ import Language.Javascript.JSaddle hiding ((!!))
 
 import qualified Data.Map as M
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 
 import Example.QQ
 import Example.Common
@@ -50,7 +49,7 @@ import Example.Section.List (lists)
 import Example.Section.Message (messages)
 import Example.Section.Progress (progressSection)
 import Example.Section.Sidebar (sidebars)
-import Example.Section.RadioGroup (radioGroups)
+--import Example.Section.RadioGroup (radioGroups)
 import Example.Section.Transition (transitions)
 
 data Category t m = Category

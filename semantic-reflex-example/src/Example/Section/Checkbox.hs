@@ -14,7 +14,6 @@ module Example.Section.Checkbox where
 
 import Control.Lens
 import Reflex.Dom.SemanticUI
-import Reflex.Dom.Core hiding (Checkbox, CheckboxConfig, checkbox, button, checkboxConfig_setValue, checkbox_value)
 
 import Example.QQ
 import Example.Common
@@ -138,4 +137,3 @@ checkboxes = Section "Checkbox" (simpleLink "https://semantic-ui.com/modules/che
   |]
 
   return ()
-

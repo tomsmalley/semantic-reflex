@@ -11,8 +11,7 @@ import Language.Haskell.TH.Syntax (Name)
 import Language.Haskell.TH.Quote (QuasiQuoter(..))
 import qualified Language.Haskell.Exts as Exts
 -- For parsing the haskell strings to template-haskell AST
-import Language.Haskell.Meta (parseExp, toExp)
-import Language.Haskell.Meta.Utils (eitherQ)
+import Language.Haskell.Meta (toExp)
 
 import Data.Char (isUpper, isAlpha, isAlphaNum, isNumber)
 
@@ -162,4 +161,3 @@ resetExample = example { quoteExp = \ex -> [|(ex, $(return $ toExp $ Exts.fromPa
 str :: QuasiQuoter
 str = example
   { quoteExp = \ex -> [|ex|] }
-

@@ -12,10 +12,8 @@ module Example.Section.Input where
 import Control.Lens
 import Data.Foldable (for_)
 import Data.Semigroup ((<>))
-import qualified Data.Text as T
-import Data.Text (Text)
 import Reflex.Dom.SemanticUI
-import Reflex.Dom.Core (text, keypress)
+import Reflex.Dom.Core (text)
 
 import Example.QQ
 import Example.Common

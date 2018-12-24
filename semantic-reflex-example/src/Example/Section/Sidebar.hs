@@ -11,9 +11,6 @@
 module Example.Section.Sidebar where
 
 import Control.Lens
-import Control.Monad ((<=<))
-import qualified Data.Map as Map
-import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Traversable (for)
 import Reflex.Dom.SemanticUI

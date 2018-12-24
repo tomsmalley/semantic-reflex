@@ -238,4 +238,3 @@ showCard :: CardEnum -> Text
 showCard Visa = "Visa"
 showCard Amex = "American Express"
 showCard Discover = "Discover"
-

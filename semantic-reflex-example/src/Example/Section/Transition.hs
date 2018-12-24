@@ -5,9 +5,8 @@
 module Example.Section.Transition where
 
 import Control.Lens
-import Control.Monad ((<=<))
 import Data.Char (isUpper)
-import Data.Foldable (traverse_, for_)
+import Data.Foldable (for_)
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T

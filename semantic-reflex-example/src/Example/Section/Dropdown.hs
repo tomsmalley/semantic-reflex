@@ -11,12 +11,8 @@
 module Example.Section.Dropdown where
 
 import Control.Lens
-import Control.Monad ((<=<), void, join)
-import Data.Foldable (for_)
-import Data.Text (Text)
 import Reflex.Dom.SemanticUI
 import Reflex.Dom.Core (text)
-import Data.Map.Lazy (Map)
 import Data.Semigroup ((<>))
 
 import Example.QQ
@@ -125,4 +121,3 @@ dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/drop
   \resetEvent -> do
     textDropdown def "" ("" <$ resetEvent) $ TaggedStatic ["one", "two", "three"]
   |]
-

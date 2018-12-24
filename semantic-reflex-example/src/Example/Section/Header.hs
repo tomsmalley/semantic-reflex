@@ -13,7 +13,6 @@ import Control.Lens
 import Data.Foldable (traverse_)
 import Data.Maybe (fromMaybe)
 import Data.Semigroup ((<>))
-import qualified Data.Text as T
 import Reflex.Dom.SemanticUI
 import Reflex.Dom.Core (text)
 
@@ -220,4 +219,3 @@ headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.
   |]
 
   return ()
-

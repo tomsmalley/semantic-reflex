@@ -10,17 +10,18 @@
 
 module Example.Section.RadioGroup where
 
-import Control.Lens
-import Control.Monad ((<=<), void, when, join)
-import Data.Text (Text)
+
+--import Control.Lens
+--import Control.Monad ((<=<), void, when, join)
+--import Data.Text (Text)
 import Reflex.Dom.SemanticUI
-import Reflex.Dom.Core
+--import Reflex.Dom.Core
 
-import qualified Data.Map as M
-import qualified Data.Text as T
+--import qualified Data.Map as M
+--import qualified Data.Text as T
 
-import Example.QQ
-import Example.CountryEnum
+--import Example.QQ
+--import Example.CountryEnum
 import Example.Common
 
 radioGroups :: forall t m. MonadWidget t m => Section t m
@@ -64,4 +65,3 @@ radioGroups = Section "Radio Group" blank $ do
 -}
 
   return ()
-
