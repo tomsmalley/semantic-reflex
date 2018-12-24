@@ -14,22 +14,21 @@ stages:
   - build
   - name: deploy
     if: branch = master
-  - bump
-  - build
+  - bump-build
 
 jobs:
   include:
     - stage: build
       name: "GHC 8.0"
-      script: echo "X"
+      script: nix-build -A ghc8_0.semantic-reflex
     - name: "GHC 8.2"
-      script: echo "X"
+      script: nix-build -A ghc8_2.semantic-reflex
     - name: "GHC 8.4"
-      script: echo "X"
+      script: nix-build -A ghc8_4.semantic-reflex
     - name: "GHCJS 8.0"
-      script: echo "X"
+      script: nix-build -A ghcjs8_0.semantic-reflex
     - name: "GHCJS 8.4"
-      script: echo "X"
+      script: nix-build -A ghcjs8_4.semantic-reflex
     - stage: deploy
       script: make
       deploy:
@@ -40,5 +39,24 @@ jobs:
         local-dir: docs
         on:
           branch: master
-    - stage: bump
-      script: cd reflex-platform && git pull origin develop
+    - stage: bump-build
+      name: "GHC 8.0"
+      script: |
+        cd reflex-platform && git pull origin develop && cd -
+        nix-build -A ghc8_0.semantic-reflex
+    - name: "GHC 8.2"
+      script: |
+        cd reflex-platform && git pull origin develop && cd -
+        nix-build -A ghc8_2.semantic-reflex
+    - name: "GHC 8.4"
+      script: |
+        cd reflex-platform && git pull origin develop && cd -
+        nix-build -A ghc8_4.semantic-reflex
+    - name: "GHCJS 8.0"
+      script: |
+        cd reflex-platform && git pull origin develop && cd -
+        nix-build -A ghcjs8_0.semantic-reflex
+    - name: "GHCJS 8.4"
+      script: |
+        cd reflex-platform && git pull origin develop && cd -
+        nix-build -A ghcjs8_4.semantic-reflex
