@@ -14,6 +14,8 @@ stages:
   - build
   - name: deploy
     if: branch = master
+  - bump
+  - build
 
 jobs:
   include:
@@ -38,3 +40,5 @@ jobs:
         local-dir: docs
         on:
           branch: master
+    - stage: bump
+      script: cd reflex-platform && git pull origin develop
