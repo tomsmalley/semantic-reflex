@@ -46,8 +46,7 @@ library
     Reflex.Dom.SemanticUI.Transition
 
   default-extensions:
-      CPP
-    , FlexibleContexts
+    FlexibleContexts
     , FlexibleInstances
     , LambdaCase
     , MultiParamTypeClasses
