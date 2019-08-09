@@ -116,9 +116,9 @@ instance HasValue (Checkbox t) where
 -- | Checkbox UI Element. The minimum useful checkbox only needs a label and a
 -- default configuration.
 checkbox
-  :: forall t m.
+  :: forall t m js.
     ( DOM.MonadJSM m, DOM.MonadJSM (Performable m), MonadSample t (Performable m)
-    , DomBuilderSpace m ~ GhcjsDomSpace, UI t m )
+    , DomBuilderSpace m ~ GhcjsDomSpace, UI js t m )
   => m () -> CheckboxConfig t -> m (Checkbox t)
 checkbox content config@CheckboxConfig {..} = do
 

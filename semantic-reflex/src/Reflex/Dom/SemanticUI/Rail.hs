@@ -79,7 +79,7 @@ railConfigClasses RailConfig {..} = dynClasses
 
 -- | Rail UI Element.
 rail'
-  :: UI t m => RailSide -> RailConfig t -> m a
+  :: UI js t m => RailSide -> RailConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 rail' railSide config@RailConfig {..} content
   = ui' "div" elConf content
@@ -89,5 +89,5 @@ rail' railSide config@RailConfig {..} content
                <$> railConfigClasses config }
 
 -- | Rail UI Element.
-rail :: UI t m => RailSide -> RailConfig t -> m a -> m a
+rail :: UI js t m => RailSide -> RailConfig t -> m a -> m a
 rail railSide config = fmap snd . rail' railSide config

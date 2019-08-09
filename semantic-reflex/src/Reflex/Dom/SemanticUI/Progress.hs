@@ -187,7 +187,7 @@ instance HasValue (Progress t m) where
 -- | Display a progress widget, given minimum and maximum values, the initial
 -- value, and an 'Event' to update the current value.
 progress
-  :: UI t m
+  :: UI js t m
   => Dynamic t Range      -- ^ Dynamic range
   -> Dynamic t Int        -- ^ Current value
   -> ProgressConfig t m   -- ^ Optional config

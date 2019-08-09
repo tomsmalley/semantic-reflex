@@ -48,7 +48,7 @@ fieldConfigClasses FieldConfig {..} = dynClasses
 
 -- | Field UI Element.
 field'
-  :: UI t m => FieldConfig t -> m a
+  :: UI js t m => FieldConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 field' config@FieldConfig {..} content
   = ui' "div" elConf content
@@ -57,5 +57,5 @@ field' config@FieldConfig {..} content
       { _classes = fieldConfigClasses config }
 
 -- | Field UI Element.
-field :: UI t m => FieldConfig t -> m a -> m a
+field :: UI js t m => FieldConfig t -> m a -> m a
 field config = fmap snd . field' config

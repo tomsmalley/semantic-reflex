@@ -123,7 +123,7 @@ listItemConfigClasses ListItemConfig {..} = dynClasses
 --
 -- https://semantic-ui.com/elements/list.html
 list'
-  :: UI t m => ListConfig t -> m a
+  :: UI js t m => ListConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 list' config@ListConfig {..} widget
   = ui' "div" elConf widget
@@ -134,11 +134,11 @@ list' config@ListConfig {..} widget
 -- | Create a list.
 --
 -- https://semantic-ui.com/elements/list.html
-list :: UI t m => ListConfig t -> m a -> m a
+list :: UI js t m => ListConfig t -> m a -> m a
 list c = fmap snd . list' c
 
 listItem'
-  :: UI t m => ListItemConfig t m -> m a
+  :: UI js t m => ListItemConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 listItem' config@ListItemConfig {..} content
   = ui' (listItemElementText _listItemConfig_element) elConf $
@@ -149,18 +149,18 @@ listItem' config@ListItemConfig {..} content
     elConf = _listItemConfig_elConfig <> def
       { _classes = listItemConfigClasses config }
 
-listItem :: UI t m => ListItemConfig t m -> m a -> m a
+listItem :: UI js t m => ListItemConfig t m -> m a -> m a
 listItem c = fmap snd . listItem' c
 
-listHeader' :: UI t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
+listHeader' :: UI js t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 listHeader' = divClass' "header"
 
-listHeader :: UI t m => m a -> m a
+listHeader :: UI js t m => m a -> m a
 listHeader = fmap snd . listHeader'
 
 listDescription'
-  :: UI t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
+  :: UI js t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 listDescription' = divClass' "description"
 
-listDescription :: UI t m => m a -> m a
+listDescription :: UI js t m => m a -> m a
 listDescription = fmap snd . listDescription'

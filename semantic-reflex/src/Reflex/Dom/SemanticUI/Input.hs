@@ -169,10 +169,10 @@ instance Reflex t => Default (TextInputConfig t) where
     }
 
 input'
-  :: UI t m
+  :: UI js t m
   => InputConfig t -> m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 input' config@InputConfig {..} = ui' "div" elConf
   where elConf = _inputConfig_elConfig <> def { _classes = inputConfigClasses config }
 
-input :: UI t m => InputConfig t -> m a -> m a
+input :: UI js t m => InputConfig t -> m a -> m a
 input c = fmap snd . input' c

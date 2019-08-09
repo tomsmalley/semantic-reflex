@@ -120,7 +120,7 @@ runSticky pushing stickyEl = do
   return ()
 
 sticky'
-  :: (MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace, UI t m)
+  :: (MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace, UI js t m)
   => StickyConfig t -> m a -> m (El t, a)
 sticky' config@StickyConfig{..} content = do
 
@@ -134,6 +134,6 @@ sticky' config@StickyConfig{..} content = do
     elConf = _stickyConfig_elConfig <> def { _classes = stickyConfigClasses config }
 
 sticky
-  :: (MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace, UI t m)
+  :: (MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace, UI js t m)
   => StickyConfig t -> m a -> m a
 sticky conf = fmap snd . sticky' conf

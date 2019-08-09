@@ -277,18 +277,18 @@ buttonConfigClasses ButtonConfig {..} = dynClasses
 
 
 buttons'
-  :: UI t m => ButtonsConfig t -> m a
+  :: UI js t m => ButtonsConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 buttons' config@ButtonsConfig {..} = ui' "div" elConf
   where
    elConf = _buttonsConfig_elConfig <> def
       { _classes = buttonsConfigClasses config }
 
-buttons :: UI t m => ButtonsConfig t -> m a -> m a
+buttons :: UI js t m => ButtonsConfig t -> m a -> m a
 buttons c = fmap snd . buttons' c
 
 conditionalWithText'
-  :: UI t m => Active t Text
+  :: UI js t m => Active t Text
   -> m (Element EventResult (DomBuilderSpace m) t)
 conditionalWithText' dataText
   = fst <$> ui' "div" config blank
@@ -297,17 +297,17 @@ conditionalWithText' dataText
       & classes |~ "or"
       & attrs .~ fmap ("data-text" =:) dataText
 
-conditionalWithText :: UI t m => Active t Text -> m ()
+conditionalWithText :: UI js t m => Active t Text -> m ()
 conditionalWithText = void . conditionalWithText'
 
-conditional' :: UI t m => m (Element EventResult (DomBuilderSpace m) t)
+conditional' :: UI js t m => m (Element EventResult (DomBuilderSpace m) t)
 conditional' = fst <$> divClass' "or" blank
 
-conditional :: UI t m => m ()
+conditional :: UI js t m => m ()
 conditional = void conditional'
 
 button'
-  :: UI t m => ButtonConfig t m -> m ()
+  :: UI js t m => ButtonConfig t m -> m ()
   -> m (Element EventResult (DomBuilderSpace m) t, Event t ())
 button' config@ButtonConfig {..} content = do
   (e, _) <- ui' (toTagText _buttonConfig_type) elConf $
@@ -327,11 +327,11 @@ button' config@ButtonConfig {..} content = do
         _ -> mempty
       }
 
-button :: UI t m => ButtonConfig t m -> m () -> m (Event t ())
+button :: UI js t m => ButtonConfig t m -> m () -> m (Event t ())
 button c = fmap snd . button' c
 
 labeledButton'
-  :: UI t m => LabeledButtonConfig t -> m a
+  :: UI js t m => LabeledButtonConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, Event t ())
 labeledButton' config@LabeledButtonConfig{..} content = do
   (e, _) <- ui' "div" elConf content
@@ -340,5 +340,5 @@ labeledButton' config@LabeledButtonConfig{..} content = do
     elConf = _labeledButtonConfig_elConfig <> def
       { _classes = labeledButtonConfigClasses config }
 
-labeledButton :: UI t m => LabeledButtonConfig t -> m a -> m (Event t ())
+labeledButton :: UI js t m => LabeledButtonConfig t -> m a -> m (Event t ())
 labeledButton c = fmap snd . labeledButton' c

@@ -65,7 +65,7 @@ import Control.Concurrent
 import Control.Lens (Lens')
 import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
-import Control.Monad.Trans (liftIO, MonadIO)
+import Control.Monad.Trans (liftIO)
 
 import Data.Align
 import Data.Default (Default(..))
@@ -310,14 +310,14 @@ data State = Init | Start | Finish deriving Show
 
 -- | Run a transition, returning the classes and styles the element needs to use.
 runAction
-  :: (MonadFix m, MonadHold t m, TriggerEvent t m, PerformEvent t m, MonadIO (Performable m))
+  :: (MonadFix m, MonadHold t m, TriggerEvent t m, PerformEvent t m, Prerender js t m)
   => Action t -> m (AnimationAttrs t)
 runAction (Action initDirection transitionRequest animationRequest mkClasses) = do
   let request = leftmost [Left <$> transitionRequest, Right <$> animationRequest]
 
   rec
     (_, transition) <- mapAccumMaybeB handle (initialQueue initDirection) $ align request delayed
-    delayed <- performEventAsync $ fforMaybe transition $ \(s, tid, i) -> case s of
+    delayed <- fmap (switch . current) $ prerender (pure never) $ performEventAsync $ fforMaybe transition $ \(s, tid, i) -> case s of
       -- Delay the init events by a small time before signalling a transition to start
       Init -> Just $ \cb -> liftIO $ void $ forkIO $ do
         Concurrent.delay 20000
@@ -471,17 +471,17 @@ instance Reflex t => Monoid (ActiveElConfig t) where
   mempty = def
   mappend = (<>)
 
-type UI t m =
+type UI js t m =
   ( MonadHold t m, TriggerEvent t m, PerformEvent t m, DomBuilder t m
-  , PostBuild t m, MonadIO (Performable m), MonadFix m, Reflex t )
+  , PostBuild t m, Prerender js t m, MonadFix m, Reflex t )
 
 -- | Similar to 'el' but for animatable things from Semantic UI
-ui :: UI t m => Text -> ActiveElConfig t -> m a -> m a
+ui :: UI js t m => Text -> ActiveElConfig t -> m a -> m a
 ui elTag conf = fmap snd . ui' elTag conf
 {-# INLINABLE ui #-}
 
 ui'
-  :: UI t m => Text -> ActiveElConfig t -> m a
+  :: UI js t m => Text -> ActiveElConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 ui' elTag ActiveElConfig {..} child = do
   AnimationAttrs dMClasses dMStyle <- runAction $ fromMaybe def _action

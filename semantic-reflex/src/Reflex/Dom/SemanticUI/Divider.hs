@@ -63,7 +63,7 @@ dividerConfigClasses DividerConfig {..} = dynClasses
 -- not implemented due to them being broken:
 -- https://github.com/Semantic-Org/Semantic-UI/issues/4342
 divider'
-  :: UI t m => DividerConfig t
+  :: UI js t m => DividerConfig t
   -> m (Element EventResult (DomBuilderSpace m) t)
 divider' config@DividerConfig {..}
   = fst <$> ui' "div" elConf blank
@@ -74,11 +74,11 @@ divider' config@DividerConfig {..}
 -- | In semantic-ui terms, this is a horizontal divider. Vertical dividers are
 -- not implemented due to them being broken:
 -- https://github.com/Semantic-Org/Semantic-UI/issues/4342
-divider :: UI t m => DividerConfig t -> m ()
+divider :: UI js t m => DividerConfig t -> m ()
 divider = void . divider'
 
 contentDivider'
-  :: UI t m => DividerConfig t -> m a
+  :: UI js t m => DividerConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 contentDivider' config@DividerConfig {..} content
   = ui' "div" elConf content
@@ -86,5 +86,5 @@ contentDivider' config@DividerConfig {..} content
     elConf = _dividerConfig_elConfig <> def
       { _classes = addClass "horizontal" <$> dividerConfigClasses config }
 
-contentDivider :: UI t m => DividerConfig t -> m a -> m a
+contentDivider :: UI js t m => DividerConfig t -> m a -> m a
 contentDivider c = fmap snd . contentDivider' c

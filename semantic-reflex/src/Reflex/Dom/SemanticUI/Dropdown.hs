@@ -196,8 +196,8 @@ allowAdditionsValue d = f <$> _dropdown_search d <*> value d <*> _dropdown_open 
 
 -- | Single selection dropdown widget
 dropdown
-  :: forall active t m k f.
-    ( SingActive active, Monad f, Ord k, UI t m, Ord (f k), Foldable f
+  :: forall active t m js k f.
+    ( SingActive active, Monad f, Ord k, UI js t m, Ord (f k), Foldable f
     , Types.MonadJSM (Performable m), Types.MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace )
   => DropdownConfig t k
   -> f k
@@ -215,8 +215,8 @@ dropdown = dropdownWithWrapper $ \f -> ui' "div" (f def)
 -- this.
 --
 dropdownWithWrapper
-  :: forall active t m k f.
-    ( SingActive active, Monad f, Ord k, UI t m, Ord (f k), Foldable f
+  :: forall active t m js k f.
+    ( SingActive active, Monad f, Ord k, UI js t m, Ord (f k), Foldable f
     , Types.MonadJSM (Performable m), Types.MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace )
   => (forall x. (forall cfg. HasElConfig t cfg => cfg -> cfg) -> m x -> m (El t, x))
   -> DropdownConfig t k
@@ -405,8 +405,8 @@ alterScroll menuEl' val elMap = do
 -- | Searchable text dropdown. Behaves mostly like a text input, but with values
 -- that can also be selected from a dropdown box.
 textDropdown
-  :: forall active t m.
-    ( SingActive active, UI t m
+  :: forall active t m js.
+    ( SingActive active, UI js t m
     , Types.MonadJSM (Performable m), Types.MonadJSM m, DomBuilderSpace m ~ GhcjsDomSpace )
   => DropdownConfig t Text -> Text -> Event t Text -> TaggedActive active t [Text]
   -> m (Dropdown t Text)

@@ -68,7 +68,7 @@ menuConfigClasses MenuConfig {..} = dynClasses
 
 -- | Create a menu.
 menu'
-  :: UI t m => MenuConfig t -> m a
+  :: UI js t m => MenuConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 menu' config@MenuConfig {..} widget
   = ui' "div" elConf widget
@@ -77,7 +77,7 @@ menu' config@MenuConfig {..} widget
       { _classes = menuConfigClasses config }
 
 -- | Create a menu.
-menu :: UI t m => MenuConfig t -> m a -> m a
+menu :: UI js t m => MenuConfig t -> m a -> m a
 menu c = fmap snd . menu' c
 
 data MenuLink
@@ -115,13 +115,13 @@ menuItemConfigClasses MenuItemConfig {..} = dynClasses
   ]
 
 menuItem'
-  :: UI t m => MenuItemConfig t -> m a
+  :: UI js t m => MenuItemConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 menuItem' config widget
   = ui' elTag elConf widget
   where (elTag, elConf) = itemElAttrs config
 
-menuItem :: UI t m => MenuItemConfig t -> m a -> m a
+menuItem :: UI js t m => MenuItemConfig t -> m a -> m a
 menuItem c = fmap snd . menuItem' c
 
 itemElAttrs :: Reflex t => MenuItemConfig t -> (Text, ActiveElConfig t)

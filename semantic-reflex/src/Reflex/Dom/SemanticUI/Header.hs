@@ -142,7 +142,7 @@ headerConfigClasses HeaderConfig {..} = dynClasses
 
 -- | Header common implementation.
 headerInternal
-  :: UI t m => Maybe HeaderSize -> HeaderConfig t m -> m a
+  :: UI js t m => Maybe HeaderSize -> HeaderConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 headerInternal mSize config@HeaderConfig {..} content
   = ui' elType elConf $ case _headerConfig_preContent of
@@ -159,29 +159,29 @@ headerInternal mSize config@HeaderConfig {..} content
 -- | Create a top level header (uses HTML @header@ elements), returning the
 -- 'Element'.
 pageHeader'
-  :: UI t m => HeaderSize -> HeaderConfig t m -> m a
+  :: UI js t m => HeaderSize -> HeaderConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 pageHeader' size config = headerInternal (Just size) config
 
 -- | Create a top level header (uses HTML @header@ elements).
-pageHeader :: UI t m => HeaderSize -> HeaderConfig t m -> m a -> m a
+pageHeader :: UI js t m => HeaderSize -> HeaderConfig t m -> m a -> m a
 pageHeader s c = fmap snd . pageHeader' s c
 
 -- | Create a content header (uses HTML @div@ element), returning the 'Element'.
 header'
-  :: UI t m => HeaderConfig t m -> m a
+  :: UI js t m => HeaderConfig t m -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 header' config = headerInternal Nothing config
 
 -- | Create a content header (uses HTML @div@ element).
-header :: UI t m => HeaderConfig t m -> m a -> m a
+header :: UI js t m => HeaderConfig t m -> m a -> m a
 header c = fmap snd . header' c
 
 -- | Create a subheader, returning the 'Element'. A subheader can be placed
 -- into a 'header's content.
-subHeader' :: UI t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
+subHeader' :: UI js t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 subHeader' = divClass' "sub header"
 
 -- | Create a subheader. A subheader can be placed into a 'header's content.
-subHeader :: UI t m => m a -> m a
+subHeader :: UI js t m => m a -> m a
 subHeader = fmap snd . subHeader'

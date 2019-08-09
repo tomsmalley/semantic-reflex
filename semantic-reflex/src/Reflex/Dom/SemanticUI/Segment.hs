@@ -138,14 +138,14 @@ segmentConfigClasses SegmentConfig {..} = dynClasses
 
 -- | Segment UI Element.
 segment'
-  :: UI t m => SegmentConfig t -> m a
+  :: UI js t m => SegmentConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 segment' config@SegmentConfig{..} = ui' "div" elConf
   where
     elConf = _segmentConfig_elConfig <> def { _classes = segmentConfigClasses config }
 
 -- | Segment UI Element.
-segment :: UI t m => SegmentConfig t -> m a -> m a
+segment :: UI js t m => SegmentConfig t -> m a -> m a
 segment config = fmap snd . segment' config
 
 
@@ -188,12 +188,12 @@ segmentsConfigClasses SegmentsConfig {..} = dynClasses
 
 -- | Segments UI Element.
 segments'
-  :: UI t m => SegmentsConfig t -> m a
+  :: UI js t m => SegmentsConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 segments' config@SegmentsConfig{..} = ui' "div" elConf
   where
     elConf = _segmentsConfig_elConfig <> def { _classes = segmentsConfigClasses config }
 
 -- | Segments UI Element.
-segments :: UI t m => SegmentsConfig t -> m a -> m a
+segments :: UI js t m => SegmentsConfig t -> m a -> m a
 segments config = fmap snd . segments' config
