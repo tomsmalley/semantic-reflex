@@ -30,7 +30,7 @@ predMaybe a
   | a == (minBound :: a) = Nothing
   | otherwise = Just $ pred a
 
-headers :: MonadWidget t m => Section t m
+headers :: (MonadWidget t m, Prerender js t m) => Section t m
 headers = Section "Header" (simpleLink "https://semantic-ui.com/elements/header.html") $ do
 
   hscode $(printDefinition id stripParens ''HeaderConfig)

@@ -26,14 +26,14 @@ spaceBeforeUpper (c:cs)
 animalUrl :: Reflex t => Text -> Active t Text
 animalUrl a = pure $ "images/animals/" <> a <> ".png"
 
-mkButton :: MonadWidget t m => TransitionType
+mkButton :: (MonadWidget t m, Prerender js t m) => TransitionType
          -> m (Event t TransitionType)
 mkButton t = do
   run <- button (def & buttonConfig_fluid |~ True) $ do
     text $ T.pack $ spaceBeforeUpper $ show t
   return $ t <$ run
 
-mkImages :: MonadWidget t m => Text -> Event t TransitionType -> m ()
+mkImages :: (MonadWidget t m, Prerender js t m) => Text -> Event t TransitionType -> m ()
 mkImages animal evt = do
   divider $ def & dividerConfig_hidden |~ True
   let imgConfig =  def
@@ -45,7 +45,7 @@ mkImages animal evt = do
                    & action ?~ def { _action_transition = ffor evt $ \t -> Transition t Nothing (def { _transitionConfig_cancelling = True }) }) $
                      Left $ Img (animalUrl animal) def
 
-mkButtons :: MonadWidget t m => Text -> [TransitionType] -> m ()
+mkButtons :: (MonadWidget t m, Prerender js t m) => Text -> [TransitionType] -> m ()
 mkButtons _ [] = return ()
 mkButtons animal (transType:[]) = do
   evt <- mkButton transType
@@ -57,7 +57,7 @@ mkButtons animal types = do
           & buttonsConfig_width |?~ toEnum (length types)
           & buttonsConfig_size |?~ Small
 
-transitions :: MonadWidget t m => Section t m
+transitions :: (MonadWidget t m, Prerender js t m) => Section t m
 transitions = Section "Transition" (simpleLink "https://semantic-ui.com/modules/transition.html") $ do
 
   message (def & messageConfig_type |?~ InfoMessage) $ paragraph $ do

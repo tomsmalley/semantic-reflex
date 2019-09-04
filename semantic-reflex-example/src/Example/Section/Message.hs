@@ -23,7 +23,7 @@ import Reflex.Dom.Core (text)
 import Example.QQ
 import Example.Common
 
-messages :: forall t m. MonadWidget t m => Section t m
+messages :: forall js t m. (MonadWidget t m, Prerender js t m) => Section t m
 messages = Section "Message" (simpleLink "https://semantic-ui.com/collections/message.html") $ do
 
   hscode $(printDefinition id stripParens ''MessageConfig)

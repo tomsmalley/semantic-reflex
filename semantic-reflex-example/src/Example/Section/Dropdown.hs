@@ -27,7 +27,7 @@ import Example.CountryEnum
 import qualified Data.Map.Lazy as M
 import qualified Data.Text as T
 
-dropdowns :: MonadWidget t m => Section t m
+dropdowns :: (MonadWidget t m, Prerender js t m) => Section t m
 dropdowns = Section "Dropdown" (simpleLink "https://semantic-ui.com/modules/dropdown.html") $ do
 
   hscode $(printDefinition id stripParens ''DropdownConfig)

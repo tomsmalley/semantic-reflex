@@ -19,7 +19,7 @@ import Reflex.Dom.Core (text)
 import Example.QQ
 import Example.Common
 
-labels :: forall t m. MonadWidget t m => Section t m
+labels :: forall js t m. (MonadWidget t m, Prerender js t m) => Section t m
 labels = Section "Label" blank $ do
 
   hscode $ $(printDefinition id stripParens ''LabelConfig)

@@ -1,7 +1,8 @@
-(import ./reflex-platform {}).project ({ pkgs, ... }: {
+(import ./reflex-platform {}).project ({ pkgs, hackGet, ... }: {
   packages = {
     semantic-reflex = ./semantic-reflex;
     semantic-reflex-example = ./semantic-reflex-example;
+    reflex-dom-nested-routing = hackGet ./deps/reflex-dom-nested-routing;
   };
 
   overrides = self: super: {
@@ -15,17 +16,8 @@
       (pkgs.fetchFromGitHub {
         owner = "reflex-frp";
         repo = "reflex-dom-contrib";
-        rev = "9900f2d433240a3f93cdae930a6ffbb73c50bb86";
-        sha256 = "1z8cnnhibsiap08pq2iw1r5zqvbla6hci7dhrz9mhfr0nqyryk65";
-      }) {};
-
-    reflex-dom-nested-routing = self.callCabal2nix
-      "reflex-dom-nested-routing"
-      (pkgs.fetchFromGitHub {
-        owner = "3noch";
-        repo = "reflex-dom-nested-routing";
-        rev = "c49c75c693de8516d1b19314be500482bea9426c";
-        sha256 = "00bmakqm9893h8l3w7l1r1fjkpyffifcaicqmj2q5wwlfvm96hbf";
+        rev = "1265f7bba7a4c03cdb79c0798d03db18e200cec0";
+        sha256 = "04xbliw43h2fmyhvpm7yhvx0bd8fnm5mxwrz4l0znmj7sfk21w3q";
       }) {};
 
   };

@@ -29,7 +29,7 @@ import System.Random (randomRIO)
 import Example.QQ
 import Example.Common
 
-randomRangeControl :: MonadWidget t m => (Int, Int) -> Event t Int -> m (Event t (Int -> Int))
+randomRangeControl :: (MonadWidget t m, Prerender js t m) => (Int, Int) -> Event t Int -> m (Event t (Int -> Int))
 randomRangeControl range reset = buttons def $ do
   minus <- button (def & buttonConfig_icon |~ True) $ icon "minus" def
   plus <- button (def & buttonConfig_icon |~ True) $ icon "plus" def
@@ -39,7 +39,7 @@ randomRangeControl range reset = buttons def $ do
 data Thumbs = Up | Down deriving (Eq, Show)
 
 thumbRating
-  :: MonadWidget t m
+  :: (MonadWidget t m, Prerender js t m)
   => Dynamic t (Int, Int) -> m (Dynamic t (Maybe Thumbs))
 thumbRating state' = segment (def & segmentConfig_compact |~ True) $ mdo
 
@@ -74,7 +74,7 @@ thumbRating state' = segment (def & segmentConfig_compact |~ True) $ mdo
 
   pure thumbState
 
-progressSection :: forall t m. MonadWidget t m => Section t m
+progressSection :: forall js t m. (MonadWidget t m, Prerender js t m) => Section t m
 progressSection = Section "Progress" blank $ do
 
   hscode $(printDefinition id stripParens ''ProgressConfig)
