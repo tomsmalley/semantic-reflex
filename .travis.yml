@@ -17,15 +17,8 @@ stages:
 
 jobs:
   include:
-    - stage: build
-      name: "GHC 8.0"
-      script: nix-build -A ghc8_0.semantic-reflex
-    - name: "GHC 8.2"
-      script: nix-build -A ghc8_2.semantic-reflex
     - name: "GHC 8.4"
       script: nix-build -A ghc8_4.semantic-reflex
-    - name: "GHCJS 8.0"
-      script: nix-build -A ghcjs8_0.semantic-reflex
     - name: "GHCJS 8.4"
       script: nix-build -A ghcjs8_4.semantic-reflex
     - stage: deploy

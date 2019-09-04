@@ -35,13 +35,8 @@
     in builtins.listToAttrs (map mkShell [
       "ghc"
       "ghc8_4"
-      "ghc8_2"
-      "ghc8_0"
-      "ghc7"
 
       "ghcjs"
       "ghcjs8_4"
-      "ghcjs8_2"
-      "ghcjs8_0"
     ]);
 })
