@@ -41,7 +41,7 @@ library
     , Example.Section.Transition
 
   build-depends:
-      base            >= 4.8 && < 4.12
+      base            >= 4.8 && < 4.13
     , bytestring
     , containers
     , data-default
@@ -78,7 +78,7 @@ executable semantic-reflex-example
   hs-source-dirs: .
   default-language: Haskell2010
   build-depends:
-      base >= 4.8 && < 4.12
+      base >= 4.8 && < 4.13
     , file-embed >= 0.0.10 && < 0.1
     , semantic-reflex-example
   ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
