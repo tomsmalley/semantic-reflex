@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -6,8 +7,8 @@
 
 module Example.QQ where
 
-import Language.Haskell.TH (ExpQ, reify, pprint, runIO)
-import Language.Haskell.TH.Syntax (Name)
+import "template-haskell" Language.Haskell.TH (ExpQ, reify, pprint, runIO)
+import "template-haskell" Language.Haskell.TH.Syntax (Name)
 import Language.Haskell.TH.Quote (QuasiQuoter(..))
 import qualified Language.Haskell.Exts as Exts
 -- For parsing the haskell strings to template-haskell AST
