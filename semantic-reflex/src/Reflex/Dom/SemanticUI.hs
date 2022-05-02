@@ -38,7 +38,7 @@ import Reflex.Dom.SemanticUI.Table      as Components
 import Reflex.Dom.SemanticUI.Transition as Components
 
 import Reflex as Reflex hiding (askEvents, list)
-import Reflex.Dom.Builder.Class as Reflex hiding (Drop, Error)
+import Reflex.Dom.Builder.Class as Reflex hiding (Drop, Error, SetValue)
 import Reflex.Dom.Builder.Immediate as Reflex
 import Reflex.Dom.Builder.InputDisabled as Reflex
 import Reflex.Dom.Builder.Static as Reflex
@@ -57,4 +57,3 @@ import Reflex.Dom.Widget.Input as Reflex (HasValue(..))
 
 import Data.Default (def)
 import Control.Lens ((&), (.~), (?~))
-
