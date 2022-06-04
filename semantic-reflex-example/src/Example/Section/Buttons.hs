@@ -20,7 +20,7 @@ import Reflex.Dom.Core (text)
 import Example.QQ
 import Example.Common
 
-buttonSection :: forall js t m. (MonadWidget t m, Prerender js t m) => Section t m
+buttonSection :: forall t m. (MonadWidget t m, Prerender t m) => Section t m
 buttonSection = Section "Button" (text "") $ do
 
   paragraph $ text ""

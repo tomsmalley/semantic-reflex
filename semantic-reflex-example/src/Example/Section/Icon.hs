@@ -17,7 +17,7 @@ import Reflex.Dom.Core (text)
 import Example.QQ
 import Example.Common
 
-iconSection :: (MonadWidget t m, Prerender js t m) => Section t m
+iconSection :: (MonadWidget t m, Prerender t m) => Section t m
 iconSection = Section "Icon" blank $ do
 
   hscode $ $(printDefinition id stripParens ''IconConfig)

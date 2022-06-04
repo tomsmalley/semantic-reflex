@@ -80,7 +80,7 @@ imageConfigClasses ImageConfig {..} = dynClasses
 
 -- | Create a Semantic-UI image, returning the 'Element'.
 image'
-  :: UI js t m
+  :: UI t m
   => ImageConfig t
   -- ^ Image config
   -> Either (Img t) (m ())
@@ -97,7 +97,7 @@ image' config@ImageConfig {..} = \case
 
 -- | Create a Semantic-UI image.
 image
-  :: UI js t m
+  :: UI t m
   => ImageConfig t
   -- ^ Image config
   -> Either (Img t) (m ())
@@ -125,7 +125,7 @@ imgConfigAttrs src ImgConfig {..} = mkAttrs <$> src <*> _imgConfig_title <*> _im
 -- | Create an @img@ element with the given @src@. This is just a plain @img@
 -- element with no Semantic-UI classes.
 img
-  :: UI js t m
+  :: UI t m
   => Active t Text  -- ^ @src@ attribute text
   -> ImgConfig t    -- ^ Optional config
   -> m ()
@@ -134,7 +134,7 @@ img src = void . img' src
 -- | Create an @img@ element with the given @src@, returning the 'Element'. This
 -- is just a plain @img@ element with no Semantic-UI classes.
 img'
-  :: UI js t m
+  :: UI t m
   => Active t Text  -- ^ @src@ attribute text
   -> ImgConfig t    -- ^ Optional config
   -> m (Element EventResult (DomBuilderSpace m) t)

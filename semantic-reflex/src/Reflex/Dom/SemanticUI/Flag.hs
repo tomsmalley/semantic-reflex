@@ -32,7 +32,7 @@ instance Reflex t => Default (FlagConfig t) where
 -- | Create a flag, returning the 'Element'. Available types are listed here:
 -- <https://semantic-ui.com/elements/flag.html>
 flag'
-  :: UI js t m => Active t Text -> FlagConfig t
+  :: UI t m => Active t Text -> FlagConfig t
   -> m (Element EventResult (DomBuilderSpace m) t)
 flag' dynFlag FlagConfig {..} = fst <$> ui' "i" elConf blank
   where
@@ -41,5 +41,5 @@ flag' dynFlag FlagConfig {..} = fst <$> ui' "i" elConf blank
 
 -- | Create a flag. Avaliable types are listed here:
 -- <https://semantic-ui.com/elements/flag.html>
-flag :: UI js t m => Active t Text -> FlagConfig t -> m ()
+flag :: UI t m => Active t Text -> FlagConfig t -> m ()
 flag f = void . flag' f

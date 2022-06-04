@@ -20,7 +20,7 @@ import Example.Common
 
 data Files a = File a | Folder a [Files a]
 
-lists :: (MonadWidget t m, Prerender js t m) => Section t m
+lists :: (MonadWidget t m, Prerender t m) => Section t m
 lists = Section "List" (text "A list is used to group related content. " >> simpleLink "https://semantic-ui.com/elements/list.html") $ do
 
   hscode $(printDefinition id stripParens ''ListConfig)

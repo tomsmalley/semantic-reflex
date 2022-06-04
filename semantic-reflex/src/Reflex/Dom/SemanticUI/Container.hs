@@ -44,12 +44,12 @@ containerConfigClasses ContainerConfig {..} = dynClasses
     ]
 
 container'
-  :: UI js t m => ContainerConfig t -> m a
+  :: UI t m => ContainerConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 container' config@ContainerConfig {..} = ui' "div" elConf
     where
       elConf = _containerConfig_elConfig <> def
         { _classes = containerConfigClasses config }
 
-container :: UI js t m => ContainerConfig t -> m a -> m a
+container :: UI t m => ContainerConfig t -> m a -> m a
 container config = fmap snd . container' config

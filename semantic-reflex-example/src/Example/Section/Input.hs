@@ -20,7 +20,7 @@ import Reflex.Dom.Core (text, keypress)
 import Example.QQ
 import Example.Common
 
-inputs :: forall js t m. (MonadWidget t m, Prerender js t m) => Section t m
+inputs :: forall t m. (MonadWidget t m, Prerender t m) => Section t m
 inputs = Section "Input" (text "An input is a field used to elicit a response from a user " >> simpleLink "https://semantic-ui.com/elements/input.html") $ do
 
   hscode $ $(printDefinition id stripParens ''InputConfig)

@@ -17,7 +17,7 @@ import Reflex.Dom.Core (text)
 import Example.QQ
 import Example.Common
 
-dimmers :: forall js t m. (MonadWidget t m, Prerender js t m) => Section t m
+dimmers :: forall t m. (MonadWidget t m, Prerender t m) => Section t m
 dimmers = Section "Dimmer" (text "A dimmers hides distractions to focus attention on particular content") $ do
 
   hscode $ $(printDefinition id stripParens ''DimmerConfig)
