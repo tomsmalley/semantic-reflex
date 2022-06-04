@@ -6,12 +6,13 @@
     reflex-dom-contrib = hackGet ./deps/reflex-dom-contrib;
   };
 
-  overrides = self: super: {
-
+  overrides = self: super: with pkgs.haskell.lib; {
     # Haddock is broken in GHC 8.4's version:
     # https://github.com/haskell/haddock/issues/775
-    semantic-reflex = pkgs.haskell.lib.dontHaddock super.semantic-reflex;
+    semantic-reflex = dontHaddock super.semantic-reflex;
 
+    # https://github.com/reflex-frp/reflex-dom-contrib/pull/68
+    reflex-dom-contrib = doJailbreak super.reflex-dom-contrib;
   };
 
   shells =
