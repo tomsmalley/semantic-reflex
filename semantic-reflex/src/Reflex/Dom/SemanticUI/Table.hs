@@ -51,7 +51,7 @@ tableConfigClasses TableConfig {..} = dynClasses
   ]
 
 table'
-  :: UI js t m => TableConfig t -> m a
+  :: UI t m => TableConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 table' config@TableConfig {..} widget
   = ui' "table" elConf widget
@@ -59,7 +59,7 @@ table' config@TableConfig {..} widget
     elConf = _tableConfig_elConfig <> def
       { _classes = tableConfigClasses config }
 
-table :: UI js t m => TableConfig t -> m a -> m a
+table :: UI t m => TableConfig t -> m a -> m a
 table c = fmap snd . table' c
 
 thead :: DomBuilder t m => m a -> m a

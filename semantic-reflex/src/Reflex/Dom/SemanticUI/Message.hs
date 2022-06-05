@@ -95,13 +95,13 @@ messageConfigClasses MessageConfig {..} = dynClasses
   , fmap toClassText <$> _messageConfig_size
   ]
 
-message :: UI js t m => MessageConfig t -> m a -> m a
+message :: UI t m => MessageConfig t -> m a -> m a
 message c = fmap snd . message' c
 
 -- | Message UI Element. The minimum useful message only needs a label and a
 -- default configuration.
 message'
-  :: UI js t m => MessageConfig t -> m a
+  :: UI t m => MessageConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 message' config@MessageConfig{..} content
   = ui' "div" elConf $ case _messageConfig_icon of

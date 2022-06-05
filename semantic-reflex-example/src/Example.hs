@@ -59,7 +59,7 @@ data Category t m = Category
 data Status = Implemented | PartiallyImplemented | NotImplemented deriving Show
 
 -- | A log of the implementation progress
-progressTable :: (MonadWidget t m, Prerender js t m) => [Category t m]
+progressTable :: (MonadWidget t m, Prerender t m) => [Category t m]
 progressTable =
   [ Category "Elements"
     [ ("Button", Implemented, Just buttonSection)
@@ -119,7 +119,7 @@ progressTable =
     ]
   ]
 
-progressProgress :: forall js t m. (MonadWidget t m, Prerender js t m) => m (Progress t m)
+progressProgress :: forall t m. (MonadWidget t m, Prerender t m) => m (Progress t m)
 progressProgress = progress (pure $ Range 0 vMax) (pure v) $ def
   & progressConfig_color |?~ Teal
   & progressConfig_bar ?~ PercentageBar
@@ -132,7 +132,7 @@ progressProgress = progress (pure $ Range 0 vMax) (pure v) $ def
       PartiallyImplemented -> 1
       Implemented -> 2
 
-intro :: forall js t m. (RouteWriter t Text m, MonadWidget t m, Prerender js t m) => Section t m
+intro :: forall t m. (RouteWriter t Text m, MonadWidget t m, Prerender t m) => Section t m
 intro = Section "Introduction" blank $ do
   paragraph $ do
     text "This library aims to provide a type safe Haskell wrapper around Semantic UI components, to allow easy construction of nice looking web applications in GHCJS. It is currently in early development and started as a fork of the "
@@ -204,7 +204,7 @@ headContents = do
   elAttr "link" ("rel" =: "stylesheet" <> "href" =: "https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.css") blank
   el "style" $ text $(makeRelativeToProject "resources/styling.css" >>= embedStringFile)
 
-testApp :: (MonadWidget t m, Prerender js t m) => m ()
+testApp :: (MonadWidget t m, Prerender t m) => m ()
 testApp = do
   tog <- toggle True <=< button def $ text "Toggle"
   dyn $ ffor tog $ \case
@@ -214,7 +214,7 @@ testApp = do
     True -> for_ [1 :: Int ..2000] $ \i -> button def $ text $ "Static " <> tshow i
   pure ()
 
-runWithLoader :: (MonadWidget t m, Prerender js t m) => m ()
+runWithLoader :: (MonadWidget t m, Prerender t m) => m ()
 runWithLoader = do
   pb <- delay 0 =<< getPostBuild
   rec loadingDimmer pb'
@@ -222,12 +222,12 @@ runWithLoader = do
       pb' <- fmap updated $ widgetHold blank $ app <$ pb
   return ()
 
-loadingDimmer :: (MonadWidget t m, Prerender js t m) => Event t () -> m ()
+loadingDimmer :: (MonadWidget t m, Prerender t m) => Event t () -> m ()
 loadingDimmer evt = do
   void $ dimmer (def & dimmerConfig_page .~ True & action ?~ def { _action_transition = Transition Fade (Just Out) def <$ evt }) $
     divClass "ui huge text loader" $ text "Loading semantic-reflex docs..."
 
-app :: forall js t m. (MonadWidget t m, Prerender js t m) => m ()
+app :: forall t m. (MonadWidget t m, Prerender t m) => m ()
 app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
 
   -- Header
@@ -305,11 +305,11 @@ app = runRouteWithPathInFragment $ fmap snd $ runRouteWriterT $ do
     let url = "https://www.creativetail.com/40-free-flat-animal-icons/"
     hyperlink url $ text "Creative Tail"
 
-semanticLogo :: (MonadWidget t m, Prerender js t m) => m ()
+semanticLogo :: (MonadWidget t m, Prerender t m) => m ()
 semanticLogo = image (def & imageConfig_shape |?~ Rounded) $ Left $ Img url def
   where url = "https://semantic-ui.com/images/logo.png"
 
-githubButton :: (MonadWidget t m, Prerender js t m) => m ()
+githubButton :: (MonadWidget t m, Prerender t m) => m ()
 githubButton = void $ button conf $ do
   icon "github" def
   text "GitHub"
@@ -319,6 +319,6 @@ githubButton = void $ button conf $ do
       & buttonConfig_type .~ LinkButton & buttonConfig_color |?~ Teal
       & attrs |~ ("href" =: url)
 
-hackageButton :: (MonadWidget t m, Prerender js t m) => m ()
+hackageButton :: (MonadWidget t m, Prerender t m) => m ()
 hackageButton = void $ button conf $ text "Hackage"
   where conf = def & buttonConfig_type .~ LinkButton & buttonConfig_disabled |~ True

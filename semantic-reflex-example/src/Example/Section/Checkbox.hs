@@ -19,7 +19,7 @@ import Reflex.Dom.Core hiding (Checkbox, CheckboxConfig, checkbox, button, check
 import Example.QQ
 import Example.Common
 
-checkboxes :: forall js t m. (MonadWidget t m, Prerender js t m) => Section t m
+checkboxes :: forall t m. (MonadWidget t m, Prerender t m) => Section t m
 checkboxes = Section "Checkbox" (simpleLink "https://semantic-ui.com/modules/checkbox.html") $ do
 
   message (def & messageConfig_type |?~ InfoMessage) $ paragraph $ do

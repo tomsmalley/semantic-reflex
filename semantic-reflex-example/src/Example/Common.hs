@@ -126,7 +126,7 @@ instance Applicative m => Default (ExampleConf t m a) where
     , _dynamic = Nothing
     }
 
-upstreamIssue :: (MonadWidget t m, Prerender js t m) => Int -> Text -> m ()
+upstreamIssue :: (MonadWidget t m, Prerender t m) => Int -> Text -> m ()
 upstreamIssue issue msg = message def $ paragraph $ do
   icon "warning sign" def
   text msg
@@ -137,7 +137,7 @@ upstreamIssue issue msg = message def $ paragraph $ do
     url = "https://github.com/Semantic-Org/Semantic-UI/issues/" <> tshow issue
 
 mkExample
-  :: (MonadWidget t m, Prerender js t m)
+  :: (MonadWidget t m, Prerender t m)
   => Text -> ExampleConf t m a -> (String, Either (m a) (Event t () -> m a))
   -> m () -- (El t, a)
 mkExample name ExampleConf {..} (code, eitherWidget)

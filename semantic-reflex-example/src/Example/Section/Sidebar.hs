@@ -22,7 +22,7 @@ import Reflex.Dom.Core (text)
 import Example.QQ
 import Example.Common
 
-sidebars :: forall js t m. (MonadWidget t m, Prerender js t m) => Section t m
+sidebars :: forall t m. (MonadWidget t m, Prerender t m) => Section t m
 sidebars = Section "Sidebar" (text "A sidebar hides additional content beside a page.") $ do
 
   hscode $ $(printDefinition id stripParens ''SidebarConfig)
@@ -63,7 +63,7 @@ sidebars = Section "Sidebar" (text "A sidebar hides additional content beside a 
 
   return ()
 
-buttonMenu :: (Show a, Ord a, UI js t m) => a -> [a] -> m (Dynamic t a)
+buttonMenu :: (Show a, Ord a, UI t m) => a -> [a] -> m (Dynamic t a)
 buttonMenu ini as = buttons def $ mdo
   selected <- holdDyn ini $ leftmost es
   let selectedDemux = demux selected
@@ -72,13 +72,13 @@ buttonMenu ini as = buttons def $ mdo
     pure $ a <$ e
   pure selected
 
-toggleButton :: UI js t m => m () -> m (Dynamic t Bool)
+toggleButton :: UI t m => m () -> m (Dynamic t Bool)
 toggleButton content = mdo
   dimmingClick <- selectableButton dimming content
   dimming <- toggle False dimmingClick
   pure dimming
 
-selectableButton :: UI js t m => Dynamic t Bool -> m () -> m (Event t ())
+selectableButton :: UI t m => Dynamic t Bool -> m () -> m (Event t ())
 selectableButton selected = button $ def
   { _buttonConfig_emphasis = Dyn $ ffor selected $ \case
     True -> Just Primary

@@ -72,9 +72,9 @@ data Some a = None | Only a | Some (Seq a)
 -- Then, fire the returned 'Event' with the collected values. The initial
 -- triggering event will be returned immediately in a single value 'Seq'.
 batchOccurrencesImmediate
-  :: forall t m js a.
+  :: forall t m a.
     ( MonadHold t m, PerformEvent t m, TriggerEvent t m
-    , MonadFix m, Prerender js t m)
+    , MonadFix m, Prerender t m)
   => NominalDiffTime -> Event t a -> m (Event t (Seq a))
 batchOccurrencesImmediate t newValues = do
   rec (buffer, toDelay) <- mapAccumMaybe f None $ align newValues delayed
@@ -103,7 +103,7 @@ batchOccurrencesImmediate t newValues = do
 -- | Prevent a 'Dynamic' from updating faster than the given time step.
 rateLimitDyn
   :: ( MonadSample t m, PostBuild t m, MonadHold t m, MonadFix m
-     , PerformEvent t m, TriggerEvent t m, Prerender js t m)
+     , PerformEvent t m, TriggerEvent t m, Prerender t m)
   => NominalDiffTime -> Dynamic t a -> m (Dynamic t a)
 rateLimitDyn t d = do
   eUpdate <- batchOccurrencesImmediate t $ updated d
@@ -111,7 +111,7 @@ rateLimitDyn t d = do
   holdDyn a $ tag (current d) eUpdate
 
 -- | Delay individual Event occurrences by the amount given in the event, in seconds.
-delaySelf_ :: (PerformEvent t m, TriggerEvent t m, Prerender js t m)
+delaySelf_ :: (PerformEvent t m, TriggerEvent t m, Prerender t m)
           => Event t NominalDiffTime -> m (Event t ())
 delaySelf_ e = fmap (switch . current) $ prerender (pure never) $
   performEventAsync $ ffor e $ \dt cb -> liftIO $ void $ forkIO $ do
@@ -119,7 +119,7 @@ delaySelf_ e = fmap (switch . current) $ prerender (pure never) $
   cb ()
 
 -- | Delay individual Event occurrences by the amount given in the event, in seconds.
-delaySelf :: (PerformEvent t m, TriggerEvent t m, Prerender js t m)
+delaySelf :: (PerformEvent t m, TriggerEvent t m, Prerender t m)
           => Event t (NominalDiffTime, a) -> m (Event t a)
 delaySelf e = fmap (switch . current) $ prerender (pure never) $
   performEventAsync $ ffor e $ \(dt, a) cb -> liftIO $ void $ forkIO $ do

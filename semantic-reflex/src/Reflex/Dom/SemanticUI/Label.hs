@@ -155,15 +155,15 @@ labelConfigClasses LabelConfig {..} = dynClasses
 
 
 detail'
-  :: UI js t m => Dynamic t Text -> m (Element EventResult (DomBuilderSpace m) t)
+  :: UI t m => Dynamic t Text -> m (Element EventResult (DomBuilderSpace m) t)
 detail' = fmap fst . ui' "div" elConf . dynText
   where elConf = def { _classes = "detail" }
 
-detail :: UI js t m => Dynamic t Text -> m ()
+detail :: UI t m => Dynamic t Text -> m ()
 detail = void . detail'
 
 label'
-  :: UI js t m => LabelConfig t -> m a
+  :: UI t m => LabelConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 label' config@LabelConfig {..} = ui' elType elConf
   where
@@ -172,5 +172,5 @@ label' config@LabelConfig {..} = ui' elType elConf
       }
     elType = if _labelConfig_link then "a" else "div"
 
-label :: UI js t m => LabelConfig t -> m a -> m a
+label :: UI t m => LabelConfig t -> m a -> m a
 label c = fmap snd . label' c

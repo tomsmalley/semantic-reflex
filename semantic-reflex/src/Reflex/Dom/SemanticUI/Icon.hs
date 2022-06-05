@@ -129,7 +129,7 @@ data Icon t = Icon (Active t Text) (IconConfig t)
 -- | Create an icon. Available icon types are listed here:
 -- <https://semantic-ui.com/elements/icon.html>
 icon
-  :: UI js t m
+  :: UI t m
   => Active t Text  -- ^ Icon type
   -> IconConfig t   -- ^ Icon config
   -> m ()
@@ -138,7 +138,7 @@ icon i = void . icon' i
 -- | Create an icon, returning the 'Element'. Available icon types are listed
 -- here: <https://semantic-ui.com/elements/icon.html>
 icon'
-  :: UI js t m => Active t Text -> IconConfig t
+  :: UI t m => Active t Text -> IconConfig t
   -> m (Element EventResult (DomBuilderSpace m) t)
 icon' dynIcon config@IconConfig {..}
   = fst <$> ui' "i" elConf blank
@@ -174,7 +174,7 @@ iconsConfigClasses IconsConfig {..} = dynClasses
 
 -- | Create an icon group, returning the 'Element'.
 icons'
-  :: UI js t m => IconsConfig t -> m a
+  :: UI t m => IconsConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 icons' config@IconsConfig {..} = ui' "i" elConf
   where
@@ -182,5 +182,5 @@ icons' config@IconsConfig {..} = ui' "i" elConf
       { _classes = iconsConfigClasses config }
 
 -- | Create an icon group.
-icons :: UI js t m => IconsConfig t -> m a -> m a
+icons :: UI t m => IconsConfig t -> m a -> m a
 icons config = fmap snd . icons' config

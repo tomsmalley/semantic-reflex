@@ -68,7 +68,7 @@ library
     , mtl
     , random
     , reflex            >= 0.5 && < 0.9
-    , reflex-dom-core   >= 0.5 && < 0.7
+    , reflex-dom-core   >= 0.7 && < 0.8
     , ref-tf
     , semialign         >= 1
     , template-haskell

@@ -76,7 +76,7 @@ dimmerConfigClasses DimmerConfig {..} = dynClasses'
 
 -- | Dimmer UI Element.
 dimmer'
-  :: forall t m js a. UI js t m => DimmerConfig t -> m a
+  :: forall t m a. UI t m => DimmerConfig t -> m a
   -> m (Element EventResult (DomBuilderSpace m) t, a)
 dimmer' config@DimmerConfig {..} content = mdo
 
@@ -108,5 +108,5 @@ dimmer' config@DimmerConfig {..} content = mdo
       }
 
 -- | Dimmer UI Element.
-dimmer :: UI js t m => DimmerConfig t -> m a -> m a
+dimmer :: UI t m => DimmerConfig t -> m a -> m a
 dimmer c = fmap snd . dimmer' c

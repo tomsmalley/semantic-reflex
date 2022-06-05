@@ -122,7 +122,7 @@ sidebarConfigClasses side SidebarConfig {..} = dynClasses'
 -- functions. You must apply these functions to the top level element config in
 -- order for the sidebar to work correctly.
 sidebar
-  :: forall t m js a b. UI js t m
+  :: forall t m a b. UI t m
   => Dynamic t Side -- ^ Which side the sidebar is on
   -> Direction  -- ^ The starting direction
   -> Event t (Maybe Direction) -- ^ Direction updates

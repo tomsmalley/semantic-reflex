@@ -51,7 +51,7 @@ library
     , lens            >= 4.15.2
     , mtl
     , reflex-dom
-    , reflex-dom-core >= 0.5 && < 0.7
+    , reflex-dom-core >= 0.7 && < 0.8
     , reflex-dom-nested-routing
     , random
     , semantic-reflex
@@ -88,4 +88,3 @@ executable semantic-reflex-example
     build-depends: reflex-dom
     ghc-options: -dedupe
     cpp-options: -DGHCJS_GC_INTERVAL=60000
-
